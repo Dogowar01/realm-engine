@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Realm Engine">
+  <meta name="theme-color" content="#08090e">
+  <title>Realm Engine</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Share+Tech+Mono&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#08090e;--bg2:#0f1019;--bg3:#13141f;--bdr:#1e2035;--gold:#d4a853;--gold-dim:#8a6b30;--green:#4ade80;--red:#f87171;--blue:#60a5fa;--purple:#c4b5fd;--text:#e8dfc8;--text2:#7a7060;--fd:'Cinzel',serif;--fb:'Crimson Pro',Georgia,serif;--fm:'Share Tech Mono',monospace;}
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+    html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--fb)}
+    #app{display:flex;flex-direction:column;height:100dvh;position:relative;overflow:hidden}
+    .screen{position:absolute;inset:0;display:flex;flex-direction:column;transition:opacity .35s,transform .35s}
+    .screen.gone{opacity:0;pointer-events:none;transform:translateY(16px)}
+
+    /* INTRO */
+    #s-intro{align-items:center;justify-content:center;padding:2rem 1.5rem}
+    .logo-icon{font-size:3.5rem;margin-bottom:1.2rem;animation:gpulse 3s ease-in-out infinite}
+    @keyframes gpulse{0%,100%{filter:drop-shadow(0 0 6px var(--gold))}50%{filter:drop-shadow(0 0 22px var(--gold))}}
+    .logo-title{font-family:var(--fd);font-size:2.4rem;color:var(--gold);letter-spacing:.12em;text-shadow:0 0 28px rgba(212,168,83,.35);margin-bottom:.4rem}
+    .logo-sub{font-family:var(--fm);font-size:.63rem;color:var(--text2);letter-spacing:.25em;margin-bottom:2.4rem}
+    .field-lbl{font-family:var(--fm);font-size:.63rem;color:var(--text2);letter-spacing:.18em;margin-bottom:.42rem;display:block}
+    .api-wrap{width:100%;max-width:380px;margin-bottom:1.2rem}
+    input[type=password],input[type=text],textarea{width:100%;background:var(--bg3);border:1px solid var(--bdr);border-radius:5px;padding:.68rem .9rem;color:var(--text);font-family:var(--fm);font-size:.83rem;outline:none;transition:border-color .2s;-webkit-appearance:none}
+    input[type=password]:focus,input[type=text]:focus,textarea:focus{border-color:var(--gold-dim)}
+    .btn-gold{width:100%;max-width:380px;padding:.92rem;background:transparent;border:1px solid var(--gold);border-radius:5px;color:var(--gold);font-family:var(--fd);font-size:.92rem;letter-spacing:.15em;cursor:pointer;transition:all .2s;margin-bottom:.65rem}
+    .btn-gold:hover,.btn-gold:active{background:rgba(212,168,83,.1);box-shadow:0 0 16px rgba(212,168,83,.18)}
+    .btn-gold:disabled{opacity:.35;cursor:not-allowed}
+    .btn-ghost{width:100%;max-width:380px;padding:.68rem;background:transparent;border:1px solid var(--bdr);border-radius:5px;color:var(--text2);font-family:var(--fm);font-size:.73rem;letter-spacing:.12em;cursor:pointer;transition:all .2s}
+    .btn-ghost:hover{border-color:var(--text2);color:var(--text)}
+    .err{font-family:var(--fm);font-size:.66rem;color:var(--red);text-align:center;margin-top:.45rem;min-height:1em}
+
+    /* WORLD SELECTION */
+    #s-world{overflow-y:auto;padding:1.1rem 1rem 2rem}
+    .world-hd{font-family:var(--fd);font-size:1rem;color:var(--gold);text-align:center;letter-spacing:.12em;margin-bottom:.25rem}
+    .world-sub{font-family:var(--fm);font-size:.62rem;color:var(--text2);text-align:center;letter-spacing:.12em;margin-bottom:1.2rem}
+    .world-grid{display:flex;flex-direction:column;gap:.75rem;margin-bottom:1rem}
+    .world-card{background:var(--bg3);border:1px solid var(--bdr);border-radius:8px;padding:1rem;cursor:pointer;transition:all .25s;position:relative;overflow:hidden}
+    .world-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .25s;border-radius:8px}
+    .world-card:hover,.world-card.sel{border-color:var(--gold);box-shadow:0 0 14px rgba(212,168,83,.14)}
+    .world-card.sel::after{content:'✦';position:absolute;top:.75rem;right:.85rem;color:var(--gold);font-size:.9rem}
+    .world-accent{position:absolute;top:0;left:0;width:3px;height:100%;border-radius:8px 0 0 8px;transition:opacity .25s}
+    .world-card.sel .world-accent{opacity:1}
+    .world-icon{font-size:1.5rem;margin-bottom:.45rem}
+    .world-name{font-family:var(--fd);font-size:.92rem;color:var(--gold);margin-bottom:.18rem;letter-spacing:.05em}
+    .world-tag{font-family:var(--fm);font-size:.6rem;color:var(--text2);letter-spacing:.14em;margin-bottom:.55rem}
+    .world-desc{font-size:.88rem;color:var(--text);line-height:1.6}
+    .custom-wrap{margin-top:.65rem;display:none}
+    .custom-wrap.show{display:block}
+    .custom-ta{width:100%;min-height:90px;resize:vertical;font-family:var(--fb);font-size:.9rem;line-height:1.55;color:var(--text);background:var(--bg3);border:1px solid var(--bdr);border-radius:5px;padding:.65rem .85rem;outline:none;-webkit-appearance:none}
+    .custom-ta:focus{border-color:var(--gold-dim)}
+    .custom-ta::placeholder{color:var(--text2);font-family:var(--fm);font-size:.75rem}
+
+    /* CREATION */
+    #s-create{overflow-y:auto;padding:1.1rem 1rem 2rem}
+    .create-hd{font-family:var(--fd);font-size:1rem;color:var(--gold);text-align:center;letter-spacing:.12em;margin-bottom:.18rem}
+    .create-world-tag{font-family:var(--fm);font-size:.6rem;color:var(--text2);text-align:center;letter-spacing:.14em;margin-bottom:.9rem}
+    .char-grid{display:flex;flex-direction:column;gap:.8rem;margin-bottom:1rem}
+    .char-card{background:var(--bg3);border:1px solid var(--bdr);border-radius:8px;padding:1.05rem;cursor:pointer;transition:all .25s;position:relative}
+    .char-card:hover,.char-card.sel{border-color:var(--gold);box-shadow:0 0 12px rgba(212,168,83,.13)}
+    .char-card.sel::after{content:'✦';position:absolute;top:.75rem;right:.85rem;color:var(--gold)}
+    .card-title{font-family:var(--fd);font-size:.92rem;color:var(--gold);margin-bottom:.18rem}
+    .card-class{font-family:var(--fm);font-size:.6rem;color:var(--text2);letter-spacing:.14em;margin-bottom:.55rem}
+    .card-desc{font-size:.9rem;color:var(--text);line-height:1.55;margin-bottom:.7rem}
+    .stat-chips{display:flex;gap:.35rem;flex-wrap:wrap}
+    .chip{font-family:var(--fm);font-size:.58rem;padding:.16rem .42rem;border:1px solid var(--bdr);border-radius:3px;color:var(--text2)}
+    .chip b{color:var(--gold)}
+    .name-wrap{margin-bottom:1rem}
+    .name-input{width:100%;background:var(--bg3);border:1px solid var(--bdr);border-radius:5px;padding:.72rem;color:var(--gold);font-family:var(--fd);font-size:1.05rem;outline:none;text-align:center;transition:border-color .2s;-webkit-appearance:none}
+    .name-input:focus{border-color:var(--gold-dim)}
+    .name-input::placeholder{color:var(--text2);font-family:var(--fm);font-size:.78rem}
+
+    /* GAME */
+    #s-game{display:flex;flex-direction:column}
+    #g-header{background:var(--bg2);border-bottom:1px solid var(--bdr);padding:.52rem .85rem;flex-shrink:0;display:flex;align-items:center;gap:.6rem}
+    .lvl-badge{width:36px;height:36px;border:2px solid var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:.83rem;color:var(--gold);font-weight:700;flex-shrink:0;box-shadow:0 0 9px rgba(212,168,83,.22);cursor:pointer;user-select:none}
+    .hdr-info{flex:1;min-width:0}
+    .hdr-name{font-family:var(--fd);font-size:.8rem;color:var(--gold);letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .hdr-bars{display:flex;gap:.32rem;margin-top:.26rem;align-items:center}
+    .bar-w{display:flex;align-items:center;gap:.26rem;flex:1}
+    .bar-lbl{font-family:var(--fm);font-size:.5rem;color:var(--text2);letter-spacing:.1em;flex-shrink:0}
+    .bar-track{flex:1;height:5px;background:var(--bg);border-radius:3px;overflow:hidden}
+    .bar-fill{height:100%;border-radius:3px;transition:width .5s}
+    .bar-fill.hp{background:var(--red);box-shadow:0 0 4px rgba(248,113,113,.4)}
+    .bar-fill.xp{background:var(--gold);box-shadow:0 0 4px rgba(212,168,83,.4)}
+    .hdr-btns{display:flex;flex-direction:column;gap:.22rem;flex-shrink:0}
+    .hdr-btn{background:none;border:1px solid var(--bdr);border-radius:3px;padding:.22rem .48rem;color:var(--text2);font-family:var(--fm);font-size:.54rem;cursor:pointer;letter-spacing:.1em;transition:all .2s;white-space:nowrap}
+    .hdr-btn:hover{border-color:var(--gold-dim);color:var(--gold)}
+    #narrative{flex:1;overflow-y:auto;padding:.85rem;display:flex;flex-direction:column;gap:.85rem;scroll-behavior:smooth}
+    .msg{animation:msg-in .3s ease}
+    @keyframes msg-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+    .msg-lbl{font-family:var(--fm);font-size:.56rem;letter-spacing:.2em;margin-bottom:.32rem}
+    .dm .msg-lbl{color:var(--gold-dim)}
+    .player-msg{align-self:flex-end;text-align:right}
+    .player-msg .msg-lbl{color:var(--text2)}
+    .dm-bubble{font-family:var(--fb);font-size:1.01rem;line-height:1.72;color:var(--text);padding:.72rem .9rem;background:var(--bg3);border-radius:0 7px 7px 7px;border-left:2px solid var(--gold-dim)}
+    .player-bubble{font-family:var(--fb);font-size:.96rem;line-height:1.6;color:var(--text);padding:.62rem .9rem;background:rgba(212,168,83,.07);border:1px solid rgba(212,168,83,.17);border-radius:7px 0 7px 7px;display:inline-block;max-width:88%}
+    .sys-msg{text-align:center}
+    .sys-bubble{font-family:var(--fm);font-size:.7rem;letter-spacing:.08em;padding:.32rem .65rem;border-radius:4px;display:inline-block}
+    .sys-xp .sys-bubble{color:var(--gold);background:rgba(212,168,83,.1);border:1px solid rgba(212,168,83,.2)}
+    .sys-skill .sys-bubble{color:var(--green);background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.17)}
+    .sys-damage .sys-bubble{color:var(--red);background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.17)}
+    .sys-info .sys-bubble{color:var(--blue);background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.17)}
+    .sys-loot .sys-bubble{color:var(--purple);background:rgba(196,181,253,.08);border:1px solid rgba(196,181,253,.17)}
+    .sys-lore .sys-bubble{color:#fbbf24;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2)}
+    .dice-msg{text-align:center}
+    .dice-card{display:inline-flex;flex-direction:column;align-items:center;padding:.65rem 1.35rem;background:var(--bg3);border:1px solid var(--bdr);border-radius:8px}
+    .dr-type{font-family:var(--fm);font-size:.58rem;color:var(--text2);letter-spacing:.18em;margin-bottom:.18rem}
+    .dr-num{font-family:var(--fd);font-size:2.3rem;color:var(--gold);line-height:1}
+    .dr-mod{font-family:var(--fm);font-size:.62rem;color:var(--text2);margin-top:.12rem}
+    .dr-out{font-family:var(--fm);font-size:.62rem;margin-top:.3rem;padding:.1rem .42rem;border-radius:3px}
+    .dr-out.success{color:var(--green);background:rgba(74,222,128,.1)}
+    .dr-out.fail{color:var(--red);background:rgba(248,113,113,.1)}
+    .dr-out.crit{color:var(--gold);background:rgba(212,168,83,.14);animation:crit-p .6s ease}
+    .dr-out.fumble{color:var(--red);background:rgba(248,113,113,.14)}
+    @keyframes crit-p{0%,100%{box-shadow:none}50%{box-shadow:0 0 16px rgba(212,168,83,.48)}}
+    .typing-bubble{display:flex;gap:4px;padding:.68rem .9rem;background:var(--bg3);border-radius:0 7px 7px 7px;border-left:2px solid var(--gold-dim);width:fit-content;align-items:center}
+    .tdot{width:5px;height:5px;background:var(--gold-dim);border-radius:50%;animation:tb 1.2s ease-in-out infinite}
+    .tdot:nth-child(2){animation-delay:.15s}.tdot:nth-child(3){animation-delay:.3s}
+    @keyframes tb{0%,80%,100%{transform:translateY(0);opacity:.35}40%{transform:translateY(-5px);opacity:1}}
+    #input-area{background:var(--bg2);border-top:1px solid var(--bdr);padding:.62rem .85rem;display:flex;gap:.42rem;align-items:flex-end;flex-shrink:0}
+    .dice-btn{width:42px;height:42px;background:var(--bg3);border:1px solid var(--bdr);border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.22rem;flex-shrink:0;transition:all .2s;color:var(--text2)}
+    .dice-btn:hover{border-color:var(--gold-dim);color:var(--gold)}
+    #msg-input{flex:1;background:var(--bg3);border:1px solid var(--bdr);border-radius:7px;padding:.58rem .82rem;color:var(--text);font-family:var(--fb);font-size:1rem;outline:none;resize:none;min-height:42px;max-height:110px;line-height:1.5;transition:border-color .2s;-webkit-appearance:none}
+    #msg-input:focus{border-color:var(--gold-dim)}
+    #msg-input::placeholder{color:var(--text2)}
+    .send-btn{width:42px;height:42px;background:var(--gold);border:none;border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all .2s;color:var(--bg);font-size:1rem}
+    .send-btn:hover{background:#e5b864}
+    .send-btn:disabled{background:var(--bdr);color:var(--text2);cursor:not-allowed}
+
+    /* DRAWERS */
+    .drawer{position:fixed;top:0;bottom:0;width:min(320px,88vw);background:#0b0c14;z-index:100;display:flex;flex-direction:column;transition:transform .3s ease;overflow:hidden}
+    .dl{left:0;border-right:1px solid var(--bdr);transform:translateX(-100%)}
+    .dr{right:0;border-left:1px solid var(--bdr);transform:translateX(100%)}
+    .dl.open{transform:translateX(0)}.dr.open{transform:translateX(0)}
+    .dov{position:fixed;inset:0;background:rgba(0,0,0,.52);z-index:99;display:none}
+    .dov.vis{display:block}
+    .drawer-hd{padding:.88rem 1.05rem;border-bottom:1px solid var(--bdr);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;background:var(--bg2)}
+    .drawer-title{font-family:var(--fd);font-size:.78rem;color:var(--gold);letter-spacing:.15em}
+    .drawer-close{background:none;border:none;color:var(--text2);font-size:1.05rem;cursor:pointer;padding:.18rem}
+    .drawer-body{flex:1;overflow-y:auto;padding:.95rem 1.05rem}
+    .tab-wrap{display:flex;flex-direction:column;flex:1;overflow:hidden}
+    .tab-bar{display:flex;border-bottom:1px solid var(--bdr);flex-shrink:0;background:var(--bg2)}
+    .tab{flex:1;font-family:var(--fm);font-size:.58rem;letter-spacing:.12em;color:var(--text2);padding:.6rem .2rem;text-align:center;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+    .tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+    .tab-panels{flex:1;overflow:hidden;position:relative}
+    .tab-panel{display:none;position:absolute;inset:0;overflow-y:auto;padding:.95rem 1.05rem}
+    .tab-panel.active{display:block}
+    .sec-lbl{font-family:var(--fm);font-size:.55rem;color:var(--text2);letter-spacing:.2em;margin-bottom:.65rem;padding-bottom:.32rem;border-bottom:1px solid var(--bdr);display:block}
+    .cs-sec{margin-bottom:1.3rem}
+    .cs-id{text-align:center;margin-bottom:1.3rem}
+    .cs-name{font-family:var(--fd);font-size:1.2rem;color:var(--gold);margin-bottom:.18rem}
+    .cs-sub{font-family:var(--fm);font-size:.62rem;color:var(--text2);letter-spacing:.08em}
+    .hp-row{display:flex;align-items:center;gap:.6rem;margin-bottom:.85rem}
+    .hp-lbl{font-family:var(--fm);font-size:.58rem;color:var(--text2);letter-spacing:.1em}
+    .hp-bar{flex:1;height:7px;background:var(--bg);border-radius:4px;overflow:hidden}
+    .hp-fill{height:100%;background:var(--red);border-radius:4px;box-shadow:0 0 6px rgba(239,68,68,.4);transition:width .5s}
+    .hp-val{font-family:var(--fd);font-size:.88rem;color:var(--red);cursor:pointer;border-bottom:1px dashed rgba(248,113,113,.4);padding-bottom:.05rem;user-select:none}
+    .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.42rem}
+    .stat-b{background:var(--bg3);border:1px solid var(--bdr);border-radius:5px;padding:.52rem .42rem;text-align:center}
+    .sn{font-family:var(--fm);font-size:.5rem;color:var(--text2);letter-spacing:.12em;margin-bottom:.22rem}
+    .sv{font-family:var(--fd);font-size:1.22rem;color:var(--gold);line-height:1}
+    .sm{font-family:var(--fm);font-size:.52rem;color:var(--text2);margin-top:.06rem}
+    .ab-list{display:flex;flex-direction:column;gap:.35rem}
+    .ab-item{background:var(--bg3);border:1px solid var(--bdr);border-radius:4px;padding:.48rem .62rem;display:flex;align-items:flex-start;gap:.42rem}
+    .ab-ico{font-size:.82rem;margin-top:.04rem}
+    .ab-name{font-family:var(--fm);font-size:.63rem;color:var(--gold);margin-bottom:.06rem}
+    .ab-desc{font-size:.76rem;color:var(--text2);line-height:1.4}
+    .inv-list{display:flex;flex-wrap:wrap;gap:.32rem;margin-bottom:.5rem}
+    .inv-item{font-family:var(--fm);font-size:.58rem;padding:.2rem .46rem;background:var(--bg3);border:1px solid var(--bdr);border-radius:3px;color:var(--text)}
+    .gold-row{font-family:var(--fm);font-size:.72rem;color:var(--gold);margin-bottom:.8rem}
+    .recap-btn{width:100%;padding:.62rem;background:transparent;border:1px solid var(--bdr);border-radius:5px;color:var(--text2);font-family:var(--fm);font-size:.62rem;letter-spacing:.12em;cursor:pointer;transition:all .2s}
+    .recap-btn:hover{border-color:var(--gold-dim);color:var(--gold)}
+    .quest-item,.lore-item,.npc-item{background:var(--bg3);border:1px solid var(--bdr);border-radius:6px;padding:.72rem;margin-bottom:.5rem}
+    .quest-name,.lore-title,.npc-name{font-family:var(--fd);font-size:.78rem;margin-bottom:.22rem}
+    .quest-name{color:var(--gold)}.lore-title{color:#fbbf24}.npc-name{color:var(--gold)}
+    .quest-desc,.lore-content,.npc-note{font-size:.8rem;color:var(--text2);line-height:1.5}
+    .lore-content{color:var(--text)}
+    .npc-item{display:flex;gap:.62rem;align-items:flex-start}
+    .npc-disp{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:.3rem}
+    .npc-disp.friendly{background:var(--green);box-shadow:0 0 5px rgba(74,222,128,.4)}
+    .npc-disp.hostile{background:var(--red);box-shadow:0 0 5px rgba(248,113,113,.4)}
+    .npc-disp.neutral,.npc-disp.unknown{background:var(--text2)}
+    .npc-loc{font-family:var(--fm);font-size:.56rem;color:var(--text2);letter-spacing:.08em;margin-bottom:.12rem}
+    .empty-state{font-family:var(--fm);font-size:.62rem;color:var(--text2);letter-spacing:.08em;padding:.4rem 0}
+
+    /* DICE MODAL */
+    #dice-modal{position:fixed;inset:0;z-index:200;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity .25s}
+    #dice-modal.open{opacity:1;pointer-events:all}
+    .dice-sheet{background:var(--bg3);border:1px solid var(--bdr);border-bottom:none;border-radius:14px 14px 0 0;padding:1.25rem 1.25rem 2.2rem;width:100%;max-width:440px;transform:translateY(100%);transition:transform .3s ease}
+    #dice-modal.open .dice-sheet{transform:translateY(0)}
+    .dm-title{font-family:var(--fd);font-size:.8rem;color:var(--gold);letter-spacing:.2em;text-align:center;margin-bottom:1rem}
+    .die-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.52rem;margin-bottom:1rem}
+    .die-btn{aspect-ratio:1;background:var(--bg2);border:1px solid var(--bdr);border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;gap:.16rem}
+    .die-btn:hover,.die-btn:active{border-color:var(--gold);background:rgba(212,168,83,.1)}
+    .die-ico{font-size:1.3rem}.die-lbl{font-family:var(--fm);font-size:.56rem;color:var(--text2);letter-spacing:.1em}
+    .dice-res-zone{text-align:center;min-height:72px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.22rem}
+    #roll-ctx{font-family:var(--fm);font-size:.6rem;color:var(--text2);letter-spacing:.12em}
+    #roll-num{font-family:var(--fd);font-size:2.9rem;color:var(--gold);text-shadow:0 0 16px rgba(212,168,83,.42);display:none;line-height:1}
+    #roll-mod{font-family:var(--fm);font-size:.62rem;color:var(--text2);display:none}
+
+    /* HP EDIT */
+    #hp-modal{position:fixed;inset:0;z-index:250;display:flex;align-items:center;justify-content:center;padding:1.5rem;background:rgba(0,0,0,.72);opacity:0;pointer-events:none;transition:opacity .25s}
+    #hp-modal.open{opacity:1;pointer-events:all}
+    .hp-card{background:var(--bg3);border:1px solid var(--bdr);border-radius:10px;padding:1.5rem;width:100%;max-width:290px;text-align:center}
+    .hpe-title{font-family:var(--fd);font-size:.83rem;color:var(--gold);letter-spacing:.15em;margin-bottom:1.1rem}
+    .hpe-ctrl{display:flex;align-items:center;justify-content:center;gap:.8rem;margin-bottom:.6rem}
+    .hpe-btn{width:44px;height:44px;background:var(--bg2);border:1px solid var(--bdr);border-radius:7px;color:var(--gold);font-family:var(--fd);font-size:1.4rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+    .hpe-btn:hover{border-color:var(--gold);background:rgba(212,168,83,.1)}
+    #hpe-val{font-family:var(--fd);font-size:2.2rem;color:var(--red);min-width:60px}
+    .hpe-max{font-family:var(--fm);font-size:.6rem;color:var(--text2);margin-bottom:1rem;letter-spacing:.1em}
+    .hpe-row{display:flex;gap:.5rem}
+    .hpe-ok{flex:1;padding:.66rem;background:var(--gold);border:none;border-radius:5px;color:var(--bg);font-family:var(--fd);font-size:.83rem;letter-spacing:.1em;cursor:pointer}
+    .hpe-cancel{padding:.66rem .85rem;background:transparent;border:1px solid var(--bdr);border-radius:5px;color:var(--text2);font-family:var(--fm);font-size:.7rem;cursor:pointer}
+
+    /* RECAP */
+    #recap-modal{position:fixed;inset:0;z-index:200;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.65);opacity:0;pointer-events:none;transition:opacity .25s}
+    #recap-modal.open{opacity:1;pointer-events:all}
+    .recap-sheet{background:var(--bg3);border:1px solid var(--bdr);border-bottom:none;border-radius:14px 14px 0 0;padding:1.3rem 1.3rem 2.5rem;width:100%;max-width:480px;transform:translateY(100%);transition:transform .3s ease;max-height:72vh;overflow-y:auto}
+    #recap-modal.open .recap-sheet{transform:translateY(0)}
+    .recap-title{font-family:var(--fd);font-size:.82rem;color:var(--gold);letter-spacing:.18em;margin-bottom:.8rem;text-align:center}
+    #recap-text{font-family:var(--fb);font-size:.97rem;line-height:1.72;color:var(--text)}
+    .recap-close{width:100%;margin-top:1.2rem;padding:.62rem;background:transparent;border:1px solid var(--bdr);border-radius:5px;color:var(--text2);font-family:var(--fm);font-size:.62rem;letter-spacing:.12em;cursor:pointer}
+
+    /* LEVEL UP */
+    #lu-modal{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;padding:1.5rem;background:rgba(0,0,0,.82);opacity:0;pointer-events:none;transition:opacity .3s}
+    #lu-modal.open{opacity:1;pointer-events:all}
+    .lu-card{background:var(--bg3);border:2px solid var(--gold);border-radius:11px;padding:1.9rem 1.4rem;text-align:center;width:100%;max-width:330px;box-shadow:0 0 36px rgba(212,168,83,.26);animation:lu-pop .4s ease}
+    @keyframes lu-pop{from{transform:scale(.88);opacity:0}to{transform:scale(1);opacity:1}}
+    .lu-ico{font-size:2.7rem;margin-bottom:.85rem}
+    .lu-title{font-family:var(--fd);font-size:1.45rem;color:var(--gold);margin-bottom:.22rem;text-shadow:0 0 18px rgba(212,168,83,.32)}
+    .lu-sub{font-family:var(--fm);font-size:.65rem;color:var(--text2);letter-spacing:.2em;margin-bottom:1.3rem}
+    .lu-rewards{text-align:left;margin-bottom:1.3rem;display:flex;flex-direction:column;gap:.32rem}
+    .lu-reward{font-family:var(--fm);font-size:.7rem;color:var(--green);padding:.26rem .48rem;background:rgba(74,222,128,.08);border-radius:3px}
+
+    /* LOADING */
+    #loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:500;transition:opacity .5s}
+    #loading.gone{opacity:0;pointer-events:none}
+    .spin{width:34px;height:34px;border:2px solid var(--bdr);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;margin-bottom:.85rem}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .load-txt{font-family:var(--fm);font-size:.62rem;color:var(--text2);letter-spacing:.2em}
+    ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:2px}
+    .hidden{display:none!important}
+  </style>
+</head>
+<body>
+<div id="app">
+  <div id="loading"><div class="spin"></div><div class="load-txt">INITIALISING...</div></div>
+
+  <!-- INTRO -->
+  <div class="screen" id="s-intro">
+    <div class="logo-icon">⚔️</div>
+    <div class="logo-title">REALM ENGINE</div>
+    <div class="logo-sub">SOLO ADVENTURE · AI DUNGEON MASTER</div>
+    <div class="api-wrap">
+      <label class="field-lbl" for="api-in">ANTHROPIC API KEY</label>
+      <input type="password" id="api-in" placeholder="sk-ant-...">
+    </div>
+    <button class="btn-gold" id="btn-new">BEGIN NEW ADVENTURE</button>
+    <button class="btn-ghost hidden" id="btn-cont">CONTINUE JOURNEY</button>
+    <div class="err" id="intro-err"></div>
+  </div>
+
+  <!-- WORLD SELECTION -->
+  <div class="screen gone" id="s-world">
+    <div class="world-hd">CHOOSE YOUR WORLD</div>
+    <div class="world-sub">THIS DECISION SHAPES EVERYTHING</div>
+    <div class="world-grid" id="world-grid"></div>
+    <div class="custom-wrap" id="custom-wrap">
+      <textarea class="custom-ta" id="custom-ta" placeholder="Describe your world... its tone, setting, factions, central conflict, and what kind of stories it tells. The more detail you give, the better the DM will serve it."></textarea>
+    </div>
+    <button class="btn-gold hidden" id="btn-world-confirm" style="margin:0 0 1rem">ENTER THIS WORLD</button>
+    <div class="err" id="world-err"></div>
+  </div>
+
+  <!-- CHARACTER CREATION -->
+  <div class="screen gone" id="s-create">
+    <div class="create-hd">CHOOSE YOUR HERO</div>
+    <div class="create-world-tag" id="create-world-tag">—</div>
+    <div class="char-grid" id="char-grid"></div>
+    <div class="name-wrap hidden" id="name-wrap">
+      <div class="field-lbl" style="text-align:center;margin-bottom:.52rem">NAME YOUR HERO</div>
+      <input type="text" class="name-input" id="name-in" placeholder="Enter your name...">
+    </div>
+    <button class="btn-gold hidden" id="btn-begin" style="margin:0 0 1.1rem">ENTER THE REALM</button>
+    <div class="err hidden" id="create-err"></div>
+  </div>
+
+  <!-- GAME -->
+  <div class="screen gone" id="s-game">
+    <div id="g-header">
+      <div class="lvl-badge" id="lvl-badge">1</div>
+      <div class="hdr-info">
+        <div class="hdr-name" id="hdr-name">—</div>
+        <div class="hdr-bars">
+          <div class="bar-w"><span class="bar-lbl">HP</span><div class="bar-track"><div class="bar-fill hp" id="hp-bar" style="width:100%"></div></div></div>
+          <div class="bar-w"><span class="bar-lbl">XP</span><div class="bar-track"><div class="bar-fill xp" id="xp-bar" style="width:0%"></div></div></div>
+        </div>
+      </div>
+      <div class="hdr-btns">
+        <button class="hdr-btn" id="btn-quest">JOURNAL</button>
+        <button class="hdr-btn" id="btn-recap">RECAP</button>
+      </div>
+    </div>
+    <div id="narrative"></div>
+    <div id="input-area">
+      <button class="dice-btn" id="btn-dice">🎲</button>
+      <textarea id="msg-input" placeholder="What do you do?" rows="1"></textarea>
+      <button class="send-btn" id="btn-send">➤</button>
+    </div>
+  </div>
+
+  <div class="dov" id="dov"></div>
+
+  <!-- LEFT: CHARACTER SHEET -->
+  <div class="drawer dl" id="drw-char">
+    <div class="drawer-hd"><div class="drawer-title">CHARACTER SHEET</div><button class="drawer-close" id="close-char">✕</button></div>
+    <div class="drawer-body">
+      <div class="cs-id"><div class="cs-name" id="cs-name">—</div><div class="cs-sub" id="cs-sub">—</div></div>
+      <div class="cs-sec">
+        <span class="sec-lbl">VITALS</span>
+        <div class="hp-row">
+          <span class="hp-lbl">HP</span>
+          <div class="hp-bar"><div class="hp-fill" id="cs-hp-fill" style="width:100%"></div></div>
+          <span class="hp-val" id="cs-hp-val" title="Tap to edit HP">—</span>
+        </div>
+      </div>
+      <div class="cs-sec"><span class="sec-lbl">ATTRIBUTES</span><div class="stats-grid" id="stats-grid"></div></div>
+      <div class="cs-sec"><span class="sec-lbl">ABILITIES</span><div class="ab-list" id="ab-list"></div></div>
+      <div class="cs-sec"><span class="sec-lbl">INVENTORY</span><div class="inv-list" id="inv-list"></div><div class="gold-row" id="gold-row"></div></div>
+      <button class="recap-btn" id="recap-from-sheet">◎ SESSION RECAP</button>
+    </div>
+  </div>
+
+  <!-- RIGHT: JOURNAL -->
+  <div class="drawer dr" id="drw-quest">
+    <div class="drawer-hd"><div class="drawer-title">JOURNAL</div><button class="drawer-close" id="close-quest">✕</button></div>
+    <div class="tab-wrap">
+      <div class="tab-bar">
+        <div class="tab active" data-tab="quests">QUESTS</div>
+        <div class="tab" data-tab="lore">LORE</div>
+        <div class="tab" data-tab="npcs">NPCS</div>
+      </div>
+      <div class="tab-panels">
+        <div class="tab-panel active" id="tab-quests"><div id="quest-active"></div></div>
+        <div class="tab-panel" id="tab-lore"><div id="lore-list"></div></div>
+        <div class="tab-panel" id="tab-npcs"><div id="npc-list"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DICE MODAL -->
+  <div id="dice-modal">
+    <div class="dice-sheet">
+      <div class="dm-title">ROLL THE DICE</div>
+      <div class="die-grid">
+        <button class="die-btn" data-s="4"><span class="die-ico">◆</span><span class="die-lbl">d4</span></button>
+        <button class="die-btn" data-s="6"><span class="die-ico">⬡</span><span class="die-lbl">d6</span></button>
+        <button class="die-btn" data-s="8"><span class="die-ico">◈</span><span class="die-lbl">d8</span></button>
+        <button class="die-btn" data-s="10"><span class="die-ico">⬟</span><span class="die-lbl">d10</span></button>
+        <button class="die-btn" data-s="12"><span class="die-ico">⬠</span><span class="die-lbl">d12</span></button>
+        <button class="die-btn" data-s="20"><span class="die-ico">⬡</span><span class="die-lbl">d20</span></button>
+        <button class="die-btn" data-s="100"><span class="die-ico">◎</span><span class="die-lbl">d100</span></button>
+        <button class="die-btn" data-s="close" style="opacity:.5"><span class="die-ico" style="font-size:.9rem">✕</span><span class="die-lbl">CLOSE</span></button>
+      </div>
+      <div class="dice-res-zone"><div id="roll-ctx"></div><div id="roll-num"></div><div id="roll-mod"></div></div>
+    </div>
+  </div>
+
+  <!-- HP EDIT -->
+  <div id="hp-modal">
+    <div class="hp-card">
+      <div class="hpe-title">ADJUST HIT POINTS</div>
+      <div class="hpe-ctrl"><button class="hpe-btn" id="hpe-minus">−</button><div id="hpe-val">30</div><button class="hpe-btn" id="hpe-plus">+</button></div>
+      <div class="hpe-max" id="hpe-max">of 30 maximum</div>
+      <div class="hpe-row"><button class="hpe-cancel" id="hpe-cancel">CANCEL</button><button class="hpe-ok" id="hpe-ok">CONFIRM</button></div>
+    </div>
+  </div>
+
+  <!-- RECAP -->
+  <div id="recap-modal">
+    <div class="recap-sheet">
+      <div class="recap-title">◎ SESSION RECAP</div>
+      <div id="recap-text">Narrating your journey...</div>
+      <button class="recap-close" id="recap-close">CLOSE</button>
+    </div>
+  </div>
+
+  <!-- LEVEL UP -->
+  <div id="lu-modal">
+    <div class="lu-card">
+      <div class="lu-ico">⚡</div>
+      <div class="lu-title">LEVEL UP!</div>
+      <div class="lu-sub" id="lu-sub">YOU ARE NOW LEVEL 2</div>
+      <div class="lu-rewards" id="lu-rewards"></div>
+      <button class="btn-gold" id="lu-confirm">ACCEPT POWER</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── WORLDS ──────────────────────────────────────────────────
+const WORLDS = [
+  {
+    id:'sunken',
+    icon:'🌊',
+    name:'The Sunken Kingdoms',
+    tag:'SALVAGEPUNK · COASTAL HORROR · DROWNED HISTORY',
+    desc:'Three centuries ago, the world drowned. Ancient civilisations sleep beneath shallow inland seas, their towers still visible at low tide. The System emerged from the ruins — a dying god\'s last automation. Navigate salt-crusted ruins, negotiate with sea-cult factions, dive into flooded dungeons.',
+    accent:'#3b82f6',
+    brief:`WORLD — THE SUNKEN KINGDOMS:
+The world drowned three centuries ago. Ancient civilisations lie beneath shallow inland seas; their towers and spires are visible at low tide, picked over by salvagers and haunted by what drowned alongside them. The System itself is a dying god's last desperate automation — it still functions but its purpose is unclear, its notifications sometimes cryptic or wrong.
+TONE: Melancholic, eerie, salvagepunk. There is beauty in the ruins and horror beneath the water. Faith and superstition are rampant. Resources are scarce. Salt corrodes everything.
+KEY ELEMENTS: Drowned dungeons, sea-cult factions vying for ancient artefacts, the tension between surface-dwellers and the creatures that have claimed the deep, fragmentary lore about what caused the Drowning. NPCs are survivors, scavengers, cultists, or something older.`
+  },
+  {
+    id:'ascendancy',
+    icon:'⚔️',
+    name:'The Iron Ascendancy',
+    tag:'GRIMDARK · EMPIRE · POLITICAL INTRIGUE',
+    desc:'A vast empire enforces peace through brutal efficiency — and the System is its tool of control. Every citizen\'s stats are visible to the state. You are among the resistance, the criminals, the desperate. No clear heroes. Moral grey zones everywhere. Power is the only currency that matters.',
+    accent:'#ef4444',
+    brief:`WORLD — THE IRON ASCENDANCY:
+A continent-spanning empire has enforced "peace" for two hundred years through the System — a bureaucratic god that tracks every citizen's stats, skills and location. Loyalty ratings exist alongside HP. Dissidents find their System access revoked. The empire is not cartoonishly evil; it genuinely believes order prevents the suffering of chaos. It is also capable of atrocities.
+TONE: Grimdark, politically complex, morally grey. There are no clean heroes. Violence has weight and consequence. The resistance is fractured and compromised. Even the empire contains people worth saving.
+KEY ELEMENTS: Imperial checkpoints, black-market System hackers, underground resistance cells, collaborators and informants, ancient pre-empire history the state wants buried, the question of whether the System can be freed or must be destroyed.`
+  },
+  {
+    id:'fractured',
+    icon:'⬡',
+    name:'The Fractured System',
+    tag:'MYSTERY · REALITY-HORROR · META-LITRPG',
+    desc:'Something is wrong. Dungeons repeat themselves. NPCs remember things that didn\'t happen. The System sends notifications nobody else receives. The deeper you go, the more the world feels designed — and the more it seems to be failing. Someone built this place. They may still be watching.',
+    accent:'#a855f7',
+    brief:`WORLD — THE FRACTURED SYSTEM:
+The world is a LitRPG reality — always has been, as far as anyone knows. But something is breaking. Dungeons loop. Dead NPCs reappear with wrong memories. The System sends notifications that shouldn't exist — warnings about "sector instability", "narrative overflow", "unscripted actor detected." The player character alone seems to notice.
+TONE: Unsettling, paranoid, mystery-horror with existential undertones. Horror comes from wrongness — the almost-normal. Dark comedy is appropriate. Reality should feel fragile.
+KEY ELEMENTS: Glitched locations where physics behaves oddly, NPCs who break script, cryptic System messages, the growing suspicion that the world has architects who can intervene, competing theories about what the Fracture is and who benefits from it. The horror deepens the further the player investigates.`
+  },
+  {
+    id:'frontier',
+    icon:'🌵',
+    name:'The Last Frontier',
+    tag:'POST-APOCALYPTIC · DYING GODS · SURVIVAL',
+    desc:'The gods died fifty years ago and took the old world with them. What remains is a scavenger\'s paradise and a survivor\'s nightmare — dying cities, monster-haunted wastes, and a System nobody built but everyone uses. Find your footing in the wreckage. There\'s no going back.',
+    accent:'#f97316',
+    brief:`WORLD — THE LAST FRONTIER:
+Fifty years ago, the gods died — simultaneously, without warning, across every pantheon. Their deaths unmade the old world. Magic destabilised. Civilisations that depended on divine infrastructure collapsed overnight. What remains is a patchwork of survivor settlements, lawless frontier towns, monster-haunted ruins, and scavenger economies built on the bones of the old world. The System predates the god-death; nobody knows who made it or why it still runs.
+TONE: Bleak but not hopeless. Frontier grit. Dark humour as coping mechanism. Survival matters. Trust is rare and precious. Beauty exists in unexpected places.
+KEY ELEMENTS: Ruins of old-world cities, factions built on competing survival philosophies (militarist, isolationist, expansionist, death-cultist), the corrupted remnants of divine power still leaking from dead god-corpses, the question of whether gods can be remade or whether something should fill the void.`
+  },
+  {
+    id:'tournament',
+    icon:'🏆',
+    name:'The Eternal Tournament',
+    tag:'ACTION · TIME-BENDING · ARENA COMBAT',
+    desc:'Warriors, mages, and rogues are pulled from every era of history into a vast extradimensional arena. Each floor is a different time and place reconstructed as a combat zone. Survive long enough and you might discover who built this place — and why they keep adding new contestants.',
+    accent:'#eab308',
+    brief:`WORLD — THE ETERNAL TOURNAMENT:
+An extradimensional space pulls combatants from across history — Roman legionaries, medieval knights, future soldiers, ancient shamans — and forces them to compete across reconstructed environments from different eras. The System here is the Tournament itself, coldly efficient, tracking kills and rankings. Nobody knows who runs it. The prize for reaching the top floor is whispered to be anything you desire. Most people die on floor three.
+TONE: High-octane action with escalating stakes, dark mystery beneath the spectacle. Time-period clashes create both drama and dark comedy. Alliances form and break. The horror is that someone designed this for entertainment.
+KEY ELEMENTS: Each major dungeon floor is a distinct historical era (ancient, medieval, industrial, futuristic, mythological), cross-era NPCs who've survived long enough to become semi-permanent residents, the mysterious Architects who occasionally intervene, the question of whether escape is possible and whether the player wants it badly enough to pay the cost.`
+  },
+  {
+    id:'verdant',
+    icon:'🌿',
+    name:'The Verdant Corruption',
+    tag:'NATURE-HORROR · SURVIVAL DREAD · BODY HORROR',
+    desc:'A spreading rot is consuming the world from beneath. Forests twist into predatory things. Villages vanish overnight. The System tracks your Corruption exposure as a second resource — let it climb too high and something changes in you. The old nature gods are awake, and they are not kind.',
+    accent:'#22c55e',
+    brief:`WORLD — THE VERDANT CORRUPTION:
+Something ancient beneath the earth has awakened and it is hungry. The Corruption spreads — a bio-organic transformation that twists flora and fauna into predatory, interconnected horrors. Villages vanish, replaced by pulsing growth. The System has adapted: it now tracks CORRUPTION alongside HP, a second resource the player must manage. At low levels, Corruption grants strange abilities. At high levels, the player begins to change.
+TONE: Survival horror with body-horror undertones. Dread, not gore. Nature is beautiful and monstrous simultaneously. Moral complexity: the Corruption is not purely evil, it is consuming and transforming, and some who are Corrupted don't want to be saved.
+KEY ELEMENTS: Quarantine zones and the factions enforcing them, the debate between burning everything and seeking a cure, the nature gods (awake, alien, communicative but incomprehensible), locations where the Corruption is so advanced it has become its own ecosystem with its own logic, NPCs at various stages of transformation.`
+  },
+  {
+    id:'custom',
+    icon:'✦',
+    name:'Custom World',
+    tag:'YOUR VISION · UNLIMITED · DEFINE EVERYTHING',
+    desc:'Describe your own world. The AI DM will anchor every scene, NPC, and piece of lore to whatever premise you create. The more detail you provide — tone, factions, central conflict, aesthetic — the more consistent and rich the experience will be.',
+    accent:'#d4a853',
+    brief:null // filled from textarea
+  }
+];
+
+// ── STATE ──────────────────────────────────────────────────
+const G={
+  apiKey:'',
+  world:{location:'',visited:[],npcs:[],quests:[],done:[],notes:[],lore:[]},
+  char:null,
+  premise:null, // selected WORLDS entry
+  premiseCustom:'',
+  history:[],summary:'',pending:null,busy:false,charOptions:[]
+};
+const XP=[0,300,900,2700,6500,14000,23000,34000,48000,64000,85000];
+
+// ── STORAGE ────────────────────────────────────────────────
+function save(){try{localStorage.setItem('re_v3',JSON.stringify({char:G.char,world:G.world,premiseId:G.premise?.id,premiseCustom:G.premiseCustom,history:G.history.slice(-30),summary:G.summary,apiKey:G.apiKey}));}catch(e){}}
+function load(){
+  try{
+    const raw=localStorage.getItem('re_v3')||localStorage.getItem('re_v2')||localStorage.getItem('re_v1');
+    if(!raw)return false;
+    const d=JSON.parse(raw);
+    if(!d||!d.char)return false;
+    G.char=d.char;G.world=d.world||{};
+    G.world.lore=G.world.lore||[];G.world.npcs=G.world.npcs||[];G.world.notes=G.world.notes||[];G.world.quests=G.world.quests||[];G.world.done=G.world.done||[];G.world.visited=G.world.visited||[];
+    G.history=d.history||[];G.summary=d.summary||'';G.apiKey=d.apiKey||'';
+    G.premise=WORLDS.find(w=>w.id===d.premiseId)||WORLDS[0];
+    G.premiseCustom=d.premiseCustom||'';
+    return true;
+  }catch(e){return false;}
+}
+function hasSave(){return !!(localStorage.getItem('re_v3')||localStorage.getItem('re_v2')||localStorage.getItem('re_v1'));}
+function wipeSave(){['re_v3','re_v2','re_v1'].forEach(k=>localStorage.removeItem(k));}
+
+// ── API ────────────────────────────────────────────────────
+function patchFetch(){const o=window._of||window.fetch;window._of=o;window.fetch=(u,p={})=>{if(typeof u==='string'&&u.includes('anthropic.com')){p.headers=Object.assign({},p.headers,{'x-api-key':G.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'});}return o(u,p);};}
+async function ai(msgs,sys,json=false){
+  const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:sys,messages:msgs})});
+  if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.error?.message||`API ${r.status}`);}
+  const d=await r.json();const t=d.content.map(b=>b.text||'').join('');
+  if(json)return JSON.parse(t.replace(/```json\s*/g,'').replace(/```\s*/g,'').trim());
+  return t;
+}
+
+// ── WORLD BRIEF ────────────────────────────────────────────
+function worldBrief(){
+  if(!G.premise)return'Standard LitRPG fantasy world.';
+  if(G.premise.id==='custom')return`WORLD — CUSTOM SETTING:\n${G.premiseCustom||'A LitRPG fantasy world.'}`;
+  return G.premise.brief;
+}
+
+// ── DM SYSTEM PROMPT ───────────────────────────────────────
+function dmsys(){
+  const c=G.char,w=G.world,xn=XP[c.level]||XP[c.level-1]*2;
+  return `You are the Dungeon Master for a solo LitRPG adventure. The System is real in this world — stats, notifications, and skill unlocks are part of the characters' lived reality.
+
+${worldBrief()}
+
+CHARACTER: ${c.name} | ${c.race} ${c.class} | Level ${c.level}
+HP: ${c.hp}/${c.maxHp} | XP: ${c.xp}/${xn} | Gold: ${c.gold}g
+Stats — STR:${c.stats.STR} DEX:${c.stats.DEX} CON:${c.stats.CON} INT:${c.stats.INT} WIS:${c.stats.WIS} CHA:${c.stats.CHA}
+Abilities: ${c.abilities.map(a=>a.name).join(', ')||'None'}
+Inventory: ${c.inventory.join(', ')||'None'}
+
+CURRENT STATE:
+Location: ${w.location}
+Active Quests: ${w.quests.map(q=>q.name).join(', ')||'None'}
+Known NPCs: ${w.npcs.length?w.npcs.map(n=>`${n.name}(${n.disposition},${n.location})`).join(', '):'None'}
+Recent Notes: ${w.notes.slice(-5).join(' | ')||'None'}
+Lore Recorded: ${w.lore.length?w.lore.slice(-3).map(l=>`[${l.title}]`).join(', '):'None'}
+Session Summary: ${G.summary||'New session.'}
+
+DM RULES:
+- Write vivid 2-4 paragraph narration true to the world's tone and premise above.
+- The world brief above is AUTHORITATIVE — every scene, NPC, faction, and piece of lore must be consistent with it.
+- LitRPG flavour: the System exists in-world. Reference mechanics naturally.
+- Award XP fairly (combat 50-200, exploration 25-100, roleplay 25-75).
+- Track NPCs by name, update their disposition as relationships evolve.
+- Record major lore: discoveries, world truths, faction revelations, ancient secrets.
+- Be a fair but dangerous DM. Consequences are real. The world does not wait for the player.
+
+RESPOND ONLY IN THIS EXACT JSON FORMAT — no markdown, no preamble:
+{"narrative":"...","notifications":[{"type":"xp|skill|damage|info|loot|lore","text":"..."}],"updates":{"hp":null,"xpGained":0,"addItem":null,"removeItem":null,"location":null,"questAdd":null,"questAddDesc":null,"questDone":null,"note":null,"newAbility":null,"newAbilityDesc":null,"goldDelta":0,"loreTitle":null,"loreContent":null,"npcAdd":null,"npcAddDisp":"neutral","npcAddLoc":null,"npcAddNote":null,"npcUpdate":null,"npcUpdateDisp":null,"npcUpdateLoc":null,"npcUpdateNote":null},"dice":{"needed":false,"type":"d20","modifier":0,"dc":null,"reason":""}}`;
+}
+
+// ── DM LOOP ────────────────────────────────────────────────
+async function toDM(action){
+  setBusy(true);G.history.push({role:'user',content:action});
+  try{
+    let res;
+    try{res=await ai(G.history.slice(-20),dmsys(),true);}
+    catch(pe){
+      const fb=await ai(G.history.slice(-20),'You are a DM. Write 3 paragraphs of vivid narration responding to the player\'s action. Stay true to the established world.',false);
+      addDM(fb);G.history.push({role:'assistant',content:fb});setBusy(false);save();return;
+    }
+    G.history.push({role:'assistant',content:res.narrative});
+    addDM(res.narrative);
+    for(const n of(res.notifications||[])){await sl(260);addSys(n.text,n.type);}
+    const u=res.updates||{};let lv=false;
+    if(u.hp!=null)G.char.hp=Math.max(0,Math.min(G.char.maxHp,u.hp));
+    if(u.xpGained>0){G.char.xp+=u.xpGained;if(XP[G.char.level]&&G.char.xp>=XP[G.char.level]){G.char.level++;lv=true;}}
+    if(u.addItem)G.char.inventory.push(u.addItem);
+    if(u.removeItem){const i=G.char.inventory.indexOf(u.removeItem);if(i>-1)G.char.inventory.splice(i,1);}
+    if(u.location){if(!G.world.visited.includes(G.world.location))G.world.visited.push(G.world.location);G.world.location=u.location;}
+    if(u.questAdd&&u.questAddDesc)G.world.quests.push({name:u.questAdd,desc:u.questAddDesc});
+    if(u.questDone){const i=G.world.quests.findIndex(q=>q.name===u.questDone);if(i>-1){G.world.done.push(G.world.quests[i]);G.world.quests.splice(i,1);}}
+    if(u.note)G.world.notes.push(u.note);
+    if(u.newAbility)G.char.abilities.push({name:u.newAbility,desc:u.newAbilityDesc||'Unlocked through adventure.'});
+    if(u.goldDelta)G.char.gold=Math.max(0,G.char.gold+u.goldDelta);
+    if(u.loreTitle&&u.loreContent)G.world.lore.push({title:u.loreTitle,content:u.loreContent});
+    if(u.npcAdd&&!G.world.npcs.find(n=>n.name===u.npcAdd))G.world.npcs.push({name:u.npcAdd,disposition:u.npcAddDisp||'neutral',location:u.npcAddLoc||G.world.location,note:u.npcAddNote||''});
+    if(u.npcUpdate){const n=G.world.npcs.find(x=>x.name===u.npcUpdate);if(n){if(u.npcUpdateDisp)n.disposition=u.npcUpdateDisp;if(u.npcUpdateLoc)n.location=u.npcUpdateLoc;if(u.npcUpdateNote)n.note=u.npcUpdateNote;}}
+    updHdr();updSheet();updJournal();
+    if(res.dice?.needed){await sl(320);const roll=await dicePrompt(res.dice.type||'d20',res.dice.modifier||0,res.dice.dc,res.dice.reason);const d=res.dice;await toDM(`I rolled ${roll.raw} on ${d.type}${d.modifier?` (${d.modifier>0?'+':''}${d.modifier} mod → total ${roll.total})`:''}` +` for ${d.reason}.`+(d.dc?` DC ${d.dc}: ${roll.pass?'SUCCESS':'FAILURE'}.`:''));return;}
+    if(lv){await sl(480);await showLU();}
+    if(G.history.length>40)await shrink();
+    save();
+  }catch(e){addSys(`[SYSTEM ERROR: ${e.message}]`,'damage');}
+  setBusy(false);
+}
+async function shrink(){try{const old=G.history.slice(0,-10);const s=await ai([{role:'user',content:`Summarise this session in 3-4 sentences:\n${old.map(m=>`${m.role}: ${m.content}`).join('\n')}`}],'Concise summariser. One short paragraph only.');G.summary=s;G.history=G.history.slice(-10);save();}catch(e){}}
+
+// ── CHARACTER GENERATION ───────────────────────────────────
+async function genOpts(){
+  const brief=worldBrief();
+  return(await ai([{role:'user',content:`Generate 3 distinct D&D 5e-inspired characters suited to this world:\n\n${brief}\n\nMake each character thematically appropriate to this specific setting — names, backgrounds, abilities, and equipment should all fit the world. Vary race (Human,Elf,Dwarf,Half-Orc,Gnome,Tiefling,Dragonborn,Halfling,Aasimar) and class (Fighter,Rogue,Wizard,Ranger,Paladin,Cleric,Warlock,Barbarian,Bard,Druid,Monk) significantly.\n\nReturn ONLY valid JSON:\n{"options":[{"race":"Race","class":"Class","title":"Short evocative title that fits this world","description":"2-3 sentences of flavour and backstory grounded in this setting.","stats":{"STR":14,"DEX":12,"CON":13,"INT":10,"WIS":11,"CHA":8},"hp":28,"abilities":[{"name":"Name","desc":"What it does."}],"inventory":["World-appropriate item 1","Item 2","Item 3"],"gold":15}]}`}],
+    'Generate D&D character options. Return only JSON.',true)).options;
+}
+
+function renderOpts(opts){
+  const g=id('char-grid');g.innerHTML='';
+  opts.forEach((o,i)=>{
+    const el=mk('div');el.className='char-card';el.dataset.i=i;
+    el.innerHTML=`<div class="card-title">${o.title}</div><div class="card-class">${o.race.toUpperCase()} · ${o.class.toUpperCase()}</div><div class="card-desc">${o.description}</div><div class="stat-chips">${Object.entries(o.stats).map(([k,v])=>`<span class="chip">${k} <b>${v}</b></span>`).join('')}</div>`;
+    el.addEventListener('click',()=>{document.querySelectorAll('.char-card').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');id('name-wrap').classList.remove('hidden');id('btn-begin').classList.remove('hidden');id('create-err').classList.add('hidden');});
+    g.appendChild(el);
+  });
+}
+
+// ── WORLD SCREEN ───────────────────────────────────────────
+function renderWorlds(){
+  const g=id('world-grid');g.innerHTML='';
+  WORLDS.forEach(w=>{
+    const el=mk('div');el.className='world-card';el.dataset.id=w.id;
+    el.innerHTML=`<div class="world-accent" style="background:${w.accent}"></div><div class="world-icon">${w.icon}</div><div class="world-name">${w.name}</div><div class="world-tag">${w.tag}</div><div class="world-desc">${w.desc}</div>`;
+    el.addEventListener('click',()=>{
+      document.querySelectorAll('.world-card').forEach(c=>c.classList.remove('sel'));
+      el.classList.add('sel');
+      id('custom-wrap').classList.toggle('show',w.id==='custom');
+      id('btn-world-confirm').classList.remove('hidden');
+      id('world-err').textContent='';
+    });
+    g.appendChild(el);
+  });
+}
+
+// ── GAME INIT ──────────────────────────────────────────────
+async function startNew(opt,name){
+  G.char={name,race:opt.race,class:opt.class,level:1,xp:0,hp:opt.hp,maxHp:opt.hp,stats:opt.stats,abilities:opt.abilities,inventory:opt.inventory,gold:opt.gold};
+  G.world={location:'',visited:[],npcs:[],quests:[],done:[],notes:[],lore:[]};
+  G.history=[];G.summary='';save();showGame();setBusy(true);
+  const opener=`The adventure begins. ${name} (${opt.race} ${opt.class}) arrives in this world. Open with a vivid, atmospheric scene that immediately establishes the world's tone and premise. The System is real here — people know their stats. Introduce an immediate situation or hook that demands a response. Record the first lore entry establishing this world. End with a clear prompt for action.`;
+  G.history.push({role:'user',content:opener});
+  try{
+    const res=await ai(G.history,dmsys(),true);
+    G.history.push({role:'assistant',content:res.narrative});
+    addDM(res.narrative);
+    for(const n of(res.notifications||[])){await sl(260);addSys(n.text,n.type);}
+    const u=res.updates||{};
+    if(u.location)G.world.location=u.location;
+    if(u.note)G.world.notes.push(u.note);
+    if(u.loreTitle&&u.loreContent)G.world.lore.push({title:u.loreTitle,content:u.loreContent});
+    if(u.npcAdd)G.world.npcs.push({name:u.npcAdd,disposition:u.npcAddDisp||'neutral',location:u.npcAddLoc||G.world.location,note:u.npcAddNote||''});
+    updHdr();updSheet();updJournal();save();
+  }catch(e){addSys(`[SYSTEM ERROR: ${e.message}]`,'damage');}
+  setBusy(false);
+}
+
+function showGame(){
+  ['s-create','s-intro','s-world'].forEach(s=>id(s).classList.add('gone'));
+  id('s-game').classList.remove('gone');
+  updHdr();updSheet();updJournal();
+}
+
+function resumeGame(){
+  id('s-intro').classList.add('gone');id('s-game').classList.remove('gone');
+  updHdr();updSheet();updJournal();
+  G.history.slice(-6).forEach(m=>{
+    if(m.role==='user'&&!m.content.startsWith('The adventure begins'))addPlayer(m.content);
+    else if(m.role==='assistant')addDM(m.content);
+  });
+  addSys(`[SYSTEM: Session resumed — ${G.char.name} returns.]`,'info');
+}
+
+// ── DICE ───────────────────────────────────────────────────
+function dicePrompt(type,mod,dc,reason){return new Promise(r=>{G.pending={type,mod,dc,reason,resolve:r};openDice(type,reason);});}
+function openDice(hi,reason){id('dice-modal').classList.add('open');id('roll-num').style.display='none';id('roll-mod').style.display='none';id('roll-ctx').textContent=reason?reason.toUpperCase():'';document.querySelectorAll('.die-btn').forEach(b=>{b.style.borderColor='';b.style.background='';const s=hi?hi.replace('d',''):null;if(s&&b.dataset.s===s){b.style.borderColor='var(--gold)';b.style.background='rgba(212,168,83,.1)';}});}
+function closeDice(){id('dice-modal').classList.remove('open');document.querySelectorAll('.die-btn').forEach(b=>{b.style.borderColor='';b.style.background='';});}
+async function doRoll(sides){
+  const ne=id('roll-num'),me=id('roll-mod');ne.style.display='block';me.style.display='none';
+  for(let i=0;i<22;i++){await sl(32+i*2);ne.textContent=Math.floor(Math.random()*sides)+1;}
+  const raw=Math.floor(Math.random()*sides)+1;ne.textContent=raw;
+  const p=G.pending,mod=p?.mod||0,dc=p?.dc,total=raw+mod;
+  if(mod!==0){me.style.display='block';me.textContent=`${mod>0?'+':''}${mod} modifier → Total: ${total}`;}
+  let out=null;
+  if(sides===20&&raw===20)out='crit';else if(sides===20&&raw===1)out='fumble';else if(dc!=null)out=total>=dc?'success':'fail';
+  addDiceCard(`d${sides}`,raw,mod,dc,out);await sl(1350);
+  if(p){closeDice();G.pending=null;p.resolve({raw,total,pass:out==='success'||out==='crit'});}
+  else{await sl(400);closeDice();}
+}
+
+// ── HP EDIT ────────────────────────────────────────────────
+let hpTmp=0;
+function openHpEdit(){hpTmp=G.char.hp;id('hpe-val').textContent=hpTmp;id('hpe-max').textContent=`of ${G.char.maxHp} maximum`;id('hp-modal').classList.add('open');}
+
+// ── RECAP ──────────────────────────────────────────────────
+async function showRecap(){
+  id('recap-modal').classList.add('open');id('recap-text').textContent='Narrating your journey...';closeDrw();
+  try{
+    const ctx=`World: ${G.premise?.name||'Unknown'}. Hero: ${G.char.name}, Level ${G.char.level} ${G.char.race} ${G.char.class}.\nSummary: ${G.summary||'Just begun.'}\nLore: ${G.world.lore.map(l=>l.title).join(', ')||'None.'}\nQuests: ${G.world.quests.map(q=>q.name).join(', ')||'None.'}\nNPCs: ${G.world.npcs.map(n=>n.name).join(', ')||'None.'}`;
+    const r=await ai([{role:'user',content:`Write a vivid narrator's recap of ${G.char.name}'s adventure so far in the world of "${G.premise?.name||'this realm'}". Evocative, gripping, present tense, 3-4 paragraphs, true to this world's tone. Context:\n${ctx}`}],'You are a dramatic fantasy narrator. Rich immersive prose, true to the world established. No lists, no headers.');
+    id('recap-text').textContent=r;
+  }catch(e){id('recap-text').textContent=`Could not generate recap: ${e.message}`;}
+}
+
+// ── LEVEL UP ───────────────────────────────────────────────
+async function showLU(){
+  const c=G.char;const hpg=Math.floor(Math.random()*6)+4+Math.floor((c.stats.CON-10)/2);
+  c.maxHp+=hpg;c.hp=Math.min(c.hp+hpg,c.maxHp);
+  id('lu-sub').textContent=`YOU ARE NOW LEVEL ${c.level}`;
+  id('lu-rewards').innerHTML=`<div class="lu-reward">+ ${hpg} Maximum HP (now ${c.maxHp})</div><div class="lu-reward">+ New abilities may unlock through adventure</div><div class="lu-reward">+ The System acknowledges your growth</div>`;
+  id('lu-modal').classList.add('open');
+  return new Promise(r=>{id('lu-confirm').onclick=()=>{id('lu-modal').classList.remove('open');updHdr();updSheet();save();r();};});
+}
+
+// ── RENDER ─────────────────────────────────────────────────
+function addDM(t){const el=mk('div');el.className='msg dm';el.innerHTML=`<div class="msg-lbl">DUNGEON MASTER</div><div class="dm-bubble">${esc(t).replace(/\n/g,'<br>')}</div>`;ap(el);}
+function addPlayer(t){const el=mk('div');el.className='msg player-msg';el.innerHTML=`<div class="msg-lbl">YOU</div><div class="player-bubble">${esc(t)}</div>`;ap(el);}
+function addSys(t,type='info'){const el=mk('div');el.className=`msg sys-msg sys-${type}`;el.innerHTML=`<div class="sys-bubble">${esc(t)}</div>`;ap(el);}
+function addDiceCard(dtype,raw,mod,dc,out){const el=mk('div');el.className='msg dice-msg';const tot=raw+(mod||0);let oh='';if(out==='crit')oh=`<div class="dr-out crit">✦ CRITICAL HIT!</div>`;else if(out==='fumble')oh=`<div class="dr-out fumble">💀 CRITICAL FAIL</div>`;else if(out==='success')oh=`<div class="dr-out success">✓ SUCCESS (DC ${dc})</div>`;else if(out==='fail')oh=`<div class="dr-out fail">✗ FAILURE (DC ${dc})</div>`;el.innerHTML=`<div class="dice-card"><div class="dr-type">${dtype.toUpperCase()}</div><div class="dr-num">${raw}</div>${mod?`<div class="dr-mod">${mod>0?'+':''}${mod} = ${tot}</div>`:''}${oh}</div>`;ap(el);}
+function ap(el){const n=id('narrative');n.appendChild(el);n.scrollTop=n.scrollHeight;}
+function showTyping(){const el=mk('div');el.className='msg dm';el.id='typing';el.innerHTML=`<div class="msg-lbl">DUNGEON MASTER</div><div class="typing-bubble"><div class="tdot"></div><div class="tdot"></div><div class="tdot"></div></div>`;ap(el);}
+function hideTyping(){const e=id('typing');if(e)e.remove();}
+function setBusy(v){G.busy=v;id('btn-send').disabled=v;id('msg-input').disabled=v;if(v)showTyping();else hideTyping();}
+function updHdr(){const c=G.char;if(!c)return;id('lvl-badge').textContent=c.level;id('hdr-name').textContent=`${c.name} · ${c.race} ${c.class}`;id('hp-bar').style.width=(c.hp/c.maxHp*100)+'%';const xn=XP[c.level]||XP[c.level-1]*2,xp=XP[c.level-1]||0;id('xp-bar').style.width=Math.min(100,(c.xp-xp)/(xn-xp)*100)+'%';}
+function updSheet(){const c=G.char;if(!c)return;id('cs-name').textContent=c.name;id('cs-sub').textContent=`${c.race} · ${c.class} · Level ${c.level}`;id('cs-hp-fill').style.width=(c.hp/c.maxHp*100)+'%';id('cs-hp-val').textContent=`${c.hp}/${c.maxHp}`;id('stats-grid').innerHTML=['STR','DEX','CON','INT','WIS','CHA'].map(s=>{const v=c.stats[s],m=Math.floor((v-10)/2);return`<div class="stat-b"><div class="sn">${s}</div><div class="sv">${v}</div><div class="sm">${m>=0?'+'+m:m}</div></div>`;}).join('');id('ab-list').innerHTML=c.abilities.map(a=>`<div class="ab-item"><span class="ab-ico">⚡</span><div><div class="ab-name">${a.name}</div><div class="ab-desc">${a.desc}</div></div></div>`).join('');id('inv-list').innerHTML=c.inventory.map(i=>`<span class="inv-item">${i}</span>`).join('');id('gold-row').textContent=`⚜ ${c.gold} gold`;}
+function updJournal(){const w=G.world;id('quest-active').innerHTML=w.quests.length?w.quests.map(q=>`<div class="quest-item"><div class="quest-name">${q.name}</div><div class="quest-desc">${q.desc}</div></div>`).join(''):`<div class="empty-state">No active quests.</div>`;id('lore-list').innerHTML=w.lore.length?[...w.lore].reverse().map(l=>`<div class="lore-item"><div class="lore-title">📜 ${l.title}</div><div class="lore-content">${l.content}</div></div>`).join(''):`<div class="empty-state">No lore discovered yet.</div>`;id('npc-list').innerHTML=w.npcs.length?[...w.npcs].reverse().map(n=>`<div class="npc-item"><div class="npc-disp ${n.disposition||'neutral'}"></div><div><div class="npc-name">${n.name}</div>${n.location?`<div class="npc-loc">◌ ${n.location}</div>`:''}${n.note?`<div class="npc-note">${n.note}</div>`:''}</div></div>`).join(''):`<div class="empty-state">No NPCs encountered yet.</div>`;}
+function openDrw(s){id(s==='l'?'drw-char':'drw-quest').classList.add('open');id('dov').classList.add('vis');}
+function closeDrw(){id('drw-char').classList.remove('open');id('drw-quest').classList.remove('open');id('dov').classList.remove('vis');}
+function id(x){return document.getElementById(x);}function mk(t){return document.createElement(t);}function sl(ms){return new Promise(r=>setTimeout(r,ms));}function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ── BOOT ───────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded',()=>{
+  if(hasSave())id('btn-cont').classList.remove('hidden');
+  id('loading').classList.add('gone');
+  renderWorlds();
+
+  // Intro
+  id('btn-new').addEventListener('click',()=>{
+    const k=id('api-in').value.trim();
+    if(!k){id('intro-err').textContent='Please enter your Anthropic API key.';return;}
+    G.apiKey=k;patchFetch();
+    id('s-intro').classList.add('gone');id('s-world').classList.remove('gone');
+  });
+  id('btn-cont').addEventListener('click',()=>{
+    const k=id('api-in').value.trim();
+    if(!load()){id('intro-err').textContent='No save found.';return;}
+    if(k)G.apiKey=k;if(!G.apiKey){id('intro-err').textContent='Please enter your API key.';return;}
+    patchFetch();resumeGame();
+  });
+
+  // World confirm
+  id('btn-world-confirm').addEventListener('click',async()=>{
+    const sel=document.querySelector('.world-card.sel');
+    if(!sel){id('world-err').textContent='Please select a world.';return;}
+    const world=WORLDS.find(w=>w.id===sel.dataset.id);
+    if(world.id==='custom'){
+      const ct=id('custom-ta').value.trim();
+      if(!ct){id('world-err').textContent='Please describe your custom world.';return;}
+      G.premiseCustom=ct;
+    }
+    G.premise=world;
+    id('s-world').classList.add('gone');id('s-create').classList.remove('gone');
+    id('create-world-tag').textContent=`${world.icon} ${world.name.toUpperCase()}`;
+    id('create-world-tag').style.display='block';
+    id('btn-world-confirm').disabled=true;
+    try{
+      const opts=await genOpts();G.charOptions=opts;renderOpts(opts);
+    }catch(e){
+      id('s-create').classList.add('gone');id('s-world').classList.remove('gone');
+      id('world-err').textContent=e.message;
+    }
+    id('btn-world-confirm').disabled=false;
+  });
+
+  // Begin adventure
+  id('btn-begin').addEventListener('click',async()=>{
+    const sel=document.querySelector('.char-card.sel'),n=id('name-in').value.trim();
+    if(!sel){id('create-err').textContent='Select a character first.';id('create-err').classList.remove('hidden');return;}
+    if(!n){id('create-err').textContent='Name your hero.';id('create-err').classList.remove('hidden');return;}
+    id('btn-begin').disabled=true;wipeSave();
+    await startNew(G.charOptions[parseInt(sel.dataset.i)],n);
+  });
+
+  // Send
+  async function send(){const inp=id('msg-input'),txt=inp.value.trim();if(!txt||G.busy)return;inp.value='';inp.style.height='auto';addPlayer(txt);await toDM(txt);}
+  id('btn-send').addEventListener('click',send);
+  id('msg-input').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}});
+  id('msg-input').addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,110)+'px';});
+
+  // Dice
+  id('btn-dice').addEventListener('click',()=>openDice(null,''));
+  document.querySelectorAll('.die-btn').forEach(b=>{b.addEventListener('click',async()=>{if(b.dataset.s==='close'){if(G.pending){openDice(G.pending.type,G.pending.reason);return;}closeDice();return;}await doRoll(parseInt(b.dataset.s));});});
+
+  // HP edit
+  id('cs-hp-val').addEventListener('click',openHpEdit);
+  id('hpe-minus').addEventListener('click',()=>{hpTmp=Math.max(0,hpTmp-1);id('hpe-val').textContent=hpTmp;});
+  id('hpe-plus').addEventListener('click',()=>{hpTmp=Math.min(G.char.maxHp,hpTmp+1);id('hpe-val').textContent=hpTmp;});
+  id('hpe-cancel').addEventListener('click',()=>id('hp-modal').classList.remove('open'));
+  id('hpe-ok').addEventListener('click',()=>{G.char.hp=hpTmp;id('hp-modal').classList.remove('open');updHdr();updSheet();save();addSys(`[SYSTEM: HP adjusted to ${G.char.hp}/${G.char.maxHp}]`,'info');});
+
+  // Recap
+  id('btn-recap').addEventListener('click',showRecap);
+  id('recap-from-sheet').addEventListener('click',showRecap);
+  id('recap-close').addEventListener('click',()=>id('recap-modal').classList.remove('open'));
+
+  // Drawers
+  id('lvl-badge').addEventListener('click',()=>{updSheet();openDrw('l');});
+  id('btn-quest').addEventListener('click',()=>{updJournal();openDrw('r');});
+  id('close-char').addEventListener('click',closeDrw);
+  id('close-quest').addEventListener('click',closeDrw);
+  id('dov').addEventListener('click',()=>{closeDrw();id('recap-modal').classList.remove('open');});
+
+  // Tabs
+  document.querySelectorAll('.tab').forEach(t=>{t.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(x=>x.classList.remove('active'));t.classList.add('active');id('tab-'+t.dataset.tab).classList.add('active');});});
+
+  // Level up
+  id('lu-confirm').addEventListener('click',()=>id('lu-modal').classList.remove('open'));
+});
+</script>
+</body>
+</html>
