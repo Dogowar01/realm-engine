@@ -244,6 +244,26 @@
     @keyframes spin{to{transform:rotate(360deg)}}
     .load-txt{font-family:var(--fm);font-size:.62rem;color:var(--text2);letter-spacing:.2em}
     ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:2px}
+
+    /* CHARACTER SHEET IDENTITY HEADER */
+    .cs-identity{padding:.9rem 1.05rem .0rem;text-align:center;flex-shrink:0}
+    .cs-identity .cs-name{font-family:var(--fd);font-size:1.15rem;color:var(--gold);margin-bottom:.16rem}
+    .cs-identity .cs-sub{font-family:var(--fm);font-size:.6rem;color:var(--text2);letter-spacing:.08em;margin-bottom:.5rem}
+    /* XP row */
+    .xp-row{font-family:var(--fm);font-size:.62rem;color:var(--text2);margin-top:.3rem;letter-spacing:.08em}
+    /* SKILLS */
+    .skill-list{display:flex;flex-direction:column;gap:.22rem}
+    .skill-row{display:flex;align-items:center;gap:.5rem;padding:.32rem .5rem;border-radius:4px;background:var(--bg3);border:1px solid var(--bdr)}
+    .skill-mod{font-family:var(--fd);font-size:.78rem;color:var(--gold);min-width:28px;text-align:right;flex-shrink:0}
+    .skill-name{font-family:var(--fm);font-size:.6rem;color:var(--text);letter-spacing:.06em;flex:1}
+    .skill-attr{font-family:var(--fm);font-size:.52rem;color:var(--text2);flex-shrink:0}
+    /* GEAR */
+    .gear-list{display:flex;flex-direction:column;gap:.35rem}
+    .gear-item{background:var(--bg3);border:1px solid var(--bdr);border-radius:5px;padding:.5rem .65rem;display:flex;align-items:center;gap:.5rem}
+    .gear-ico{font-size:.9rem;flex-shrink:0}
+    .gear-name{font-family:var(--fm);font-size:.65rem;color:var(--text);flex:1}
+    .inv-list{display:flex;flex-wrap:wrap;gap:.32rem;margin-bottom:.5rem}
+    .inv-item{font-family:var(--fm);font-size:.58rem;padding:.2rem .46rem;background:var(--bg3);border:1px solid var(--bdr);border-radius:3px;color:var(--text)}
     .hidden{display:none!important}
   </style>
 </head>
@@ -319,20 +339,39 @@
   <!-- LEFT: CHARACTER SHEET -->
   <div class="drawer dl" id="drw-char">
     <div class="drawer-hd"><div class="drawer-title">CHARACTER SHEET</div><button class="drawer-close" id="close-char">✕</button></div>
-    <div class="drawer-body">
-      <div class="cs-id"><div class="cs-name" id="cs-name">—</div><div class="cs-sub" id="cs-sub">—</div></div>
-      <div class="cs-sec">
-        <span class="sec-lbl">VITALS</span>
-        <div class="hp-row">
-          <span class="hp-lbl">HP</span>
-          <div class="hp-bar"><div class="hp-fill" id="cs-hp-fill" style="width:100%"></div></div>
-          <span class="hp-val" id="cs-hp-val" title="Tap to edit HP">—</span>
+    <div class="cs-identity"><div class="cs-name" id="cs-name">—</div><div class="cs-sub" id="cs-sub">—</div></div>
+    <div class="tab-wrap">
+      <div class="tab-bar">
+        <div class="tab active" data-cstab="stats">STATS</div>
+        <div class="tab" data-cstab="skills">SKILLS</div>
+        <div class="tab" data-cstab="gear">GEAR</div>
+      </div>
+      <div class="tab-panels">
+        <!-- STATS TAB -->
+        <div class="tab-panel active" id="cstab-stats">
+          <div class="cs-sec">
+            <span class="sec-lbl">VITALS</span>
+            <div class="hp-row">
+              <span class="hp-lbl">HP</span>
+              <div class="hp-bar"><div class="hp-fill" id="cs-hp-fill" style="width:100%"></div></div>
+              <span class="hp-val" id="cs-hp-val" title="Tap to edit HP">—</span>
+            </div>
+            <div class="xp-row" id="cs-xp-row"></div>
+          </div>
+          <div class="cs-sec"><span class="sec-lbl">ATTRIBUTES</span><div class="stats-grid" id="stats-grid"></div></div>
+          <div class="cs-sec"><span class="sec-lbl">ABILITIES</span><div class="ab-list" id="ab-list"></div></div>
+          <button class="recap-btn" id="recap-from-sheet" style="margin-top:.5rem">◎ SESSION RECAP</button>
+        </div>
+        <!-- SKILLS TAB -->
+        <div class="tab-panel" id="cstab-skills">
+          <div class="skill-list" id="skill-list"></div>
+        </div>
+        <!-- GEAR TAB -->
+        <div class="tab-panel" id="cstab-gear">
+          <div class="cs-sec"><span class="sec-lbl">EQUIPMENT & INVENTORY</span><div class="gear-list" id="gear-list"></div></div>
+          <div class="cs-sec"><span class="sec-lbl">GOLD</span><div class="gold-row" id="gold-row"></div></div>
         </div>
       </div>
-      <div class="cs-sec"><span class="sec-lbl">ATTRIBUTES</span><div class="stats-grid" id="stats-grid"></div></div>
-      <div class="cs-sec"><span class="sec-lbl">ABILITIES</span><div class="ab-list" id="ab-list"></div></div>
-      <div class="cs-sec"><span class="sec-lbl">INVENTORY</span><div class="inv-list" id="inv-list"></div><div class="gold-row" id="gold-row"></div></div>
-      <button class="recap-btn" id="recap-from-sheet">◎ SESSION RECAP</button>
     </div>
   </div>
 
@@ -500,7 +539,12 @@ const G={
 const XP=[0,300,900,2700,6500,14000,23000,34000,48000,64000,85000];
 
 // ── STORAGE ────────────────────────────────────────────────
-function save(){try{localStorage.setItem('re_v3',JSON.stringify({char:G.char,world:G.world,premiseId:G.premise?.id,premiseCustom:G.premiseCustom,history:G.history.slice(-30),summary:G.summary,apiKey:G.apiKey}));}catch(e){}}
+function saveKey(k){try{localStorage.setItem('re_apikey',k);}catch(e){}}
+function loadKey(){return localStorage.getItem('re_apikey')||'';}
+function save(){
+  if(G.apiKey)saveKey(G.apiKey);
+  try{localStorage.setItem('re_v3',JSON.stringify({char:G.char,world:G.world,premiseId:G.premise?.id,premiseCustom:G.premiseCustom,history:G.history.slice(-30),summary:G.summary}));}catch(e){}
+}
 function load(){
   try{
     const raw=localStorage.getItem('re_v3')||localStorage.getItem('re_v2')||localStorage.getItem('re_v1');
@@ -509,7 +553,8 @@ function load(){
     if(!d||!d.char)return false;
     G.char=d.char;G.world=d.world||{};
     G.world.lore=G.world.lore||[];G.world.npcs=G.world.npcs||[];G.world.notes=G.world.notes||[];G.world.quests=G.world.quests||[];G.world.done=G.world.done||[];G.world.visited=G.world.visited||[];
-    G.history=d.history||[];G.summary=d.summary||'';G.apiKey=d.apiKey||'';
+    G.history=d.history||[];G.summary=d.summary||'';
+    G.apiKey=loadKey()||d.apiKey||'';
     G.premise=WORLDS.find(w=>w.id===d.premiseId)||WORLDS[0];
     G.premiseCustom=d.premiseCustom||'';
     return true;
@@ -729,7 +774,49 @@ function showTyping(){const el=mk('div');el.className='msg dm';el.id='typing';el
 function hideTyping(){const e=id('typing');if(e)e.remove();}
 function setBusy(v){G.busy=v;id('btn-send').disabled=v;id('msg-input').disabled=v;if(v)showTyping();else hideTyping();}
 function updHdr(){const c=G.char;if(!c)return;id('lvl-badge').textContent=c.level;id('hdr-name').textContent=`${c.name} · ${c.race} ${c.class}`;id('hp-bar').style.width=(c.hp/c.maxHp*100)+'%';const xn=XP[c.level]||XP[c.level-1]*2,xp=XP[c.level-1]||0;id('xp-bar').style.width=Math.min(100,(c.xp-xp)/(xn-xp)*100)+'%';}
-function updSheet(){const c=G.char;if(!c)return;id('cs-name').textContent=c.name;id('cs-sub').textContent=`${c.race} · ${c.class} · Level ${c.level}`;id('cs-hp-fill').style.width=(c.hp/c.maxHp*100)+'%';id('cs-hp-val').textContent=`${c.hp}/${c.maxHp}`;id('stats-grid').innerHTML=['STR','DEX','CON','INT','WIS','CHA'].map(s=>{const v=c.stats[s],m=Math.floor((v-10)/2);return`<div class="stat-b"><div class="sn">${s}</div><div class="sv">${v}</div><div class="sm">${m>=0?'+'+m:m}</div></div>`;}).join('');id('ab-list').innerHTML=c.abilities.map(a=>`<div class="ab-item"><span class="ab-ico">⚡</span><div><div class="ab-name">${a.name}</div><div class="ab-desc">${a.desc}</div></div></div>`).join('');id('inv-list').innerHTML=c.inventory.map(i=>`<span class="inv-item">${i}</span>`).join('');id('gold-row').textContent=`⚜ ${c.gold} gold`;}
+function updSheet(){
+  const c=G.char;if(!c)return;
+  // Identity
+  id('cs-name').textContent=c.name;
+  id('cs-sub').textContent=`${c.race} · ${c.class} · Level ${c.level}`;
+  // Vitals
+  id('cs-hp-fill').style.width=(c.hp/c.maxHp*100)+'%';
+  id('cs-hp-val').textContent=`${c.hp}/${c.maxHp}`;
+  const xn=XP[c.level]||XP[c.level-1]*2;
+  id('cs-xp-row').textContent=`XP: ${c.xp} / ${xn} · Gold: ${c.gold}g`;
+  // Attributes
+  id('stats-grid').innerHTML=['STR','DEX','CON','INT','WIS','CHA'].map(s=>{const v=c.stats[s],m=Math.floor((v-10)/2);return`<div class="stat-b"><div class="sn">${s}</div><div class="sv">${v}</div><div class="sm">${m>=0?'+'+m:m}</div></div>`;}).join('');
+  // Abilities
+  id('ab-list').innerHTML=c.abilities.length?c.abilities.map(a=>`<div class="ab-item"><span class="ab-ico">⚡</span><div><div class="ab-name">${a.name}</div><div class="ab-desc">${a.desc}</div></div></div>`).join(''):'<div class="empty-state">No abilities yet.</div>';
+  // Skills tab — all 18 D&D skills with derived modifiers
+  const SKILLS=[
+    ['Acrobatics','DEX'],['Animal Handling','WIS'],['Arcana','INT'],
+    ['Athletics','STR'],['Deception','CHA'],['History','INT'],
+    ['Insight','WIS'],['Intimidation','CHA'],['Investigation','INT'],
+    ['Medicine','WIS'],['Nature','INT'],['Perception','WIS'],
+    ['Performance','CHA'],['Persuasion','CHA'],['Religion','INT'],
+    ['Sleight of Hand','DEX'],['Stealth','DEX'],['Survival','WIS']
+  ];
+  const profBonus=[0,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,6,6,6,6][c.level]||2;
+  // Detect proficiency: skill name appears in an ability name
+  const abilityText=c.abilities.map(a=>a.name.toLowerCase()).join(' ');
+  id('skill-list').innerHTML=SKILLS.map(([name,attr])=>{
+    const base=Math.floor((c.stats[attr]-10)/2);
+    const prof=abilityText.includes(name.toLowerCase())||abilityText.includes(attr.toLowerCase()+'saving');
+    const total=base+(prof?profBonus:0);
+    const sign=total>=0?'+':'';
+    return`<div class="skill-row">
+      <div class="skill-mod">${sign}${total}</div>
+      <div class="skill-name">${name}${prof?' ◆':''}</div>
+      <div class="skill-attr">${attr}</div>
+    </div>`;
+  }).join('')+`<div style="font-family:var(--fm);font-size:.54rem;color:var(--text2);margin-top:.6rem;letter-spacing:.06em">◆ Proficient (Prof. bonus +${profBonus})</div>`;
+  // Gear tab
+  const gearIcons={'sword':'⚔️','blade':'⚔️','axe':'🪓','bow':'🏹','staff':'🪄','wand':'🪄','dagger':'🗡️','shield':'🛡️','armour':'🥋','armor':'🥋','robe':'👘','cloak':'🧥','ring':'💍','amulet':'📿','potion':'🧪','scroll':'📜','torch':'🔦','rope':'🪢','book':'📖','coin':'💰','gold':'💰','ration':'🍖','pack':'🎒'};
+  function gearIcon(item){const l=item.toLowerCase();for(const[k,v]of Object.entries(gearIcons)){if(l.includes(k))return v;}return'📦';}
+  id('gear-list').innerHTML=c.inventory.length?c.inventory.map(i=>`<div class="gear-item"><span class="gear-ico">${gearIcon(i)}</span><span class="gear-name">${i}</span></div>`).join(''):'<div class="empty-state">Inventory empty.</div>';
+  id('gold-row').textContent=`⚜ ${c.gold} gold pieces`;
+}
 function updJournal(){const w=G.world;id('quest-active').innerHTML=w.quests.length?w.quests.map(q=>`<div class="quest-item"><div class="quest-name">${q.name}</div><div class="quest-desc">${q.desc}</div></div>`).join(''):`<div class="empty-state">No active quests.</div>`;id('lore-list').innerHTML=w.lore.length?[...w.lore].reverse().map(l=>`<div class="lore-item"><div class="lore-title">📜 ${l.title}</div><div class="lore-content">${l.content}</div></div>`).join(''):`<div class="empty-state">No lore discovered yet.</div>`;id('npc-list').innerHTML=w.npcs.length?[...w.npcs].reverse().map(n=>`<div class="npc-item"><div class="npc-disp ${n.disposition||'neutral'}"></div><div><div class="npc-name">${n.name}</div>${n.location?`<div class="npc-loc">◌ ${n.location}</div>`:''}${n.note?`<div class="npc-note">${n.note}</div>`:''}</div></div>`).join(''):`<div class="empty-state">No NPCs encountered yet.</div>`;}
 function openDrw(s){id(s==='l'?'drw-char':'drw-quest').classList.add('open');id('dov').classList.add('vis');}
 function closeDrw(){id('drw-char').classList.remove('open');id('drw-quest').classList.remove('open');id('dov').classList.remove('vis');}
@@ -737,6 +824,9 @@ function id(x){return document.getElementById(x);}function mk(t){return document
 
 // ── BOOT ───────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded',()=>{
+  // Pre-fill API key if stored
+  const storedKey=loadKey();
+  if(storedKey)id('api-in').value=storedKey;
   if(hasSave())id('btn-cont').classList.remove('hidden');
   id('loading').classList.add('gone');
   renderWorlds();
@@ -745,13 +835,14 @@ document.addEventListener('DOMContentLoaded',()=>{
   id('btn-new').addEventListener('click',()=>{
     const k=id('api-in').value.trim();
     if(!k){id('intro-err').textContent='Please enter your Anthropic API key.';return;}
-    G.apiKey=k;patchFetch();
+    G.apiKey=k;saveKey(k);patchFetch();
     id('s-intro').classList.add('gone');id('s-world').classList.remove('gone');
   });
   id('btn-cont').addEventListener('click',()=>{
     const k=id('api-in').value.trim();
     if(!load()){id('intro-err').textContent='No save found.';return;}
-    if(k)G.apiKey=k;if(!G.apiKey){id('intro-err').textContent='Please enter your API key.';return;}
+    if(k){G.apiKey=k;saveKey(k);}
+    if(!G.apiKey){id('intro-err').textContent='Please enter your API key.';return;}
     patchFetch();resumeGame();
   });
 
@@ -825,7 +916,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   id('dov').addEventListener('click',()=>{closeDrw();id('recap-modal').classList.remove('open');});
 
   // Tabs
-  document.querySelectorAll('.tab').forEach(t=>{t.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(x=>x.classList.remove('active'));t.classList.add('active');id('tab-'+t.dataset.tab).classList.add('active');});});
+  // Journal tabs
+  document.querySelectorAll('[data-tab]').forEach(t=>{t.addEventListener('click',()=>{const bar=t.closest('.tab-bar');bar.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');const panels=t.closest('.tab-wrap').querySelectorAll('.tab-panel');panels.forEach(x=>x.classList.remove('active'));const key=t.dataset.tab;const panel=id('tab-'+key)||id('cstab-'+key);if(panel)panel.classList.add('active');});});
 
   // Level up
   id('lu-confirm').addEventListener('click',()=>id('lu-modal').classList.remove('open'));
