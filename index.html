@@ -520,8 +520,8 @@ function wipeSave(){['re_v3','re_v2','re_v1'].forEach(k=>localStorage.removeItem
 
 // ── API ────────────────────────────────────────────────────
 function patchFetch(){const o=window._of||window.fetch;window._of=o;window.fetch=(u,p={})=>{if(typeof u==='string'&&u.includes('anthropic.com')){p.headers=Object.assign({},p.headers,{'x-api-key':G.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'});}return o(u,p);};}
-async function ai(msgs,sys,json=false){
-  const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:sys,messages:msgs})});
+async function ai(msgs,sys,json=false,maxTok=1000){
+  const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:maxTok,system:sys,messages:msgs})});
   if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.error?.message||`API ${r.status}`);}
   const d=await r.json();const t=d.content.map(b=>b.text||'').join('');
   if(json)return JSON.parse(t.replace(/```json\s*/g,'').replace(/```\s*/g,'').trim());
@@ -610,7 +610,7 @@ async function shrink(){try{const old=G.history.slice(0,-10);const s=await ai([{
 async function genOpts(){
   const brief=worldBrief();
   return(await ai([{role:'user',content:`Generate 3 distinct D&D 5e-inspired characters suited to this world:\n\n${brief}\n\nMake each character thematically appropriate to this specific setting — names, backgrounds, abilities, and equipment should all fit the world. Vary race (Human,Elf,Dwarf,Half-Orc,Gnome,Tiefling,Dragonborn,Halfling,Aasimar) and class (Fighter,Rogue,Wizard,Ranger,Paladin,Cleric,Warlock,Barbarian,Bard,Druid,Monk) significantly.\n\nReturn ONLY valid JSON:\n{"options":[{"race":"Race","class":"Class","title":"Short evocative title that fits this world","description":"2-3 sentences of flavour and backstory grounded in this setting.","stats":{"STR":14,"DEX":12,"CON":13,"INT":10,"WIS":11,"CHA":8},"hp":28,"abilities":[{"name":"Name","desc":"What it does."}],"inventory":["World-appropriate item 1","Item 2","Item 3"],"gold":15}]}`}],
-    'Generate D&D character options. Return only JSON.',true)).options;
+    'Generate D&D character options. Return only JSON.',true,2000)).options;
 }
 
 function renderOpts(opts){
