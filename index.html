@@ -766,17 +766,24 @@ document.addEventListener('DOMContentLoaded',()=>{
       G.premiseCustom=ct;
     }
     G.premise=world;
-    id('s-world').classList.add('gone');id('s-create').classList.remove('gone');
-    id('create-world-tag').textContent=`${world.icon} ${world.name.toUpperCase()}`;
-    id('create-world-tag').style.display='block';
-    id('btn-world-confirm').disabled=true;
+    // Show loading state ON the world screen — don't transition yet
+    const btn=id('btn-world-confirm');
+    btn.disabled=true;
+    btn.textContent='SUMMONING HEROES...';
+    id('world-err').textContent='';
     try{
-      const opts=await genOpts();G.charOptions=opts;renderOpts(opts);
+      const opts=await genOpts();
+      G.charOptions=opts;
+      // Only now transition
+      id('s-world').classList.add('gone');
+      id('s-create').classList.remove('gone');
+      id('create-world-tag').textContent=`${world.icon} ${world.name.toUpperCase()}`;
+      renderOpts(opts);
     }catch(e){
-      id('s-create').classList.add('gone');id('s-world').classList.remove('gone');
-      id('world-err').textContent=e.message;
+      id('world-err').textContent=`Error: ${e.message}`;
     }
-    id('btn-world-confirm').disabled=false;
+    btn.disabled=false;
+    btn.textContent='ENTER THIS WORLD';
   });
 
   // Begin adventure
