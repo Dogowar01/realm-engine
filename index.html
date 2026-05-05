@@ -308,6 +308,35 @@
     @keyframes spin{to{transform:rotate(360deg)}}
     .load-txt{font-family:var(--fm);font-size:.6rem;color:var(--text2);letter-spacing:.2em}
     ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:2px}
+
+    /* ── INLINE ROLL CARDS ── */
+    .ilr-wrap{text-align:center;margin:.1rem 0}
+    .ilr-card{display:inline-flex;flex-direction:column;align-items:center;gap:.28rem;background:var(--bg3);border:1px solid var(--bdr);border-radius:9px;padding:.65rem 1.1rem;min-width:160px}
+    .ilr-label{font-family:var(--fm);font-size:.56rem;color:var(--text2);letter-spacing:.2em}
+    .ilr-die-row{display:flex;align-items:center;gap:.45rem}
+    .ilr-die{font-family:var(--fm);font-size:.58rem;color:var(--text2)}
+    .ilr-num{font-family:var(--fd);font-size:2.1rem;color:var(--gold);line-height:1;min-width:42px;text-align:center;text-shadow:0 0 14px rgba(212,168,83,.4)}
+    .ilr-mod{font-family:var(--fm);font-size:.62rem;color:var(--text2)}
+    .ilr-result{font-family:var(--fm);font-size:.64rem;padding:.12rem .45rem;border-radius:4px;letter-spacing:.08em}
+    .ilr-result.hit{color:var(--green);background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.22)}
+    .ilr-result.miss{color:var(--text2);background:var(--bg2);border:1px solid var(--bdr)}
+    .ilr-result.crit{color:var(--gold);background:rgba(212,168,83,.16);border:1px solid rgba(212,168,83,.3);animation:crit-p .6s ease}
+    .ilr-result.fumble{color:var(--red);background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.22)}
+    .ilr-result.dmg{color:var(--red);background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.2);font-size:.7rem;font-family:var(--fd)}
+
+    /* ── COMBAT INPUT PANEL ── */
+    #combat-input{display:none;flex-direction:column;gap:.38rem;background:rgba(248,113,113,.04);border-top:1px solid rgba(248,113,113,.18);padding:.6rem .82rem;flex-shrink:0}
+    #combat-input.active{display:flex}
+    .cmb-row{display:flex;gap:.38rem}
+    .cmb-btn{flex:1;padding:.55rem .3rem;background:var(--bg3);border:1px solid var(--bdr);border-radius:7px;color:var(--text2);font-family:var(--fm);font-size:.58rem;letter-spacing:.08em;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:.15rem;user-select:none;-webkit-user-select:none}
+    .cmb-btn .cmb-ico{font-size:1.1rem}
+    .cmb-btn:hover,.cmb-btn:active{border-color:var(--red);color:var(--red);background:rgba(248,113,113,.08)}
+    .cmb-btn.cmb-attack{border-color:rgba(248,113,113,.3);color:var(--red)}
+    .cmb-btn.cmb-ability{border-color:rgba(212,168,83,.28);color:var(--gold)}
+    .cmb-btn.cmb-ability:hover{border-color:var(--gold);background:rgba(212,168,83,.08);color:var(--gold)}
+    .cmb-btn.cmb-flee{border-color:rgba(96,165,250,.22);color:var(--blue)}
+    .cmb-btn.cmb-flee:hover{border-color:var(--blue);background:rgba(96,165,250,.08);color:var(--blue)}
+    .cmb-btn:disabled{opacity:.35;cursor:not-allowed}
     .hidden{display:none!important}
   </style>
 </head>
@@ -622,7 +651,7 @@ RESPOND ONLY IN THIS EXACT JSON — no markdown, no preamble:
 {
   "narrative": "Max 2 short paragraphs. Vivid. End with a hook.",
   "scene": {"mood": "CALM|TENSE|DANGEROUS|MYSTERIOUS|EERIE|COMBAT", "atmosphere": "One evocative line."},
-  "combat": {"active": false, "enemyName": null, "enemyHp": null, "enemyMaxHp": null, "enemyDesc": null, "round": 0},
+  "combat": {"active": false, "enemyName": null, "enemyHp": null, "enemyMaxHp": null, "enemyAC": 13, "enemyDesc": null, "round": 0},
   "actions": [{"icon": "⚔️", "label": "Attack", "text": "I attack the enemy with my weapon"}],
   "notifications": [{"type": "xp|skill|damage|info|loot|lore", "text": "Message"}],
   "updates": {"hp": null, "xpGained": 0, "addItem": null, "removeItem": null, "location": null, "questAdd": null, "questAddDesc": null, "questDone": null, "note": null, "newAbility": null, "newAbilityDesc": null, "goldDelta": 0, "loreTitle": null, "loreContent": null, "npcAdd": null, "npcAddDisp": "neutral", "npcAddLoc": null, "npcAddNote": null, "npcUpdate": null, "npcUpdateDisp": null, "npcUpdateNote": null},
@@ -676,7 +705,7 @@ async function toDM(action){
     const cm=res.combat;
     if(cm){
       if(cm.active&&cm.enemyName){
-        G.combat={active:true,enemyName:cm.enemyName,enemyHp:cm.enemyHp,enemyMaxHp:cm.enemyMaxHp||cm.enemyHp,enemyDesc:cm.enemyDesc||'',round:cm.round||1};
+        G.combat={active:true,enemyName:cm.enemyName,enemyHp:cm.enemyHp,enemyMaxHp:cm.enemyMaxHp||cm.enemyHp,enemyAC:cm.enemyAC||13,enemyDesc:cm.enemyDesc||'',round:cm.round||1};
         updCombat();
       } else if(!cm.active&&G.combat){
         G.combat=null;
@@ -905,14 +934,20 @@ function showTyping(){
   ap(el);
 }
 function hideTyping(){const e=id('typing');if(e)e.remove();}
-function setBusy(v){G.busy=v;id('btn-send').disabled=v;id('msg-input').disabled=v;if(v)showTyping();else hideTyping();}
+function setBusy(v){G.busy=v;id('btn-send').disabled=v;id('msg-input').disabled=v;setCombatBtns(v);if(v)showTyping();else hideTyping();}
 
 // ============================================================
-// COMBAT BANNER
+// COMBAT SYSTEM
 // ============================================================
 function updCombat(){
   const c=G.combat;
-  if(!c||!c.active){id('combat-banner').classList.remove('active');return;}
+  if(!c||!c.active){
+    id('combat-banner').classList.remove('active');
+    id('combat-input').classList.remove('active');
+    id('input-area').style.display='flex';
+    return;
+  }
+  // Banner
   id('combat-banner').classList.add('active');
   id('cb-name').textContent=c.enemyName.toUpperCase();
   id('cb-round').textContent=`ROUND ${c.round}`;
@@ -920,6 +955,139 @@ function updCombat(){
   const pct=Math.max(0,Math.min(100,(c.enemyHp/c.enemyMaxHp)*100));
   id('cb-hp-fill').style.width=pct+'%';
   id('cb-hp-val').textContent=`${c.enemyHp}/${c.enemyMaxHp}`;
+  // Swap input panel
+  id('input-area').style.display='none';
+  id('combat-input').classList.add('active');
+  // Ability buttons
+  const abils=G.char?.abilities||[];
+  const row=id('cmb-ability-row');
+  row.innerHTML=abils.slice(0,3).map((a,i)=>
+    `<button class="cmb-btn cmb-ability" data-ai="${i}"><span class="cmb-ico">⚡</span>${esc(a.name.split(' ')[0])}</button>`
+  ).join('');
+  row.querySelectorAll('[data-ai]').forEach(btn=>{
+    btn.addEventListener('click',()=>combatAbility(G.char.abilities[parseInt(btn.dataset.ai)]));
+  });
+}
+
+function getWeaponDie(cls){
+  return({Fighter:10,Barbarian:12,Paladin:10,Ranger:8,Rogue:6,Monk:6,Cleric:8,Druid:6,Wizard:6,Warlock:8,Sorcerer:6,Bard:8})[cls]||6;
+}
+
+async function inlineRoll(sides,mod,dc,label){
+  const wrap=mk('div');wrap.className='msg ilr-wrap';
+  const card=mk('div');card.className='ilr-card';
+  wrap.appendChild(card);
+  card.innerHTML=`<div class="ilr-label">${esc(label)}</div><div class="ilr-die-row"><span class="ilr-die">d${sides}</span><span class="ilr-num">?</span>${mod!==0?`<span class="ilr-mod">${mod>0?'+':''}${mod}</span>`:''}</div>`;
+  ap(wrap);
+  const numEl=card.querySelector('.ilr-num');
+  for(let i=0;i<20;i++){await sl(28+i*2);numEl.textContent=Math.floor(Math.random()*sides)+1;}
+  const raw=Math.floor(Math.random()*sides)+1;
+  numEl.textContent=raw;
+  const total=raw+mod;
+  await sl(280);
+  let outcome=null,resultHtml='';
+  if(sides===20&&raw===20){outcome='crit';resultHtml='<span class="ilr-result crit">✦ CRITICAL!</span>';}
+  else if(sides===20&&raw===1){outcome='fumble';resultHtml='<span class="ilr-result fumble">💀 FUMBLE</span>';}
+  else if(dc!=null){outcome=total>=dc?'hit':'miss';resultHtml=`<span class="ilr-result ${outcome}">${outcome==='hit'?'✓ HIT':'✗ MISS'} (DC ${dc})</span>`;}
+  card.innerHTML=`<div class="ilr-label">${esc(label)}</div><div class="ilr-die-row"><span class="ilr-die">d${sides}</span><span class="ilr-num">${raw}</span>${mod!==0?`<span class="ilr-mod">${mod>0?'+':''}${mod} = ${total}</span>`:''}${resultHtml}</div>`;
+  scrollNarrative();
+  return{raw,total,pass:outcome==='hit'||outcome==='crit',outcome};
+}
+
+async function combatAttack(){
+  if(G.busy||!G.combat)return;
+  setCombatBtns(true);
+  const c=G.char,cm=G.combat;
+  const atkMod=Math.max(Math.floor((c.stats.STR-10)/2),Math.floor((c.stats.DEX-10)/2));
+  const ac=cm.enemyAC||13;
+  addSys(`⚔ ATTACK — ${cm.enemyName.toUpperCase()}  (AC ${ac})`,'damage');
+  const atk=await inlineRoll(20,atkMod,ac,'ATTACK ROLL');
+  let msg;
+  if(atk.outcome==='fumble'){
+    msg=`Critical fumble! I attacked ${cm.enemyName} and rolled a 1 — something goes terribly wrong.`;
+  } else if(!atk.pass){
+    msg=`I attacked ${cm.enemyName}. Miss — rolled ${atk.raw}${atkMod!==0?` +${atkMod} = ${atk.total}`:''}  vs AC ${ac}.`;
+  } else {
+    const dmgDie=getWeaponDie(c.class);
+    const isCrit=atk.outcome==='crit';
+    const dmg=await inlineRoll(dmgDie,0,null,isCrit?'CRITICAL DAMAGE':'DAMAGE');
+    const finalDmg=isCrit?dmg.raw*2:dmg.raw;
+    cm.enemyHp=Math.max(0,cm.enemyHp-finalDmg);
+    cm.round++;updCombat();
+    msg=`I hit ${cm.enemyName}! Attack: ${atk.raw}${atkMod!==0?`+${atkMod}=${atk.total}`:''}  vs AC ${ac}${isCrit?' (CRITICAL HIT!)':''}. Dealt ${finalDmg} damage. ${cm.enemyName} is at ${cm.enemyHp}/${cm.enemyMaxHp} HP.`;
+  }
+  await toDM(msg);
+}
+
+async function combatDodge(){
+  if(G.busy||!G.combat)return;
+  setCombatBtns(true);
+  G.combat.round++;updCombat();
+  addSys('🛡 DODGE — Incoming attacks have disadvantage','info');
+  await toDM(`I take the Dodge action, focusing entirely on avoiding ${G.combat.enemyName}'s attacks this round.`);
+}
+
+async function combatSkillCheck(){
+  if(G.busy||!G.combat)return;
+  setCombatBtns(true);
+  const c=G.char,cm=G.combat;
+  const intMod=Math.floor((c.stats.INT-10)/2);
+  addSys('🎯 SKILL CHECK — Assess the situation','info');
+  const roll=await inlineRoll(20,intMod,null,'INSIGHT ROLL');
+  G.combat.round++;updCombat();
+  await toDM(`I study ${cm.enemyName} carefully, looking for weaknesses or patterns. Insight roll: ${roll.total}. What do I notice?`);
+}
+
+async function combatAbility(ability){
+  if(G.busy||!G.combat)return;
+  setCombatBtns(true);
+  const cm=G.combat;
+  // Check if ability needs a roll (contains offensive keywords)
+  const needsRoll=/attack|strike|blast|bolt|smite|slash|shoot/i.test(ability.name+ability.desc);
+  if(needsRoll){
+    const mod=Math.max(Math.floor((G.char.stats.INT-10)/2),Math.floor((G.char.stats.WIS-10)/2),Math.floor((G.char.stats.STR-10)/2));
+    addSys(`⚡ ${ability.name.toUpperCase()}`,'skill');
+    const roll=await inlineRoll(20,mod,cm.enemyAC||13,'ABILITY ROLL');
+    const dmg=roll.pass?await inlineRoll(8,0,null,'ABILITY DAMAGE'):null;
+    if(dmg&&roll.pass){cm.enemyHp=Math.max(0,cm.enemyHp-dmg.raw);updCombat();}
+    cm.round++;
+    await toDM(`I use ${ability.name} against ${cm.enemyName}. Roll: ${roll.total}${roll.pass?`, hit! Dealt ${dmg?.raw} damage. Enemy at ${cm.enemyHp}/${cm.enemyMaxHp} HP`:', miss'}. ${ability.desc}`);
+  } else {
+    addSys(`⚡ ${ability.name.toUpperCase()}`,'skill');
+    cm.round++;
+    await toDM(`I activate ${ability.name} during combat. ${ability.desc}`);
+  }
+}
+
+async function combatUseItem(){
+  if(G.busy||!G.combat)return;
+  setCombatBtns(true);
+  const inv=G.char.inventory;
+  const potion=inv.find(i=>/potion|heal/i.test(i));
+  if(potion){
+    const roll=await inlineRoll(8,0,null,'HEALING ROLL');
+    G.char.hp=Math.min(G.char.maxHp,G.char.hp+roll.raw);
+    const idx=inv.indexOf(potion);inv.splice(idx,1);
+    updHdr();updSheet();save();
+    G.combat.round++;updCombat();
+    await toDM(`I drink ${potion} in the middle of combat, recovering ${roll.raw} HP (now ${G.char.hp}/${G.char.maxHp}).`);
+  } else {
+    await toDM(`I reach for an item in my pack during the fight. What can I use from: ${inv.join(', ')||'nothing'}?`);
+  }
+  setCombatBtns(false);
+}
+
+async function combatFlee(){
+  if(G.busy||!G.combat)return;
+  setCombatBtns(true);
+  const dexMod=Math.floor((G.char.stats.DEX-10)/2);
+  addSys('🏃 ATTEMPTING TO FLEE...','info');
+  const roll=await inlineRoll(20,dexMod,12,'ATHLETICS CHECK');
+  await toDM(`I attempt to flee from ${G.combat.enemyName}! Athletics: ${roll.total} vs DC 12 — ${roll.pass?'I break away and run!':'Failed to escape — enemy cuts off my path!'}`);
+}
+
+function setCombatBtns(disabled){
+  document.querySelectorAll('#combat-input .cmb-btn').forEach(b=>b.disabled=disabled);
 }
 
 // ============================================================
@@ -1110,6 +1278,13 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.querySelectorAll('[data-cstab]').forEach(t=>{t.addEventListener('click',()=>{const bar=t.closest('.tab-bar');bar.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');t.closest('.tab-wrap').querySelectorAll('.tab-panel').forEach(x=>x.classList.remove('active'));const p=id('cstab-'+t.dataset.cstab);if(p)p.classList.add('active');});});
   // Tabs — journal
   document.querySelectorAll('[data-jntab]').forEach(t=>{t.addEventListener('click',()=>{const bar=t.closest('.tab-bar');bar.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');t.closest('.tab-wrap').querySelectorAll('.tab-panel').forEach(x=>x.classList.remove('active'));const p=id('jntab-'+t.dataset.jntab);if(p)p.classList.add('active');});});
+
+  // Combat buttons
+  id('cmb-attack').addEventListener('click',combatAttack);
+  id('cmb-dodge').addEventListener('click',combatDodge);
+  id('cmb-spell').addEventListener('click',combatSkillCheck);
+  id('cmb-item').addEventListener('click',combatUseItem);
+  id('cmb-flee').addEventListener('click',combatFlee);
 
   // Level up confirm
   id('lu-confirm').addEventListener('click',()=>id('lu-modal').classList.remove('open'));
