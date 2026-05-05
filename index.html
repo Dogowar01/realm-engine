@@ -10,260 +10,304 @@
   <title>Realm Engine</title>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Share+Tech+Mono&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
   <style>
-    :root{--bg:#08090e;--bg2:#0f1019;--bg3:#13141f;--bdr:#1e2035;--gold:#d4a853;--gold-dim:#8a6b30;--green:#4ade80;--red:#f87171;--blue:#60a5fa;--purple:#c4b5fd;--text:#e8dfc8;--text2:#7a7060;--fd:'Cinzel',serif;--fb:'Crimson Pro',Georgia,serif;--fm:'Share Tech Mono',monospace;}
+    :root{
+      --bg:#08090e;--bg2:#0f1019;--bg3:#13141f;--bdr:#1e2035;
+      --gold:#d4a853;--gold-dim:#8a6b30;
+      --green:#4ade80;--red:#f87171;--blue:#60a5fa;--purple:#c4b5fd;--amber:#f59e0b;
+      --text:#e8dfc8;--text2:#7a7060;
+      --fd:'Cinzel',serif;--fb:'Crimson Pro',Georgia,serif;--fm:'Share Tech Mono',monospace;
+    }
     *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
     html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--fb)}
     #app{display:flex;flex-direction:column;height:100dvh;position:relative;overflow:hidden}
     .screen{position:absolute;inset:0;display:flex;flex-direction:column;transition:opacity .35s,transform .35s}
-    .screen.gone{opacity:0;pointer-events:none;transform:translateY(16px)}
+    .screen.gone{opacity:0;pointer-events:none;transform:translateY(14px)}
 
-    /* INTRO */
+    /* ── INTRO ── */
     #s-intro{align-items:center;justify-content:center;padding:2rem 1.5rem}
-    .logo-icon{font-size:3.5rem;margin-bottom:1.2rem;animation:gpulse 3s ease-in-out infinite}
+    .logo-icon{font-size:3.5rem;margin-bottom:1.1rem;animation:gpulse 3s ease-in-out infinite}
     @keyframes gpulse{0%,100%{filter:drop-shadow(0 0 6px var(--gold))}50%{filter:drop-shadow(0 0 22px var(--gold))}}
-    .logo-title{font-family:var(--fd);font-size:2.4rem;color:var(--gold);letter-spacing:.12em;text-shadow:0 0 28px rgba(212,168,83,.35);margin-bottom:.4rem}
-    .logo-sub{font-family:var(--fm);font-size:.63rem;color:var(--text2);letter-spacing:.25em;margin-bottom:2.4rem}
-    .field-lbl{font-family:var(--fm);font-size:.63rem;color:var(--text2);letter-spacing:.18em;margin-bottom:.42rem;display:block}
-    .api-wrap{width:100%;max-width:380px;margin-bottom:1.2rem}
-    input[type=password],input[type=text],textarea{width:100%;background:var(--bg3);border:1px solid var(--bdr);border-radius:5px;padding:.68rem .9rem;color:var(--text);font-family:var(--fm);font-size:.83rem;outline:none;transition:border-color .2s;-webkit-appearance:none}
-    input[type=password]:focus,input[type=text]:focus,textarea:focus{border-color:var(--gold-dim)}
-    .btn-gold{width:100%;max-width:380px;padding:.92rem;background:transparent;border:1px solid var(--gold);border-radius:5px;color:var(--gold);font-family:var(--fd);font-size:.92rem;letter-spacing:.15em;cursor:pointer;transition:all .2s;margin-bottom:.65rem}
+    .logo-title{font-family:var(--fd);font-size:2.4rem;color:var(--gold);letter-spacing:.12em;text-shadow:0 0 28px rgba(212,168,83,.35);margin-bottom:.35rem}
+    .logo-sub{font-family:var(--fm);font-size:.62rem;color:var(--text2);letter-spacing:.25em;margin-bottom:2.3rem}
+    .field-lbl{font-family:var(--fm);font-size:.62rem;color:var(--text2);letter-spacing:.18em;margin-bottom:.4rem;display:block}
+    .api-wrap{width:100%;max-width:380px;margin-bottom:1.1rem}
+    input[type=password],input[type=text],textarea{width:100%;background:var(--bg3);border:1px solid var(--bdr);border-radius:5px;padding:.66rem .88rem;color:var(--text);font-family:var(--fm);font-size:.82rem;outline:none;transition:border-color .2s;-webkit-appearance:none}
+    input:focus,textarea:focus{border-color:var(--gold-dim)}
+    .btn-gold{width:100%;max-width:380px;padding:.9rem;background:transparent;border:1px solid var(--gold);border-radius:5px;color:var(--gold);font-family:var(--fd);font-size:.9rem;letter-spacing:.15em;cursor:pointer;transition:all .2s;margin-bottom:.62rem}
     .btn-gold:hover,.btn-gold:active{background:rgba(212,168,83,.1);box-shadow:0 0 16px rgba(212,168,83,.18)}
     .btn-gold:disabled{opacity:.35;cursor:not-allowed}
-    .btn-ghost{width:100%;max-width:380px;padding:.68rem;background:transparent;border:1px solid var(--bdr);border-radius:5px;color:var(--text2);font-family:var(--fm);font-size:.73rem;letter-spacing:.12em;cursor:pointer;transition:all .2s}
+    .btn-ghost{width:100%;max-width:380px;padding:.66rem;background:transparent;border:1px solid var(--bdr);border-radius:5px;color:var(--text2);font-family:var(--fm);font-size:.72rem;letter-spacing:.12em;cursor:pointer;transition:all .2s}
     .btn-ghost:hover{border-color:var(--text2);color:var(--text)}
-    .err{font-family:var(--fm);font-size:.66rem;color:var(--red);text-align:center;margin-top:.45rem;min-height:1em}
+    .err{font-family:var(--fm);font-size:.64rem;color:var(--red);text-align:center;margin-top:.42rem;min-height:1em}
 
-    /* WORLD SELECTION */
-    #s-world{overflow-y:auto;padding:1.1rem 1rem 2rem}
-    .world-hd{font-family:var(--fd);font-size:1rem;color:var(--gold);text-align:center;letter-spacing:.12em;margin-bottom:.25rem}
-    .world-sub{font-family:var(--fm);font-size:.62rem;color:var(--text2);text-align:center;letter-spacing:.12em;margin-bottom:1.2rem}
-    .world-grid{display:flex;flex-direction:column;gap:.75rem;margin-bottom:1rem}
-    .world-card{background:var(--bg3);border:1px solid var(--bdr);border-radius:8px;padding:1rem;cursor:pointer;transition:all .25s;position:relative;overflow:hidden}
-    .world-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .25s;border-radius:8px}
-    .world-card:hover,.world-card.sel{border-color:var(--gold);box-shadow:0 0 14px rgba(212,168,83,.14)}
-    .world-card.sel::after{content:'✦';position:absolute;top:.75rem;right:.85rem;color:var(--gold);font-size:.9rem}
-    .world-accent{position:absolute;top:0;left:0;width:3px;height:100%;border-radius:8px 0 0 8px;transition:opacity .25s}
-    .world-card.sel .world-accent{opacity:1}
-    .world-icon{font-size:1.5rem;margin-bottom:.45rem}
-    .world-name{font-family:var(--fd);font-size:.92rem;color:var(--gold);margin-bottom:.18rem;letter-spacing:.05em}
-    .world-tag{font-family:var(--fm);font-size:.6rem;color:var(--text2);letter-spacing:.14em;margin-bottom:.55rem}
-    .world-desc{font-size:.88rem;color:var(--text);line-height:1.6}
-    .custom-wrap{margin-top:.65rem;display:none}
+    /* ── WORLD ── */
+    #s-world{overflow-y:auto;padding:1rem 1rem 2rem}
+    .world-hd{font-family:var(--fd);font-size:.98rem;color:var(--gold);text-align:center;letter-spacing:.12em;margin-bottom:.22rem}
+    .world-sub{font-family:var(--fm);font-size:.6rem;color:var(--text2);text-align:center;letter-spacing:.12em;margin-bottom:1.1rem}
+    .world-grid{display:flex;flex-direction:column;gap:.7rem;margin-bottom:.9rem}
+    .world-card{background:var(--bg3);border:1px solid var(--bdr);border-radius:8px;padding:.95rem;cursor:pointer;transition:all .25s;position:relative;overflow:hidden}
+    .world-card:hover,.world-card.sel{border-color:var(--gold);box-shadow:0 0 12px rgba(212,168,83,.13)}
+    .world-card.sel::after{content:'✦';position:absolute;top:.72rem;right:.82rem;color:var(--gold);font-size:.85rem}
+    .world-accent{position:absolute;top:0;left:0;width:3px;height:100%;border-radius:8px 0 0 8px}
+    .world-icon{font-size:1.4rem;margin-bottom:.4rem}
+    .world-name{font-family:var(--fd);font-size:.88rem;color:var(--gold);margin-bottom:.15rem;letter-spacing:.05em}
+    .world-tag{font-family:var(--fm);font-size:.58rem;color:var(--text2);letter-spacing:.13em;margin-bottom:.5rem}
+    .world-desc{font-size:.86rem;color:var(--text);line-height:1.58}
+    .custom-wrap{display:none;margin-top:.6rem}
     .custom-wrap.show{display:block}
-    .custom-ta{width:100%;min-height:90px;resize:vertical;font-family:var(--fb);font-size:.9rem;line-height:1.55;color:var(--text);background:var(--bg3);border:1px solid var(--bdr);border-radius:5px;padding:.65rem .85rem;outline:none;-webkit-appearance:none}
-    .custom-ta:focus{border-color:var(--gold-dim)}
-    .custom-ta::placeholder{color:var(--text2);font-family:var(--fm);font-size:.75rem}
+    .custom-ta{width:100%;min-height:88px;resize:vertical;font-family:var(--fb);font-size:.88rem;line-height:1.55;color:var(--text);background:var(--bg3);border:1px solid var(--bdr);border-radius:5px;padding:.62rem .82rem;outline:none;-webkit-appearance:none}
+    .custom-ta::placeholder{color:var(--text2);font-family:var(--fm);font-size:.72rem}
 
-    /* CREATION */
-    #s-create{overflow-y:auto;padding:1.1rem 1rem 2rem}
-    .create-hd{font-family:var(--fd);font-size:1rem;color:var(--gold);text-align:center;letter-spacing:.12em;margin-bottom:.18rem}
-    .create-world-tag{font-family:var(--fm);font-size:.6rem;color:var(--text2);text-align:center;letter-spacing:.14em;margin-bottom:.9rem}
-    .char-grid{display:flex;flex-direction:column;gap:.8rem;margin-bottom:1rem}
-    .char-card{background:var(--bg3);border:1px solid var(--bdr);border-radius:8px;padding:1.05rem;cursor:pointer;transition:all .25s;position:relative}
+    /* ── CREATE ── */
+    #s-create{overflow-y:auto;padding:1rem 1rem 2rem}
+    .create-hd{font-family:var(--fd);font-size:.98rem;color:var(--gold);text-align:center;letter-spacing:.12em;margin-bottom:.16rem}
+    .create-world-tag{font-family:var(--fm);font-size:.58rem;color:var(--text2);text-align:center;letter-spacing:.13em;margin-bottom:.88rem}
+    .char-grid{display:flex;flex-direction:column;gap:.75rem;margin-bottom:.95rem}
+    .char-card{background:var(--bg3);border:1px solid var(--bdr);border-radius:8px;padding:1rem;cursor:pointer;transition:all .25s;position:relative}
     .char-card:hover,.char-card.sel{border-color:var(--gold);box-shadow:0 0 12px rgba(212,168,83,.13)}
-    .char-card.sel::after{content:'✦';position:absolute;top:.75rem;right:.85rem;color:var(--gold)}
-    .card-title{font-family:var(--fd);font-size:.92rem;color:var(--gold);margin-bottom:.18rem}
-    .card-class{font-family:var(--fm);font-size:.6rem;color:var(--text2);letter-spacing:.14em;margin-bottom:.55rem}
-    .card-desc{font-size:.9rem;color:var(--text);line-height:1.55;margin-bottom:.7rem}
-    .stat-chips{display:flex;gap:.35rem;flex-wrap:wrap}
-    .chip{font-family:var(--fm);font-size:.58rem;padding:.16rem .42rem;border:1px solid var(--bdr);border-radius:3px;color:var(--text2)}
+    .char-card.sel::after{content:'✦';position:absolute;top:.72rem;right:.82rem;color:var(--gold)}
+    .card-title{font-family:var(--fd);font-size:.88rem;color:var(--gold);margin-bottom:.16rem}
+    .card-class{font-family:var(--fm);font-size:.58rem;color:var(--text2);letter-spacing:.13em;margin-bottom:.5rem}
+    .card-desc{font-size:.88rem;color:var(--text);line-height:1.55;margin-bottom:.65rem}
+    .stat-chips{display:flex;gap:.3rem;flex-wrap:wrap}
+    .chip{font-family:var(--fm);font-size:.56rem;padding:.14rem .4rem;border:1px solid var(--bdr);border-radius:3px;color:var(--text2)}
     .chip b{color:var(--gold)}
-    .name-wrap{margin-bottom:1rem}
-    .name-input{width:100%;background:var(--bg3);border:1px solid var(--bdr);border-radius:5px;padding:.72rem;color:var(--gold);font-family:var(--fd);font-size:1.05rem;outline:none;text-align:center;transition:border-color .2s;-webkit-appearance:none}
+    .name-wrap{margin-bottom:.95rem}
+    .name-input{width:100%;background:var(--bg3);border:1px solid var(--bdr);border-radius:5px;padding:.7rem;color:var(--gold);font-family:var(--fd);font-size:1rem;outline:none;text-align:center;transition:border-color .2s;-webkit-appearance:none}
     .name-input:focus{border-color:var(--gold-dim)}
-    .name-input::placeholder{color:var(--text2);font-family:var(--fm);font-size:.78rem}
+    .name-input::placeholder{color:var(--text2);font-family:var(--fm);font-size:.76rem}
 
-    /* GAME */
+    /* ── GAME SHELL ── */
     #s-game{display:flex;flex-direction:column}
-    #g-header{background:var(--bg2);border-bottom:1px solid var(--bdr);padding:.52rem .85rem;flex-shrink:0;display:flex;align-items:center;gap:.6rem}
-    .lvl-badge{width:36px;height:36px;border:2px solid var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:.83rem;color:var(--gold);font-weight:700;flex-shrink:0;box-shadow:0 0 9px rgba(212,168,83,.22);cursor:pointer;user-select:none}
+    #g-header{background:var(--bg2);border-bottom:1px solid var(--bdr);padding:.5rem .82rem;flex-shrink:0;display:flex;align-items:center;gap:.58rem}
+    .lvl-badge{width:35px;height:35px;border:2px solid var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:.8rem;color:var(--gold);font-weight:700;flex-shrink:0;box-shadow:0 0 8px rgba(212,168,83,.2);cursor:pointer;user-select:none}
     .hdr-info{flex:1;min-width:0}
-    .hdr-name{font-family:var(--fd);font-size:.8rem;color:var(--gold);letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .hdr-bars{display:flex;gap:.32rem;margin-top:.26rem;align-items:center}
-    .bar-w{display:flex;align-items:center;gap:.26rem;flex:1}
-    .bar-lbl{font-family:var(--fm);font-size:.5rem;color:var(--text2);letter-spacing:.1em;flex-shrink:0}
+    .hdr-name{font-family:var(--fd);font-size:.78rem;color:var(--gold);letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .hdr-bars{display:flex;gap:.3rem;margin-top:.24rem;align-items:center}
+    .bar-w{display:flex;align-items:center;gap:.24rem;flex:1}
+    .bar-lbl{font-family:var(--fm);font-size:.48rem;color:var(--text2);letter-spacing:.1em;flex-shrink:0}
     .bar-track{flex:1;height:5px;background:var(--bg);border-radius:3px;overflow:hidden}
     .bar-fill{height:100%;border-radius:3px;transition:width .5s}
     .bar-fill.hp{background:var(--red);box-shadow:0 0 4px rgba(248,113,113,.4)}
     .bar-fill.xp{background:var(--gold);box-shadow:0 0 4px rgba(212,168,83,.4)}
-    .hdr-btns{display:flex;flex-direction:column;gap:.22rem;flex-shrink:0}
-    .hdr-btn{background:none;border:1px solid var(--bdr);border-radius:3px;padding:.22rem .48rem;color:var(--text2);font-family:var(--fm);font-size:.54rem;cursor:pointer;letter-spacing:.1em;transition:all .2s;white-space:nowrap}
+    .hdr-btns{display:flex;flex-direction:column;gap:.2rem;flex-shrink:0}
+    .hdr-btn{background:none;border:1px solid var(--bdr);border-radius:3px;padding:.2rem .46rem;color:var(--text2);font-family:var(--fm);font-size:.52rem;cursor:pointer;letter-spacing:.1em;transition:all .2s;white-space:nowrap}
     .hdr-btn:hover{border-color:var(--gold-dim);color:var(--gold)}
-    #narrative{flex:1;overflow-y:auto;padding:.85rem;display:flex;flex-direction:column;gap:.85rem;scroll-behavior:smooth}
-    .msg{animation:msg-in .3s ease}
-    @keyframes msg-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-    .msg-lbl{font-family:var(--fm);font-size:.56rem;letter-spacing:.2em;margin-bottom:.32rem}
-    .dm .msg-lbl{color:var(--gold-dim)}
-    .player-msg{align-self:flex-end;text-align:right}
-    .player-msg .msg-lbl{color:var(--text2)}
-    .dm-bubble{font-family:var(--fb);font-size:1.01rem;line-height:1.72;color:var(--text);padding:.72rem .9rem;background:var(--bg3);border-radius:0 7px 7px 7px;border-left:2px solid var(--gold-dim)}
-    .player-bubble{font-family:var(--fb);font-size:.96rem;line-height:1.6;color:var(--text);padding:.62rem .9rem;background:rgba(212,168,83,.07);border:1px solid rgba(212,168,83,.17);border-radius:7px 0 7px 7px;display:inline-block;max-width:88%}
+
+    /* ── NARRATIVE ── */
+    #narrative{flex:1;overflow-y:auto;padding:.82rem;display:flex;flex-direction:column;gap:.75rem;scroll-behavior:smooth}
+
+    /* Scene card */
+    .scene-card{border-radius:6px;padding:.5rem .75rem;display:flex;align-items:center;gap:.55rem;flex-shrink:0}
+    .scene-card.CALM{background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.18)}
+    .scene-card.TENSE{background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.18)}
+    .scene-card.DANGEROUS{background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.2)}
+    .scene-card.MYSTERIOUS{background:rgba(196,181,253,.06);border:1px solid rgba(196,181,253,.18)}
+    .scene-card.EERIE{background:rgba(96,165,250,.06);border:1px solid rgba(96,165,250,.18)}
+    .scene-card.COMBAT{background:rgba(248,113,113,.09);border:1px solid rgba(248,113,113,.3)}
+    .scene-mood{font-family:var(--fm);font-size:.58rem;letter-spacing:.18em;flex-shrink:0}
+    .scene-mood.CALM{color:var(--green)}
+    .scene-mood.TENSE{color:var(--amber)}
+    .scene-mood.DANGEROUS{color:var(--red)}
+    .scene-mood.MYSTERIOUS{color:var(--purple)}
+    .scene-mood.EERIE{color:var(--blue)}
+    .scene-mood.COMBAT{color:var(--red)}
+    .scene-sep{width:1px;height:14px;background:var(--bdr);flex-shrink:0}
+    .scene-atm{font-family:var(--fb);font-size:.82rem;color:var(--text2);font-style:italic;line-height:1.4}
+
+    /* DM bubble */
+    .msg{animation:msg-in .28s ease}
+    @keyframes msg-in{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+    .msg-lbl{font-family:var(--fm);font-size:.54rem;letter-spacing:.2em;margin-bottom:.28rem}
+    .dm-wrap .msg-lbl{color:var(--gold-dim)}
+    .player-wrap{align-self:flex-end;text-align:right}
+    .player-wrap .msg-lbl{color:var(--text2)}
+    .dm-bubble{font-family:var(--fb);font-size:1rem;line-height:1.75;color:var(--text);padding:.7rem .88rem;background:var(--bg3);border-radius:0 7px 7px 7px;border-left:2px solid var(--gold-dim)}
+    .dm-bubble .dialogue{color:var(--gold);font-style:italic}
+    .dm-bubble .emph{color:var(--text);font-weight:600}
+    .player-bubble{font-family:var(--fb);font-size:.94rem;line-height:1.6;color:var(--text);padding:.6rem .88rem;background:rgba(212,168,83,.07);border:1px solid rgba(212,168,83,.16);border-radius:7px 0 7px 7px;display:inline-block;max-width:90%}
+
+    /* Action buttons */
+    .action-row{display:flex;flex-wrap:wrap;gap:.38rem;margin-top:.18rem}
+    .act-btn{background:var(--bg3);border:1px solid var(--bdr);border-radius:20px;padding:.38rem .72rem;font-family:var(--fm);font-size:.6rem;color:var(--text2);cursor:pointer;transition:all .22s;letter-spacing:.06em;display:flex;align-items:center;gap:.3rem;user-select:none}
+    .act-btn:hover,.act-btn:active{border-color:var(--gold);color:var(--gold);background:rgba(212,168,83,.08)}
+    .act-btn .act-ico{font-size:.85rem}
+
+    /* Combat banner */
+    #combat-banner{display:none;background:rgba(248,113,113,.07);border-bottom:1px solid rgba(248,113,113,.22);padding:.58rem .88rem;flex-shrink:0}
+    #combat-banner.active{display:block}
+    .cb-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:.32rem}
+    .cb-name{font-family:var(--fd);font-size:.78rem;color:var(--red);letter-spacing:.08em}
+    .cb-round{font-family:var(--fm);font-size:.56rem;color:var(--text2);letter-spacing:.14em}
+    .cb-desc{font-family:var(--fb);font-size:.78rem;color:var(--text2);margin-bottom:.35rem;font-style:italic}
+    .cb-bar-wrap{display:flex;align-items:center;gap:.5rem}
+    .cb-bar-lbl{font-family:var(--fm);font-size:.52rem;color:var(--red);letter-spacing:.1em;flex-shrink:0}
+    .cb-bar-track{flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden}
+    .cb-bar-fill{height:100%;background:var(--red);border-radius:3px;box-shadow:0 0 6px rgba(248,113,113,.4);transition:width .6s}
+    .cb-hp-val{font-family:var(--fd);font-size:.72rem;color:var(--red);flex-shrink:0}
+
+    /* System messages */
     .sys-msg{text-align:center}
-    .sys-bubble{font-family:var(--fm);font-size:.7rem;letter-spacing:.08em;padding:.32rem .65rem;border-radius:4px;display:inline-block}
+    .sys-bubble{font-family:var(--fm);font-size:.68rem;letter-spacing:.08em;padding:.3rem .62rem;border-radius:4px;display:inline-block}
     .sys-xp .sys-bubble{color:var(--gold);background:rgba(212,168,83,.1);border:1px solid rgba(212,168,83,.2)}
     .sys-skill .sys-bubble{color:var(--green);background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.17)}
     .sys-damage .sys-bubble{color:var(--red);background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.17)}
     .sys-info .sys-bubble{color:var(--blue);background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.17)}
     .sys-loot .sys-bubble{color:var(--purple);background:rgba(196,181,253,.08);border:1px solid rgba(196,181,253,.17)}
     .sys-lore .sys-bubble{color:#fbbf24;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2)}
+
+    /* Dice result in chat */
     .dice-msg{text-align:center}
-    .dice-card{display:inline-flex;flex-direction:column;align-items:center;padding:.65rem 1.35rem;background:var(--bg3);border:1px solid var(--bdr);border-radius:8px}
-    .dr-type{font-family:var(--fm);font-size:.58rem;color:var(--text2);letter-spacing:.18em;margin-bottom:.18rem}
-    .dr-num{font-family:var(--fd);font-size:2.3rem;color:var(--gold);line-height:1}
-    .dr-mod{font-family:var(--fm);font-size:.62rem;color:var(--text2);margin-top:.12rem}
-    .dr-out{font-family:var(--fm);font-size:.62rem;margin-top:.3rem;padding:.1rem .42rem;border-radius:3px}
+    .dice-card{display:inline-flex;flex-direction:column;align-items:center;padding:.6rem 1.3rem;background:var(--bg3);border:1px solid var(--bdr);border-radius:8px}
+    .dr-type{font-family:var(--fm);font-size:.56rem;color:var(--text2);letter-spacing:.18em;margin-bottom:.16rem}
+    .dr-num{font-family:var(--fd);font-size:2.2rem;color:var(--gold);line-height:1}
+    .dr-mod{font-family:var(--fm);font-size:.6rem;color:var(--text2);margin-top:.1rem}
+    .dr-out{font-family:var(--fm);font-size:.6rem;margin-top:.28rem;padding:.08rem .4rem;border-radius:3px}
     .dr-out.success{color:var(--green);background:rgba(74,222,128,.1)}
     .dr-out.fail{color:var(--red);background:rgba(248,113,113,.1)}
     .dr-out.crit{color:var(--gold);background:rgba(212,168,83,.14);animation:crit-p .6s ease}
     .dr-out.fumble{color:var(--red);background:rgba(248,113,113,.14)}
     @keyframes crit-p{0%,100%{box-shadow:none}50%{box-shadow:0 0 16px rgba(212,168,83,.48)}}
-    .typing-bubble{display:flex;gap:4px;padding:.68rem .9rem;background:var(--bg3);border-radius:0 7px 7px 7px;border-left:2px solid var(--gold-dim);width:fit-content;align-items:center}
+
+    /* Typing */
+    .typing-bubble{display:flex;gap:4px;padding:.66rem .88rem;background:var(--bg3);border-radius:0 7px 7px 7px;border-left:2px solid var(--gold-dim);width:fit-content;align-items:center}
     .tdot{width:5px;height:5px;background:var(--gold-dim);border-radius:50%;animation:tb 1.2s ease-in-out infinite}
     .tdot:nth-child(2){animation-delay:.15s}.tdot:nth-child(3){animation-delay:.3s}
     @keyframes tb{0%,80%,100%{transform:translateY(0);opacity:.35}40%{transform:translateY(-5px);opacity:1}}
-    #input-area{background:var(--bg2);border-top:1px solid var(--bdr);padding:.62rem .85rem;display:flex;gap:.42rem;align-items:flex-end;flex-shrink:0}
-    .dice-btn{width:42px;height:42px;background:var(--bg3);border:1px solid var(--bdr);border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.22rem;flex-shrink:0;transition:all .2s;color:var(--text2)}
+
+    /* ── INPUT ── */
+    #input-area{background:var(--bg2);border-top:1px solid var(--bdr);padding:.6rem .82rem;display:flex;gap:.4rem;align-items:flex-end;flex-shrink:0}
+    .dice-btn{width:41px;height:41px;background:var(--bg3);border:1px solid var(--bdr);border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.18rem;flex-shrink:0;transition:all .2s;color:var(--text2)}
     .dice-btn:hover{border-color:var(--gold-dim);color:var(--gold)}
-    #msg-input{flex:1;background:var(--bg3);border:1px solid var(--bdr);border-radius:7px;padding:.58rem .82rem;color:var(--text);font-family:var(--fb);font-size:1rem;outline:none;resize:none;min-height:42px;max-height:110px;line-height:1.5;transition:border-color .2s;-webkit-appearance:none}
+    #msg-input{flex:1;background:var(--bg3);border:1px solid var(--bdr);border-radius:7px;padding:.56rem .8rem;color:var(--text);font-family:var(--fb);font-size:.98rem;outline:none;resize:none;min-height:41px;max-height:108px;line-height:1.5;transition:border-color .2s;-webkit-appearance:none}
     #msg-input:focus{border-color:var(--gold-dim)}
     #msg-input::placeholder{color:var(--text2)}
-    .send-btn{width:42px;height:42px;background:var(--gold);border:none;border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all .2s;color:var(--bg);font-size:1rem}
+    .send-btn{width:41px;height:41px;background:var(--gold);border:none;border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all .2s;color:var(--bg);font-size:.98rem}
     .send-btn:hover{background:#e5b864}
     .send-btn:disabled{background:var(--bdr);color:var(--text2);cursor:not-allowed}
 
-    /* DRAWERS */
+    /* ── DRAWERS ── */
     .drawer{position:fixed;top:0;bottom:0;width:min(320px,88vw);background:#0b0c14;z-index:100;display:flex;flex-direction:column;transition:transform .3s ease;overflow:hidden}
     .dl{left:0;border-right:1px solid var(--bdr);transform:translateX(-100%)}
     .dr{right:0;border-left:1px solid var(--bdr);transform:translateX(100%)}
     .dl.open{transform:translateX(0)}.dr.open{transform:translateX(0)}
     .dov{position:fixed;inset:0;background:rgba(0,0,0,.52);z-index:99;display:none}
     .dov.vis{display:block}
-    .drawer-hd{padding:.88rem 1.05rem;border-bottom:1px solid var(--bdr);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;background:var(--bg2)}
-    .drawer-title{font-family:var(--fd);font-size:.78rem;color:var(--gold);letter-spacing:.15em}
-    .drawer-close{background:none;border:none;color:var(--text2);font-size:1.05rem;cursor:pointer;padding:.18rem}
-    .drawer-body{flex:1;overflow-y:auto;padding:.95rem 1.05rem}
+    .drawer-hd{padding:.85rem 1rem;border-bottom:1px solid var(--bdr);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;background:var(--bg2)}
+    .drawer-title{font-family:var(--fd);font-size:.75rem;color:var(--gold);letter-spacing:.15em}
+    .drawer-close{background:none;border:none;color:var(--text2);font-size:1rem;cursor:pointer;padding:.16rem}
     .tab-wrap{display:flex;flex-direction:column;flex:1;overflow:hidden}
     .tab-bar{display:flex;border-bottom:1px solid var(--bdr);flex-shrink:0;background:var(--bg2)}
-    .tab{flex:1;font-family:var(--fm);font-size:.58rem;letter-spacing:.12em;color:var(--text2);padding:.6rem .2rem;text-align:center;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+    .tab{flex:1;font-family:var(--fm);font-size:.56rem;letter-spacing:.12em;color:var(--text2);padding:.58rem .2rem;text-align:center;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
     .tab.active{color:var(--gold);border-bottom-color:var(--gold)}
     .tab-panels{flex:1;overflow:hidden;position:relative}
-    .tab-panel{display:none;position:absolute;inset:0;overflow-y:auto;padding:.95rem 1.05rem}
+    .tab-panel{display:none;position:absolute;inset:0;overflow-y:auto;padding:.9rem 1rem}
     .tab-panel.active{display:block}
-    .sec-lbl{font-family:var(--fm);font-size:.55rem;color:var(--text2);letter-spacing:.2em;margin-bottom:.65rem;padding-bottom:.32rem;border-bottom:1px solid var(--bdr);display:block}
-    .cs-sec{margin-bottom:1.3rem}
-    .cs-id{text-align:center;margin-bottom:1.3rem}
-    .cs-name{font-family:var(--fd);font-size:1.2rem;color:var(--gold);margin-bottom:.18rem}
-    .cs-sub{font-family:var(--fm);font-size:.62rem;color:var(--text2);letter-spacing:.08em}
-    .hp-row{display:flex;align-items:center;gap:.6rem;margin-bottom:.85rem}
-    .hp-lbl{font-family:var(--fm);font-size:.58rem;color:var(--text2);letter-spacing:.1em}
+
+    /* Character sheet */
+    .cs-identity{padding:.88rem 1rem .05rem;text-align:center;flex-shrink:0}
+    .cs-name{font-family:var(--fd);font-size:1.12rem;color:var(--gold);margin-bottom:.14rem}
+    .cs-sub{font-family:var(--fm);font-size:.6rem;color:var(--text2);letter-spacing:.08em;padding-bottom:.5rem}
+    .sec-lbl{font-family:var(--fm);font-size:.53rem;color:var(--text2);letter-spacing:.2em;margin-bottom:.62rem;padding-bottom:.3rem;border-bottom:1px solid var(--bdr);display:block}
+    .cs-sec{margin-bottom:1.2rem}
+    .hp-row{display:flex;align-items:center;gap:.58rem;margin-bottom:.4rem}
+    .hp-lbl{font-family:var(--fm);font-size:.55rem;color:var(--text2);letter-spacing:.1em}
     .hp-bar{flex:1;height:7px;background:var(--bg);border-radius:4px;overflow:hidden}
     .hp-fill{height:100%;background:var(--red);border-radius:4px;box-shadow:0 0 6px rgba(239,68,68,.4);transition:width .5s}
-    .hp-val{font-family:var(--fd);font-size:.88rem;color:var(--red);cursor:pointer;border-bottom:1px dashed rgba(248,113,113,.4);padding-bottom:.05rem;user-select:none}
-    .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.42rem}
-    .stat-b{background:var(--bg3);border:1px solid var(--bdr);border-radius:5px;padding:.52rem .42rem;text-align:center}
-    .sn{font-family:var(--fm);font-size:.5rem;color:var(--text2);letter-spacing:.12em;margin-bottom:.22rem}
-    .sv{font-family:var(--fd);font-size:1.22rem;color:var(--gold);line-height:1}
-    .sm{font-family:var(--fm);font-size:.52rem;color:var(--text2);margin-top:.06rem}
-    .ab-list{display:flex;flex-direction:column;gap:.35rem}
-    .ab-item{background:var(--bg3);border:1px solid var(--bdr);border-radius:4px;padding:.48rem .62rem;display:flex;align-items:flex-start;gap:.42rem}
-    .ab-ico{font-size:.82rem;margin-top:.04rem}
-    .ab-name{font-family:var(--fm);font-size:.63rem;color:var(--gold);margin-bottom:.06rem}
-    .ab-desc{font-size:.76rem;color:var(--text2);line-height:1.4}
-    .inv-list{display:flex;flex-wrap:wrap;gap:.32rem;margin-bottom:.5rem}
-    .inv-item{font-family:var(--fm);font-size:.58rem;padding:.2rem .46rem;background:var(--bg3);border:1px solid var(--bdr);border-radius:3px;color:var(--text)}
-    .gold-row{font-family:var(--fm);font-size:.72rem;color:var(--gold);margin-bottom:.8rem}
-    .recap-btn{width:100%;padding:.62rem;background:transparent;border:1px solid var(--bdr);border-radius:5px;color:var(--text2);font-family:var(--fm);font-size:.62rem;letter-spacing:.12em;cursor:pointer;transition:all .2s}
+    .hp-val{font-family:var(--fd);font-size:.85rem;color:var(--red);cursor:pointer;border-bottom:1px dashed rgba(248,113,113,.4);padding-bottom:.04rem;user-select:none}
+    .xp-row{font-family:var(--fm);font-size:.58rem;color:var(--text2);letter-spacing:.07em;margin-bottom:.82rem}
+    .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem}
+    .stat-b{background:var(--bg3);border:1px solid var(--bdr);border-radius:5px;padding:.5rem .4rem;text-align:center}
+    .sn{font-family:var(--fm);font-size:.48rem;color:var(--text2);letter-spacing:.12em;margin-bottom:.2rem}
+    .sv{font-family:var(--fd);font-size:1.18rem;color:var(--gold);line-height:1}
+    .sm{font-family:var(--fm);font-size:.5rem;color:var(--text2);margin-top:.05rem}
+    .ab-list{display:flex;flex-direction:column;gap:.32rem}
+    .ab-item{background:var(--bg3);border:1px solid var(--bdr);border-radius:4px;padding:.46rem .6rem;display:flex;align-items:flex-start;gap:.4rem}
+    .ab-ico{font-size:.8rem;margin-top:.03rem}
+    .ab-name{font-family:var(--fm);font-size:.6rem;color:var(--gold);margin-bottom:.05rem}
+    .ab-desc{font-size:.74rem;color:var(--text2);line-height:1.4}
+    .skill-list{display:flex;flex-direction:column;gap:.2rem}
+    .skill-row{display:flex;align-items:center;gap:.48rem;padding:.3rem .48rem;border-radius:4px;background:var(--bg3);border:1px solid var(--bdr)}
+    .skill-mod{font-family:var(--fd);font-size:.75rem;color:var(--gold);min-width:26px;text-align:right;flex-shrink:0}
+    .skill-name{font-family:var(--fm);font-size:.58rem;color:var(--text);letter-spacing:.05em;flex:1}
+    .skill-attr{font-family:var(--fm);font-size:.5rem;color:var(--text2);flex-shrink:0}
+    .skill-prof{font-size:.6rem;color:var(--gold)}
+    .gear-list{display:flex;flex-direction:column;gap:.32rem}
+    .gear-item{background:var(--bg3);border:1px solid var(--bdr);border-radius:5px;padding:.46rem .62rem;display:flex;align-items:center;gap:.48rem}
+    .gear-ico{font-size:.88rem;flex-shrink:0}
+    .gear-name{font-family:var(--fm);font-size:.62rem;color:var(--text);flex:1}
+    .gold-row{font-family:var(--fm);font-size:.7rem;color:var(--gold);margin-top:.35rem}
+    .recap-btn{width:100%;padding:.6rem;background:transparent;border:1px solid var(--bdr);border-radius:5px;color:var(--text2);font-family:var(--fm);font-size:.6rem;letter-spacing:.12em;cursor:pointer;transition:all .2s;margin-top:.5rem}
     .recap-btn:hover{border-color:var(--gold-dim);color:var(--gold)}
-    .quest-item,.lore-item,.npc-item{background:var(--bg3);border:1px solid var(--bdr);border-radius:6px;padding:.72rem;margin-bottom:.5rem}
-    .quest-name,.lore-title,.npc-name{font-family:var(--fd);font-size:.78rem;margin-bottom:.22rem}
+    .quest-item,.lore-item,.npc-item{background:var(--bg3);border:1px solid var(--bdr);border-radius:6px;padding:.68rem;margin-bottom:.46rem}
+    .quest-name,.lore-title,.npc-name{font-family:var(--fd);font-size:.75rem;margin-bottom:.2rem}
     .quest-name{color:var(--gold)}.lore-title{color:#fbbf24}.npc-name{color:var(--gold)}
-    .quest-desc,.lore-content,.npc-note{font-size:.8rem;color:var(--text2);line-height:1.5}
+    .quest-desc,.lore-content,.npc-note{font-size:.78rem;color:var(--text2);line-height:1.5}
     .lore-content{color:var(--text)}
-    .npc-item{display:flex;gap:.62rem;align-items:flex-start}
-    .npc-disp{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:.3rem}
+    .npc-item{display:flex;gap:.6rem;align-items:flex-start}
+    .npc-disp{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:.28rem}
     .npc-disp.friendly{background:var(--green);box-shadow:0 0 5px rgba(74,222,128,.4)}
     .npc-disp.hostile{background:var(--red);box-shadow:0 0 5px rgba(248,113,113,.4)}
     .npc-disp.neutral,.npc-disp.unknown{background:var(--text2)}
-    .npc-loc{font-family:var(--fm);font-size:.56rem;color:var(--text2);letter-spacing:.08em;margin-bottom:.12rem}
-    .empty-state{font-family:var(--fm);font-size:.62rem;color:var(--text2);letter-spacing:.08em;padding:.4rem 0}
+    .npc-loc{font-family:var(--fm);font-size:.54rem;color:var(--text2);letter-spacing:.07em;margin-bottom:.1rem}
+    .empty-state{font-family:var(--fm);font-size:.6rem;color:var(--text2);letter-spacing:.07em;padding:.38rem 0}
 
-    /* DICE MODAL */
+    /* ── DICE MODAL ── */
     #dice-modal{position:fixed;inset:0;z-index:200;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity .25s}
     #dice-modal.open{opacity:1;pointer-events:all}
-    .dice-sheet{background:var(--bg3);border:1px solid var(--bdr);border-bottom:none;border-radius:14px 14px 0 0;padding:1.25rem 1.25rem 2.2rem;width:100%;max-width:440px;transform:translateY(100%);transition:transform .3s ease}
+    .dice-sheet{background:var(--bg3);border:1px solid var(--bdr);border-bottom:none;border-radius:14px 14px 0 0;padding:1.2rem 1.2rem 2.2rem;width:100%;max-width:440px;transform:translateY(100%);transition:transform .3s ease}
     #dice-modal.open .dice-sheet{transform:translateY(0)}
-    .dm-title{font-family:var(--fd);font-size:.8rem;color:var(--gold);letter-spacing:.2em;text-align:center;margin-bottom:1rem}
-    .die-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.52rem;margin-bottom:1rem}
-    .die-btn{aspect-ratio:1;background:var(--bg2);border:1px solid var(--bdr);border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;gap:.16rem}
+    .dm-title{font-family:var(--fd);font-size:.78rem;color:var(--gold);letter-spacing:.2em;text-align:center;margin-bottom:.95rem}
+    .die-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin-bottom:.95rem}
+    .die-btn{aspect-ratio:1;background:var(--bg2);border:1px solid var(--bdr);border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;gap:.14rem}
     .die-btn:hover,.die-btn:active{border-color:var(--gold);background:rgba(212,168,83,.1)}
-    .die-ico{font-size:1.3rem}.die-lbl{font-family:var(--fm);font-size:.56rem;color:var(--text2);letter-spacing:.1em}
-    .dice-res-zone{text-align:center;min-height:72px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.22rem}
-    #roll-ctx{font-family:var(--fm);font-size:.6rem;color:var(--text2);letter-spacing:.12em}
-    #roll-num{font-family:var(--fd);font-size:2.9rem;color:var(--gold);text-shadow:0 0 16px rgba(212,168,83,.42);display:none;line-height:1}
-    #roll-mod{font-family:var(--fm);font-size:.62rem;color:var(--text2);display:none}
+    .die-ico{font-size:1.28rem}.die-lbl{font-family:var(--fm);font-size:.54rem;color:var(--text2);letter-spacing:.1em}
+    .dice-res-zone{text-align:center;min-height:70px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.2rem}
+    #roll-ctx{font-family:var(--fm);font-size:.58rem;color:var(--text2);letter-spacing:.12em}
+    #roll-num{font-family:var(--fd);font-size:2.8rem;color:var(--gold);text-shadow:0 0 16px rgba(212,168,83,.42);display:none;line-height:1}
+    #roll-mod-txt{font-family:var(--fm);font-size:.6rem;color:var(--text2);display:none}
 
-    /* HP EDIT */
+    /* ── HP EDIT ── */
     #hp-modal{position:fixed;inset:0;z-index:250;display:flex;align-items:center;justify-content:center;padding:1.5rem;background:rgba(0,0,0,.72);opacity:0;pointer-events:none;transition:opacity .25s}
     #hp-modal.open{opacity:1;pointer-events:all}
-    .hp-card{background:var(--bg3);border:1px solid var(--bdr);border-radius:10px;padding:1.5rem;width:100%;max-width:290px;text-align:center}
-    .hpe-title{font-family:var(--fd);font-size:.83rem;color:var(--gold);letter-spacing:.15em;margin-bottom:1.1rem}
-    .hpe-ctrl{display:flex;align-items:center;justify-content:center;gap:.8rem;margin-bottom:.6rem}
-    .hpe-btn{width:44px;height:44px;background:var(--bg2);border:1px solid var(--bdr);border-radius:7px;color:var(--gold);font-family:var(--fd);font-size:1.4rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+    .hp-card{background:var(--bg3);border:1px solid var(--bdr);border-radius:10px;padding:1.4rem;width:100%;max-width:280px;text-align:center}
+    .hpe-title{font-family:var(--fd);font-size:.8rem;color:var(--gold);letter-spacing:.15em;margin-bottom:1rem}
+    .hpe-ctrl{display:flex;align-items:center;justify-content:center;gap:.75rem;margin-bottom:.55rem}
+    .hpe-btn{width:43px;height:43px;background:var(--bg2);border:1px solid var(--bdr);border-radius:7px;color:var(--gold);font-family:var(--fd);font-size:1.35rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
     .hpe-btn:hover{border-color:var(--gold);background:rgba(212,168,83,.1)}
-    #hpe-val{font-family:var(--fd);font-size:2.2rem;color:var(--red);min-width:60px}
-    .hpe-max{font-family:var(--fm);font-size:.6rem;color:var(--text2);margin-bottom:1rem;letter-spacing:.1em}
-    .hpe-row{display:flex;gap:.5rem}
-    .hpe-ok{flex:1;padding:.66rem;background:var(--gold);border:none;border-radius:5px;color:var(--bg);font-family:var(--fd);font-size:.83rem;letter-spacing:.1em;cursor:pointer}
-    .hpe-cancel{padding:.66rem .85rem;background:transparent;border:1px solid var(--bdr);border-radius:5px;color:var(--text2);font-family:var(--fm);font-size:.7rem;cursor:pointer}
+    #hpe-val{font-family:var(--fd);font-size:2.1rem;color:var(--red);min-width:58px}
+    .hpe-max{font-family:var(--fm);font-size:.58rem;color:var(--text2);margin-bottom:.9rem;letter-spacing:.1em}
+    .hpe-row{display:flex;gap:.46rem}
+    .hpe-ok{flex:1;padding:.64rem;background:var(--gold);border:none;border-radius:5px;color:var(--bg);font-family:var(--fd);font-size:.8rem;letter-spacing:.1em;cursor:pointer}
+    .hpe-cancel{padding:.64rem .82rem;background:transparent;border:1px solid var(--bdr);border-radius:5px;color:var(--text2);font-family:var(--fm);font-size:.68rem;cursor:pointer}
 
-    /* RECAP */
+    /* ── RECAP ── */
     #recap-modal{position:fixed;inset:0;z-index:200;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.65);opacity:0;pointer-events:none;transition:opacity .25s}
     #recap-modal.open{opacity:1;pointer-events:all}
-    .recap-sheet{background:var(--bg3);border:1px solid var(--bdr);border-bottom:none;border-radius:14px 14px 0 0;padding:1.3rem 1.3rem 2.5rem;width:100%;max-width:480px;transform:translateY(100%);transition:transform .3s ease;max-height:72vh;overflow-y:auto}
+    .recap-sheet{background:var(--bg3);border:1px solid var(--bdr);border-bottom:none;border-radius:14px 14px 0 0;padding:1.25rem 1.25rem 2.4rem;width:100%;max-width:480px;transform:translateY(100%);transition:transform .3s ease;max-height:72vh;overflow-y:auto}
     #recap-modal.open .recap-sheet{transform:translateY(0)}
-    .recap-title{font-family:var(--fd);font-size:.82rem;color:var(--gold);letter-spacing:.18em;margin-bottom:.8rem;text-align:center}
-    #recap-text{font-family:var(--fb);font-size:.97rem;line-height:1.72;color:var(--text)}
-    .recap-close{width:100%;margin-top:1.2rem;padding:.62rem;background:transparent;border:1px solid var(--bdr);border-radius:5px;color:var(--text2);font-family:var(--fm);font-size:.62rem;letter-spacing:.12em;cursor:pointer}
+    .recap-title{font-family:var(--fd);font-size:.8rem;color:var(--gold);letter-spacing:.18em;margin-bottom:.75rem;text-align:center}
+    #recap-text{font-family:var(--fb);font-size:.95rem;line-height:1.72;color:var(--text)}
+    .recap-close{width:100%;margin-top:1.1rem;padding:.6rem;background:transparent;border:1px solid var(--bdr);border-radius:5px;color:var(--text2);font-family:var(--fm);font-size:.6rem;letter-spacing:.12em;cursor:pointer}
 
-    /* LEVEL UP */
+    /* ── LEVEL UP ── */
     #lu-modal{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;padding:1.5rem;background:rgba(0,0,0,.82);opacity:0;pointer-events:none;transition:opacity .3s}
     #lu-modal.open{opacity:1;pointer-events:all}
-    .lu-card{background:var(--bg3);border:2px solid var(--gold);border-radius:11px;padding:1.9rem 1.4rem;text-align:center;width:100%;max-width:330px;box-shadow:0 0 36px rgba(212,168,83,.26);animation:lu-pop .4s ease}
+    .lu-card{background:var(--bg3);border:2px solid var(--gold);border-radius:11px;padding:1.8rem 1.35rem;text-align:center;width:100%;max-width:325px;box-shadow:0 0 36px rgba(212,168,83,.26);animation:lu-pop .4s ease}
     @keyframes lu-pop{from{transform:scale(.88);opacity:0}to{transform:scale(1);opacity:1}}
-    .lu-ico{font-size:2.7rem;margin-bottom:.85rem}
-    .lu-title{font-family:var(--fd);font-size:1.45rem;color:var(--gold);margin-bottom:.22rem;text-shadow:0 0 18px rgba(212,168,83,.32)}
-    .lu-sub{font-family:var(--fm);font-size:.65rem;color:var(--text2);letter-spacing:.2em;margin-bottom:1.3rem}
-    .lu-rewards{text-align:left;margin-bottom:1.3rem;display:flex;flex-direction:column;gap:.32rem}
-    .lu-reward{font-family:var(--fm);font-size:.7rem;color:var(--green);padding:.26rem .48rem;background:rgba(74,222,128,.08);border-radius:3px}
+    .lu-ico{font-size:2.6rem;margin-bottom:.8rem}
+    .lu-title{font-family:var(--fd);font-size:1.4rem;color:var(--gold);margin-bottom:.2rem;text-shadow:0 0 18px rgba(212,168,83,.32)}
+    .lu-sub{font-family:var(--fm);font-size:.62rem;color:var(--text2);letter-spacing:.2em;margin-bottom:1.2rem}
+    .lu-rewards{text-align:left;margin-bottom:1.2rem;display:flex;flex-direction:column;gap:.3rem}
+    .lu-reward{font-family:var(--fm);font-size:.68rem;color:var(--green);padding:.24rem .46rem;background:rgba(74,222,128,.08);border-radius:3px}
 
-    /* LOADING */
+    /* ── LOADING ── */
     #loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:500;transition:opacity .5s}
     #loading.gone{opacity:0;pointer-events:none}
-    .spin{width:34px;height:34px;border:2px solid var(--bdr);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;margin-bottom:.85rem}
+    .spin{width:33px;height:33px;border:2px solid var(--bdr);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;margin-bottom:.82rem}
     @keyframes spin{to{transform:rotate(360deg)}}
-    .load-txt{font-family:var(--fm);font-size:.62rem;color:var(--text2);letter-spacing:.2em}
+    .load-txt{font-family:var(--fm);font-size:.6rem;color:var(--text2);letter-spacing:.2em}
     ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:2px}
-
-    /* CHARACTER SHEET IDENTITY HEADER */
-    .cs-identity{padding:.9rem 1.05rem .0rem;text-align:center;flex-shrink:0}
-    .cs-identity .cs-name{font-family:var(--fd);font-size:1.15rem;color:var(--gold);margin-bottom:.16rem}
-    .cs-identity .cs-sub{font-family:var(--fm);font-size:.6rem;color:var(--text2);letter-spacing:.08em;margin-bottom:.5rem}
-    /* XP row */
-    .xp-row{font-family:var(--fm);font-size:.62rem;color:var(--text2);margin-top:.3rem;letter-spacing:.08em}
-    /* SKILLS */
-    .skill-list{display:flex;flex-direction:column;gap:.22rem}
-    .skill-row{display:flex;align-items:center;gap:.5rem;padding:.32rem .5rem;border-radius:4px;background:var(--bg3);border:1px solid var(--bdr)}
-    .skill-mod{font-family:var(--fd);font-size:.78rem;color:var(--gold);min-width:28px;text-align:right;flex-shrink:0}
-    .skill-name{font-family:var(--fm);font-size:.6rem;color:var(--text);letter-spacing:.06em;flex:1}
-    .skill-attr{font-family:var(--fm);font-size:.52rem;color:var(--text2);flex-shrink:0}
-    /* GEAR */
-    .gear-list{display:flex;flex-direction:column;gap:.35rem}
-    .gear-item{background:var(--bg3);border:1px solid var(--bdr);border-radius:5px;padding:.5rem .65rem;display:flex;align-items:center;gap:.5rem}
-    .gear-ico{font-size:.9rem;flex-shrink:0}
-    .gear-name{font-family:var(--fm);font-size:.65rem;color:var(--text);flex:1}
-    .inv-list{display:flex;flex-wrap:wrap;gap:.32rem;margin-bottom:.5rem}
-    .inv-item{font-family:var(--fm);font-size:.58rem;padding:.2rem .46rem;background:var(--bg3);border:1px solid var(--bdr);border-radius:3px;color:var(--text)}
     .hidden{display:none!important}
   </style>
 </head>
@@ -285,28 +329,28 @@
     <div class="err" id="intro-err"></div>
   </div>
 
-  <!-- WORLD SELECTION -->
+  <!-- WORLD -->
   <div class="screen gone" id="s-world">
     <div class="world-hd">CHOOSE YOUR WORLD</div>
     <div class="world-sub">THIS DECISION SHAPES EVERYTHING</div>
     <div class="world-grid" id="world-grid"></div>
     <div class="custom-wrap" id="custom-wrap">
-      <textarea class="custom-ta" id="custom-ta" placeholder="Describe your world... its tone, setting, factions, central conflict, and what kind of stories it tells. The more detail you give, the better the DM will serve it."></textarea>
+      <textarea class="custom-ta" id="custom-ta" placeholder="Describe your world — tone, setting, factions, central conflict..."></textarea>
     </div>
     <button class="btn-gold hidden" id="btn-world-confirm" style="margin:0 0 1rem">ENTER THIS WORLD</button>
     <div class="err" id="world-err"></div>
   </div>
 
-  <!-- CHARACTER CREATION -->
+  <!-- CREATE -->
   <div class="screen gone" id="s-create">
     <div class="create-hd">CHOOSE YOUR HERO</div>
     <div class="create-world-tag" id="create-world-tag">—</div>
     <div class="char-grid" id="char-grid"></div>
     <div class="name-wrap hidden" id="name-wrap">
-      <div class="field-lbl" style="text-align:center;margin-bottom:.52rem">NAME YOUR HERO</div>
+      <div class="field-lbl" style="text-align:center;margin-bottom:.5rem">NAME YOUR HERO</div>
       <input type="text" class="name-input" id="name-in" placeholder="Enter your name...">
     </div>
-    <button class="btn-gold hidden" id="btn-begin" style="margin:0 0 1.1rem">ENTER THE REALM</button>
+    <button class="btn-gold hidden" id="btn-begin" style="margin:0 0 1rem">ENTER THE REALM</button>
     <div class="err hidden" id="create-err"></div>
   </div>
 
@@ -326,7 +370,23 @@
         <button class="hdr-btn" id="btn-recap">RECAP</button>
       </div>
     </div>
+
+    <!-- Combat banner -->
+    <div id="combat-banner">
+      <div class="cb-top">
+        <div class="cb-name" id="cb-name">GOBLIN SCOUT</div>
+        <div class="cb-round" id="cb-round">ROUND 1</div>
+      </div>
+      <div class="cb-desc" id="cb-desc"></div>
+      <div class="cb-bar-wrap">
+        <span class="cb-bar-lbl">HP</span>
+        <div class="cb-bar-track"><div class="cb-bar-fill" id="cb-hp-fill" style="width:100%"></div></div>
+        <span class="cb-hp-val" id="cb-hp-val">—</span>
+      </div>
+    </div>
+
     <div id="narrative"></div>
+
     <div id="input-area">
       <button class="dice-btn" id="btn-dice">🎲</button>
       <textarea id="msg-input" placeholder="What do you do?" rows="1"></textarea>
@@ -347,29 +407,23 @@
         <div class="tab" data-cstab="gear">GEAR</div>
       </div>
       <div class="tab-panels">
-        <!-- STATS TAB -->
         <div class="tab-panel active" id="cstab-stats">
           <div class="cs-sec">
             <span class="sec-lbl">VITALS</span>
             <div class="hp-row">
               <span class="hp-lbl">HP</span>
               <div class="hp-bar"><div class="hp-fill" id="cs-hp-fill" style="width:100%"></div></div>
-              <span class="hp-val" id="cs-hp-val" title="Tap to edit HP">—</span>
+              <span class="hp-val" id="cs-hp-val" title="Tap to edit">—</span>
             </div>
             <div class="xp-row" id="cs-xp-row"></div>
           </div>
           <div class="cs-sec"><span class="sec-lbl">ATTRIBUTES</span><div class="stats-grid" id="stats-grid"></div></div>
           <div class="cs-sec"><span class="sec-lbl">ABILITIES</span><div class="ab-list" id="ab-list"></div></div>
-          <button class="recap-btn" id="recap-from-sheet" style="margin-top:.5rem">◎ SESSION RECAP</button>
+          <button class="recap-btn" id="recap-from-sheet">◎ SESSION RECAP</button>
         </div>
-        <!-- SKILLS TAB -->
-        <div class="tab-panel" id="cstab-skills">
-          <div class="skill-list" id="skill-list"></div>
-        </div>
-        <!-- GEAR TAB -->
+        <div class="tab-panel" id="cstab-skills"><div class="skill-list" id="skill-list"></div></div>
         <div class="tab-panel" id="cstab-gear">
-          <div class="cs-sec"><span class="sec-lbl">EQUIPMENT & INVENTORY</span><div class="gear-list" id="gear-list"></div></div>
-          <div class="cs-sec"><span class="sec-lbl">GOLD</span><div class="gold-row" id="gold-row"></div></div>
+          <div class="cs-sec"><span class="sec-lbl">EQUIPMENT</span><div class="gear-list" id="gear-list"></div><div class="gold-row" id="gold-row"></div></div>
         </div>
       </div>
     </div>
@@ -380,19 +434,19 @@
     <div class="drawer-hd"><div class="drawer-title">JOURNAL</div><button class="drawer-close" id="close-quest">✕</button></div>
     <div class="tab-wrap">
       <div class="tab-bar">
-        <div class="tab active" data-tab="quests">QUESTS</div>
-        <div class="tab" data-tab="lore">LORE</div>
-        <div class="tab" data-tab="npcs">NPCS</div>
+        <div class="tab active" data-jntab="quests">QUESTS</div>
+        <div class="tab" data-jntab="lore">LORE</div>
+        <div class="tab" data-jntab="npcs">NPCS</div>
       </div>
       <div class="tab-panels">
-        <div class="tab-panel active" id="tab-quests"><div id="quest-active"></div></div>
-        <div class="tab-panel" id="tab-lore"><div id="lore-list"></div></div>
-        <div class="tab-panel" id="tab-npcs"><div id="npc-list"></div></div>
+        <div class="tab-panel active" id="jntab-quests"><div id="quest-active"></div></div>
+        <div class="tab-panel" id="jntab-lore"><div id="lore-list"></div></div>
+        <div class="tab-panel" id="jntab-npcs"><div id="npc-list"></div></div>
       </div>
     </div>
   </div>
 
-  <!-- DICE MODAL -->
+  <!-- DICE -->
   <div id="dice-modal">
     <div class="dice-sheet">
       <div class="dm-title">ROLL THE DICE</div>
@@ -404,9 +458,9 @@
         <button class="die-btn" data-s="12"><span class="die-ico">⬠</span><span class="die-lbl">d12</span></button>
         <button class="die-btn" data-s="20"><span class="die-ico">⬡</span><span class="die-lbl">d20</span></button>
         <button class="die-btn" data-s="100"><span class="die-ico">◎</span><span class="die-lbl">d100</span></button>
-        <button class="die-btn" data-s="close" style="opacity:.5"><span class="die-ico" style="font-size:.9rem">✕</span><span class="die-lbl">CLOSE</span></button>
+        <button class="die-btn" data-s="close" style="opacity:.5"><span class="die-ico" style="font-size:.88rem">✕</span><span class="die-lbl">CLOSE</span></button>
       </div>
-      <div class="dice-res-zone"><div id="roll-ctx"></div><div id="roll-num"></div><div id="roll-mod"></div></div>
+      <div class="dice-res-zone"><div id="roll-ctx"></div><div id="roll-num"></div><div id="roll-mod-txt"></div></div>
     </div>
   </div>
 
@@ -442,117 +496,69 @@
 </div>
 
 <script>
-// ── WORLDS ──────────────────────────────────────────────────
-const WORLDS = [
-  {
-    id:'sunken',
-    icon:'🌊',
-    name:'The Sunken Kingdoms',
-    tag:'SALVAGEPUNK · COASTAL HORROR · DROWNED HISTORY',
-    desc:'Three centuries ago, the world drowned. Ancient civilisations sleep beneath shallow inland seas, their towers still visible at low tide. The System emerged from the ruins — a dying god\'s last automation. Navigate salt-crusted ruins, negotiate with sea-cult factions, dive into flooded dungeons.',
-    accent:'#3b82f6',
-    brief:`WORLD — THE SUNKEN KINGDOMS:
-The world drowned three centuries ago. Ancient civilisations lie beneath shallow inland seas; their towers and spires are visible at low tide, picked over by salvagers and haunted by what drowned alongside them. The System itself is a dying god's last desperate automation — it still functions but its purpose is unclear, its notifications sometimes cryptic or wrong.
-TONE: Melancholic, eerie, salvagepunk. There is beauty in the ruins and horror beneath the water. Faith and superstition are rampant. Resources are scarce. Salt corrodes everything.
-KEY ELEMENTS: Drowned dungeons, sea-cult factions vying for ancient artefacts, the tension between surface-dwellers and the creatures that have claimed the deep, fragmentary lore about what caused the Drowning. NPCs are survivors, scavengers, cultists, or something older.`
-  },
-  {
-    id:'ascendancy',
-    icon:'⚔️',
-    name:'The Iron Ascendancy',
-    tag:'GRIMDARK · EMPIRE · POLITICAL INTRIGUE',
-    desc:'A vast empire enforces peace through brutal efficiency — and the System is its tool of control. Every citizen\'s stats are visible to the state. You are among the resistance, the criminals, the desperate. No clear heroes. Moral grey zones everywhere. Power is the only currency that matters.',
-    accent:'#ef4444',
-    brief:`WORLD — THE IRON ASCENDANCY:
-A continent-spanning empire has enforced "peace" for two hundred years through the System — a bureaucratic god that tracks every citizen's stats, skills and location. Loyalty ratings exist alongside HP. Dissidents find their System access revoked. The empire is not cartoonishly evil; it genuinely believes order prevents the suffering of chaos. It is also capable of atrocities.
-TONE: Grimdark, politically complex, morally grey. There are no clean heroes. Violence has weight and consequence. The resistance is fractured and compromised. Even the empire contains people worth saving.
-KEY ELEMENTS: Imperial checkpoints, black-market System hackers, underground resistance cells, collaborators and informants, ancient pre-empire history the state wants buried, the question of whether the System can be freed or must be destroyed.`
-  },
-  {
-    id:'fractured',
-    icon:'⬡',
-    name:'The Fractured System',
-    tag:'MYSTERY · REALITY-HORROR · META-LITRPG',
-    desc:'Something is wrong. Dungeons repeat themselves. NPCs remember things that didn\'t happen. The System sends notifications nobody else receives. The deeper you go, the more the world feels designed — and the more it seems to be failing. Someone built this place. They may still be watching.',
-    accent:'#a855f7',
-    brief:`WORLD — THE FRACTURED SYSTEM:
-The world is a LitRPG reality — always has been, as far as anyone knows. But something is breaking. Dungeons loop. Dead NPCs reappear with wrong memories. The System sends notifications that shouldn't exist — warnings about "sector instability", "narrative overflow", "unscripted actor detected." The player character alone seems to notice.
-TONE: Unsettling, paranoid, mystery-horror with existential undertones. Horror comes from wrongness — the almost-normal. Dark comedy is appropriate. Reality should feel fragile.
-KEY ELEMENTS: Glitched locations where physics behaves oddly, NPCs who break script, cryptic System messages, the growing suspicion that the world has architects who can intervene, competing theories about what the Fracture is and who benefits from it. The horror deepens the further the player investigates.`
-  },
-  {
-    id:'frontier',
-    icon:'🌵',
-    name:'The Last Frontier',
-    tag:'POST-APOCALYPTIC · DYING GODS · SURVIVAL',
-    desc:'The gods died fifty years ago and took the old world with them. What remains is a scavenger\'s paradise and a survivor\'s nightmare — dying cities, monster-haunted wastes, and a System nobody built but everyone uses. Find your footing in the wreckage. There\'s no going back.',
-    accent:'#f97316',
-    brief:`WORLD — THE LAST FRONTIER:
-Fifty years ago, the gods died — simultaneously, without warning, across every pantheon. Their deaths unmade the old world. Magic destabilised. Civilisations that depended on divine infrastructure collapsed overnight. What remains is a patchwork of survivor settlements, lawless frontier towns, monster-haunted ruins, and scavenger economies built on the bones of the old world. The System predates the god-death; nobody knows who made it or why it still runs.
-TONE: Bleak but not hopeless. Frontier grit. Dark humour as coping mechanism. Survival matters. Trust is rare and precious. Beauty exists in unexpected places.
-KEY ELEMENTS: Ruins of old-world cities, factions built on competing survival philosophies (militarist, isolationist, expansionist, death-cultist), the corrupted remnants of divine power still leaking from dead god-corpses, the question of whether gods can be remade or whether something should fill the void.`
-  },
-  {
-    id:'tournament',
-    icon:'🏆',
-    name:'The Eternal Tournament',
-    tag:'ACTION · TIME-BENDING · ARENA COMBAT',
-    desc:'Warriors, mages, and rogues are pulled from every era of history into a vast extradimensional arena. Each floor is a different time and place reconstructed as a combat zone. Survive long enough and you might discover who built this place — and why they keep adding new contestants.',
-    accent:'#eab308',
-    brief:`WORLD — THE ETERNAL TOURNAMENT:
-An extradimensional space pulls combatants from across history — Roman legionaries, medieval knights, future soldiers, ancient shamans — and forces them to compete across reconstructed environments from different eras. The System here is the Tournament itself, coldly efficient, tracking kills and rankings. Nobody knows who runs it. The prize for reaching the top floor is whispered to be anything you desire. Most people die on floor three.
-TONE: High-octane action with escalating stakes, dark mystery beneath the spectacle. Time-period clashes create both drama and dark comedy. Alliances form and break. The horror is that someone designed this for entertainment.
-KEY ELEMENTS: Each major dungeon floor is a distinct historical era (ancient, medieval, industrial, futuristic, mythological), cross-era NPCs who've survived long enough to become semi-permanent residents, the mysterious Architects who occasionally intervene, the question of whether escape is possible and whether the player wants it badly enough to pay the cost.`
-  },
-  {
-    id:'verdant',
-    icon:'🌿',
-    name:'The Verdant Corruption',
-    tag:'NATURE-HORROR · SURVIVAL DREAD · BODY HORROR',
-    desc:'A spreading rot is consuming the world from beneath. Forests twist into predatory things. Villages vanish overnight. The System tracks your Corruption exposure as a second resource — let it climb too high and something changes in you. The old nature gods are awake, and they are not kind.',
-    accent:'#22c55e',
-    brief:`WORLD — THE VERDANT CORRUPTION:
-Something ancient beneath the earth has awakened and it is hungry. The Corruption spreads — a bio-organic transformation that twists flora and fauna into predatory, interconnected horrors. Villages vanish, replaced by pulsing growth. The System has adapted: it now tracks CORRUPTION alongside HP, a second resource the player must manage. At low levels, Corruption grants strange abilities. At high levels, the player begins to change.
-TONE: Survival horror with body-horror undertones. Dread, not gore. Nature is beautiful and monstrous simultaneously. Moral complexity: the Corruption is not purely evil, it is consuming and transforming, and some who are Corrupted don't want to be saved.
-KEY ELEMENTS: Quarantine zones and the factions enforcing them, the debate between burning everything and seeking a cure, the nature gods (awake, alien, communicative but incomprehensible), locations where the Corruption is so advanced it has become its own ecosystem with its own logic, NPCs at various stages of transformation.`
-  },
-  {
-    id:'custom',
-    icon:'✦',
-    name:'Custom World',
-    tag:'YOUR VISION · UNLIMITED · DEFINE EVERYTHING',
-    desc:'Describe your own world. The AI DM will anchor every scene, NPC, and piece of lore to whatever premise you create. The more detail you provide — tone, factions, central conflict, aesthetic — the more consistent and rich the experience will be.',
-    accent:'#d4a853',
-    brief:null // filled from textarea
-  }
+// ============================================================
+// WORLDS
+// ============================================================
+const WORLDS=[
+  {id:'sunken',icon:'🌊',name:'The Sunken Kingdoms',tag:'SALVAGEPUNK · COASTAL HORROR · DROWNED HISTORY',
+   desc:'Three centuries ago, the world drowned. Ancient civilisations sleep beneath shallow inland seas. The System emerged from the ruins — a dying god\'s last automation.',
+   accent:'#3b82f6',
+   brief:`WORLD — THE SUNKEN KINGDOMS: The world drowned three centuries ago. Civilisations lie beneath shallow inland seas; towers visible at low tide, haunted by what drowned alongside them. The System is a dying god's last automation — functional but cryptic. TONE: Melancholic, eerie, salvagepunk. Salt corrodes everything. Faith and superstition are rampant. KEY ELEMENTS: Drowned dungeons, sea-cult factions, ancient artefacts, the mystery of what caused the Drowning. NPCs are survivors, scavengers, cultists, or something older.`},
+  {id:'ascendancy',icon:'⚔️',name:'The Iron Ascendancy',tag:'GRIMDARK · EMPIRE · POLITICAL INTRIGUE',
+   desc:'A vast empire enforces peace through brutal efficiency — and the System is its tool of control. Every citizen\'s stats are visible to the state. You are among the resistance.',
+   accent:'#ef4444',
+   brief:`WORLD — THE IRON ASCENDANCY: A continent-spanning empire uses the System to track every citizen's stats, skills, and loyalty. Dissidents have their System access revoked. The empire is not cartoonishly evil — it believes order prevents chaos. TONE: Grimdark, politically complex, morally grey. No clean heroes. Violence has weight. KEY ELEMENTS: Imperial checkpoints, resistance cells, System hackers, collaborators, ancient pre-empire history the state wants buried.`},
+  {id:'fractured',icon:'⬡',name:'The Fractured System',tag:'MYSTERY · REALITY-HORROR · META-LITRPG',
+   desc:'Something is wrong. Dungeons repeat. NPCs remember things that didn\'t happen. The System sends notifications nobody else receives. The world feels designed — and failing.',
+   accent:'#a855f7',
+   brief:`WORLD — THE FRACTURED SYSTEM: The world is a LitRPG reality — but something is breaking. Dungeons loop. Dead NPCs reappear with wrong memories. The System sends warnings about "sector instability" and "unscripted actor detected." The player alone seems to notice. TONE: Unsettling, paranoid, mystery-horror. Horror comes from wrongness. Reality should feel fragile. KEY ELEMENTS: Glitched locations, NPCs who break script, cryptic System messages, world architects who may still be watching.`},
+  {id:'frontier',icon:'🌵',name:'The Last Frontier',tag:'POST-APOCALYPTIC · DYING GODS · SURVIVAL',
+   desc:'The gods died fifty years ago and took the old world with them. What remains is a scavenger\'s paradise and a survivor\'s nightmare.',
+   accent:'#f97316',
+   brief:`WORLD — THE LAST FRONTIER: Fifty years ago, the gods died simultaneously. Their deaths unmade the old world. What remains is survivor settlements, lawless frontier towns, and monster-haunted ruins. The System predates the god-death; nobody knows who made it. TONE: Bleak but not hopeless. Frontier grit. Dark humour as coping mechanism. KEY ELEMENTS: Ruins of old-world cities, factions with competing survival philosophies, corrupted divine power leaking from dead god-corpses.`},
+  {id:'tournament',icon:'🏆',name:'The Eternal Tournament',tag:'ACTION · TIME-BENDING · ARENA COMBAT',
+   desc:'Warriors from every era are pulled into a vast extradimensional arena. Each floor is a different time reconstructed as a combat zone. Survive long enough and you might discover who built this place.',
+   accent:'#eab308',
+   brief:`WORLD — THE ETERNAL TOURNAMENT: An extradimensional space pulls combatants from across history into reconstructed environments from different eras. The System is the Tournament itself — coldly efficient, tracking kills and rankings. Nobody knows who runs it. TONE: High-octane action, dark mystery beneath the spectacle. Time-period clashes create drama and dark comedy. KEY ELEMENTS: Each major floor is a distinct historical era, cross-era NPC survivors, mysterious Architects who occasionally intervene.`},
+  {id:'verdant',icon:'🌿',name:'The Verdant Corruption',tag:'NATURE-HORROR · SURVIVAL DREAD · BODY HORROR',
+   desc:'A spreading rot is consuming the world from beneath. Forests twist into predatory things. The System tracks your Corruption as a second resource — let it climb too high and something changes in you.',
+   accent:'#22c55e',
+   brief:`WORLD — THE VERDANT CORRUPTION: Something ancient has awakened beneath the earth. The Corruption spreads — transforming flora and fauna into predatory interconnected horrors. The System tracks CORRUPTION alongside HP. At low levels it grants strange abilities; at high levels the player begins to change. TONE: Survival horror with body-horror undertones. Nature is beautiful and monstrous. ELEMENTS: Quarantine zones, the debate between burning everything and seeking a cure, nature gods that are awake and alien.`},
+  {id:'custom',icon:'✦',name:'Custom World',tag:'YOUR VISION · UNLIMITED · DEFINE EVERYTHING',
+   desc:'Describe your own world. The DM will anchor every scene, NPC, and lore entry to whatever premise you create.',
+   accent:'#d4a853',brief:null}
 ];
 
-// ── STATE ──────────────────────────────────────────────────
+// ============================================================
+// STATE
+// ============================================================
 const G={
-  apiKey:'',
+  apiKey:'',char:null,
   world:{location:'',visited:[],npcs:[],quests:[],done:[],notes:[],lore:[]},
-  char:null,
-  premise:null, // selected WORLDS entry
-  premiseCustom:'',
+  combat:null,
+  premise:null,premiseCustom:'',
   history:[],summary:'',pending:null,busy:false,charOptions:[]
 };
 const XP=[0,300,900,2700,6500,14000,23000,34000,48000,64000,85000];
+const MOOD_ICONS={CALM:'◌',TENSE:'◈',DANGEROUS:'◆',MYSTERIOUS:'✦',EERIE:'◎',COMBAT:'⚔'};
 
-// ── STORAGE ────────────────────────────────────────────────
+// ============================================================
+// STORAGE
+// ============================================================
 function saveKey(k){try{localStorage.setItem('re_apikey',k);}catch(e){}}
 function loadKey(){return localStorage.getItem('re_apikey')||'';}
 function save(){
   if(G.apiKey)saveKey(G.apiKey);
-  try{localStorage.setItem('re_v3',JSON.stringify({char:G.char,world:G.world,premiseId:G.premise?.id,premiseCustom:G.premiseCustom,history:G.history.slice(-30),summary:G.summary}));}catch(e){}
+  try{localStorage.setItem('re_v4',JSON.stringify({char:G.char,world:G.world,combat:G.combat,premiseId:G.premise?.id,premiseCustom:G.premiseCustom,history:G.history.slice(-30),summary:G.summary}));}catch(e){}
 }
 function load(){
   try{
-    const raw=localStorage.getItem('re_v3')||localStorage.getItem('re_v2')||localStorage.getItem('re_v1');
+    const raw=localStorage.getItem('re_v4')||localStorage.getItem('re_v3')||localStorage.getItem('re_v2')||localStorage.getItem('re_v1');
     if(!raw)return false;
-    const d=JSON.parse(raw);
-    if(!d||!d.char)return false;
-    G.char=d.char;G.world=d.world||{};
-    G.world.lore=G.world.lore||[];G.world.npcs=G.world.npcs||[];G.world.notes=G.world.notes||[];G.world.quests=G.world.quests||[];G.world.done=G.world.done||[];G.world.visited=G.world.visited||[];
+    const d=JSON.parse(raw);if(!d||!d.char)return false;
+    G.char=d.char;G.world=d.world||{};G.combat=d.combat||null;
+    G.world.lore=G.world.lore||[];G.world.npcs=G.world.npcs||[];G.world.notes=G.world.notes||[];
+    G.world.quests=G.world.quests||[];G.world.done=G.world.done||[];G.world.visited=G.world.visited||[];
     G.history=d.history||[];G.summary=d.summary||'';
     G.apiKey=loadKey()||d.apiKey||'';
     G.premise=WORLDS.find(w=>w.id===d.premiseId)||WORLDS[0];
@@ -560,10 +566,12 @@ function load(){
     return true;
   }catch(e){return false;}
 }
-function hasSave(){return !!(localStorage.getItem('re_v3')||localStorage.getItem('re_v2')||localStorage.getItem('re_v1'));}
-function wipeSave(){['re_v3','re_v2','re_v1'].forEach(k=>localStorage.removeItem(k));}
+function hasSave(){return !!(localStorage.getItem('re_v4')||localStorage.getItem('re_v3')||localStorage.getItem('re_v2')||localStorage.getItem('re_v1'));}
+function wipeSave(){['re_v4','re_v3','re_v2','re_v1'].forEach(k=>localStorage.removeItem(k));}
 
-// ── API ────────────────────────────────────────────────────
+// ============================================================
+// API
+// ============================================================
 function patchFetch(){const o=window._of||window.fetch;window._of=o;window.fetch=(u,p={})=>{if(typeof u==='string'&&u.includes('anthropic.com')){p.headers=Object.assign({},p.headers,{'x-api-key':G.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'});}return o(u,p);};}
 async function ai(msgs,sys,json=false,maxTok=1000){
   const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:maxTok,system:sys,messages:msgs})});
@@ -573,17 +581,22 @@ async function ai(msgs,sys,json=false,maxTok=1000){
   return t;
 }
 
-// ── WORLD BRIEF ────────────────────────────────────────────
+// ============================================================
+// WORLD BRIEF
+// ============================================================
 function worldBrief(){
   if(!G.premise)return'Standard LitRPG fantasy world.';
-  if(G.premise.id==='custom')return`WORLD — CUSTOM SETTING:\n${G.premiseCustom||'A LitRPG fantasy world.'}`;
+  if(G.premise.id==='custom')return`WORLD — CUSTOM:\n${G.premiseCustom||'A LitRPG fantasy world.'}`;
   return G.premise.brief;
 }
 
-// ── DM SYSTEM PROMPT ───────────────────────────────────────
+// ============================================================
+// DM SYSTEM PROMPT
+// ============================================================
 function dmsys(){
   const c=G.char,w=G.world,xn=XP[c.level]||XP[c.level-1]*2;
-  return `You are the Dungeon Master for a solo LitRPG adventure. The System is real in this world — stats, notifications, and skill unlocks are part of the characters' lived reality.
+  const combatCtx=G.combat?`\nACTIVE COMBAT: Fighting ${G.combat.enemyName} (HP: ${G.combat.enemyHp}/${G.combat.enemyMaxHp}, Round ${G.combat.round})`:'';
+  return `You are the Dungeon Master for a solo LitRPG adventure. The System is real — stats, skill checks, and notifications exist in this world.
 
 ${worldBrief()}
 
@@ -592,41 +605,58 @@ HP: ${c.hp}/${c.maxHp} | XP: ${c.xp}/${xn} | Gold: ${c.gold}g
 Stats — STR:${c.stats.STR} DEX:${c.stats.DEX} CON:${c.stats.CON} INT:${c.stats.INT} WIS:${c.stats.WIS} CHA:${c.stats.CHA}
 Abilities: ${c.abilities.map(a=>a.name).join(', ')||'None'}
 Inventory: ${c.inventory.join(', ')||'None'}
-
-CURRENT STATE:
-Location: ${w.location}
-Active Quests: ${w.quests.map(q=>q.name).join(', ')||'None'}
-Known NPCs: ${w.npcs.length?w.npcs.map(n=>`${n.name}(${n.disposition},${n.location})`).join(', '):'None'}
-Recent Notes: ${w.notes.slice(-5).join(' | ')||'None'}
-Lore Recorded: ${w.lore.length?w.lore.slice(-3).map(l=>`[${l.title}]`).join(', '):'None'}
-Session Summary: ${G.summary||'New session.'}
+Location: ${w.location} | Quests: ${w.quests.map(q=>q.name).join(', ')||'None'}
+NPCs: ${w.npcs.length?w.npcs.map(n=>`${n.name}(${n.disposition})`).join(', '):'None'}
+Summary: ${G.summary||'New session.'}${combatCtx}
 
 DM RULES:
-- Write vivid 2-4 paragraph narration true to the world's tone and premise above.
-- The world brief above is AUTHORITATIVE — every scene, NPC, faction, and piece of lore must be consistent with it.
-- LitRPG flavour: the System exists in-world. Reference mechanics naturally.
-- Award XP fairly (combat 50-200, exploration 25-100, roleplay 25-75).
-- Track NPCs by name, update their disposition as relationships evolve.
-- Record major lore: discoveries, world truths, faction revelations, ancient secrets.
-- Be a fair but dangerous DM. Consequences are real. The world does not wait for the player.
+- Narration: MAXIMUM 2 short punchy paragraphs. Vivid and immediate. No purple prose. End with tension or a clear choice.
+- The world brief above is AUTHORITATIVE. Every scene must feel like it belongs to that specific world.
+- LitRPG: the System exists. Notifications pop in-world. Reference stats naturally.
+- XP awards: combat 50-200, exploration 25-100, roleplay 25-75.
+- Combat: track enemy HP honestly. Reduce it based on dice rolls and abilities. End combat when enemy reaches 0.
+- Actions: always offer 3-4 SHORT suggested actions that fit the exact current situation.
+- Dialogue: write NPC speech in quotes so it renders with different styling.
 
-RESPOND ONLY IN THIS EXACT JSON FORMAT — no markdown, no preamble:
-{"narrative":"...","notifications":[{"type":"xp|skill|damage|info|loot|lore","text":"..."}],"updates":{"hp":null,"xpGained":0,"addItem":null,"removeItem":null,"location":null,"questAdd":null,"questAddDesc":null,"questDone":null,"note":null,"newAbility":null,"newAbilityDesc":null,"goldDelta":0,"loreTitle":null,"loreContent":null,"npcAdd":null,"npcAddDisp":"neutral","npcAddLoc":null,"npcAddNote":null,"npcUpdate":null,"npcUpdateDisp":null,"npcUpdateLoc":null,"npcUpdateNote":null},"dice":{"needed":false,"type":"d20","modifier":0,"dc":null,"reason":""}}`;
+RESPOND ONLY IN THIS EXACT JSON — no markdown, no preamble:
+{
+  "narrative": "Max 2 short paragraphs. Vivid. End with a hook.",
+  "scene": {"mood": "CALM|TENSE|DANGEROUS|MYSTERIOUS|EERIE|COMBAT", "atmosphere": "One evocative line."},
+  "combat": {"active": false, "enemyName": null, "enemyHp": null, "enemyMaxHp": null, "enemyDesc": null, "round": 0},
+  "actions": [{"icon": "⚔️", "label": "Attack", "text": "I attack the enemy with my weapon"}],
+  "notifications": [{"type": "xp|skill|damage|info|loot|lore", "text": "Message"}],
+  "updates": {"hp": null, "xpGained": 0, "addItem": null, "removeItem": null, "location": null, "questAdd": null, "questAddDesc": null, "questDone": null, "note": null, "newAbility": null, "newAbilityDesc": null, "goldDelta": 0, "loreTitle": null, "loreContent": null, "npcAdd": null, "npcAddDisp": "neutral", "npcAddLoc": null, "npcAddNote": null, "npcUpdate": null, "npcUpdateDisp": null, "npcUpdateNote": null},
+  "dice": {"needed": false, "type": "d20", "modifier": 0, "dc": null, "reason": ""}
+}`;
 }
 
-// ── DM LOOP ────────────────────────────────────────────────
+// ============================================================
+// DM LOOP
+// ============================================================
 async function toDM(action){
-  setBusy(true);G.history.push({role:'user',content:action});
+  setBusy(true);
+  // Remove old action buttons
+  document.querySelectorAll('.action-row').forEach(el=>el.remove());
+  G.history.push({role:'user',content:action});
   try{
     let res;
-    try{res=await ai(G.history.slice(-20),dmsys(),true);}
+    try{res=await ai(G.history.slice(-20),dmsys(),true,1200);}
     catch(pe){
-      const fb=await ai(G.history.slice(-20),'You are a DM. Write 3 paragraphs of vivid narration responding to the player\'s action. Stay true to the established world.',false);
-      addDM(fb);G.history.push({role:'assistant',content:fb});setBusy(false);save();return;
+      const fb=await ai(G.history.slice(-20),'You are a DM. Write 2 short punchy paragraphs responding to the player\'s action. End with a hook.',false);
+      await addDM(fb,null,null);G.history.push({role:'assistant',content:fb});setBusy(false);save();return;
     }
     G.history.push({role:'assistant',content:res.narrative});
-    addDM(res.narrative);
-    for(const n of(res.notifications||[])){await sl(260);addSys(n.text,n.type);}
+
+    // Render scene card first
+    if(res.scene) addSceneCard(res.scene);
+
+    // Typewrite narrative
+    await addDM(res.narrative, res.scene, res.actions);
+
+    // Notifications
+    for(const n of(res.notifications||[])){await sl(220);addSys(n.text,n.type);}
+
+    // Apply updates
     const u=res.updates||{};let lv=false;
     if(u.hp!=null)G.char.hp=Math.max(0,Math.min(G.char.maxHp,u.hp));
     if(u.xpGained>0){G.char.xp+=u.xpGained;if(XP[G.char.level]&&G.char.xp>=XP[G.char.level]){G.char.level++;lv=true;}}
@@ -640,21 +670,51 @@ async function toDM(action){
     if(u.goldDelta)G.char.gold=Math.max(0,G.char.gold+u.goldDelta);
     if(u.loreTitle&&u.loreContent)G.world.lore.push({title:u.loreTitle,content:u.loreContent});
     if(u.npcAdd&&!G.world.npcs.find(n=>n.name===u.npcAdd))G.world.npcs.push({name:u.npcAdd,disposition:u.npcAddDisp||'neutral',location:u.npcAddLoc||G.world.location,note:u.npcAddNote||''});
-    if(u.npcUpdate){const n=G.world.npcs.find(x=>x.name===u.npcUpdate);if(n){if(u.npcUpdateDisp)n.disposition=u.npcUpdateDisp;if(u.npcUpdateLoc)n.location=u.npcUpdateLoc;if(u.npcUpdateNote)n.note=u.npcUpdateNote;}}
+    if(u.npcUpdate){const n=G.world.npcs.find(x=>x.name===u.npcUpdate);if(n){if(u.npcUpdateDisp)n.disposition=u.npcUpdateDisp;if(u.npcUpdateNote)n.note=u.npcUpdateNote;}}
+
+    // Combat state
+    const cm=res.combat;
+    if(cm){
+      if(cm.active&&cm.enemyName){
+        G.combat={active:true,enemyName:cm.enemyName,enemyHp:cm.enemyHp,enemyMaxHp:cm.enemyMaxHp||cm.enemyHp,enemyDesc:cm.enemyDesc||'',round:cm.round||1};
+        updCombat();
+      } else if(!cm.active&&G.combat){
+        G.combat=null;
+        id('combat-banner').classList.remove('active');
+      }
+    }
+
     updHdr();updSheet();updJournal();
-    if(res.dice?.needed){await sl(320);const roll=await dicePrompt(res.dice.type||'d20',res.dice.modifier||0,res.dice.dc,res.dice.reason);const d=res.dice;await toDM(`I rolled ${roll.raw} on ${d.type}${d.modifier?` (${d.modifier>0?'+':''}${d.modifier} mod → total ${roll.total})`:''}` +` for ${d.reason}.`+(d.dc?` DC ${d.dc}: ${roll.pass?'SUCCESS':'FAILURE'}.`:''));return;}
-    if(lv){await sl(480);await showLU();}
+
+    // Dice
+    if(res.dice?.needed){
+      await sl(280);
+      const roll=await dicePrompt(res.dice.type||'d20',res.dice.modifier||0,res.dice.dc,res.dice.reason);
+      const d=res.dice;
+      await toDM(`I rolled ${roll.raw} on ${d.type}${d.modifier?` (${d.modifier>0?'+':''}${d.modifier} mod → total ${roll.total})`:''}` +` for ${d.reason}.`+(d.dc?` DC ${d.dc}: ${roll.pass?'SUCCESS':'FAILURE'}.`:''));
+      return;
+    }
+
+    if(lv){await sl(450);await showLU();}
     if(G.history.length>40)await shrink();
     save();
   }catch(e){addSys(`[SYSTEM ERROR: ${e.message}]`,'damage');}
   setBusy(false);
 }
-async function shrink(){try{const old=G.history.slice(0,-10);const s=await ai([{role:'user',content:`Summarise this session in 3-4 sentences:\n${old.map(m=>`${m.role}: ${m.content}`).join('\n')}`}],'Concise summariser. One short paragraph only.');G.summary=s;G.history=G.history.slice(-10);save();}catch(e){}}
 
-// ── CHARACTER GENERATION ───────────────────────────────────
+async function shrink(){
+  try{
+    const old=G.history.slice(0,-10);
+    const s=await ai([{role:'user',content:`Summarise this D&D session in 3 sentences:\n${old.map(m=>`${m.role}: ${m.content}`).join('\n')}`}],'Concise summariser. One short paragraph only.');
+    G.summary=s;G.history=G.history.slice(-10);save();
+  }catch(e){}
+}
+
+// ============================================================
+// CHARACTER GENERATION
+// ============================================================
 async function genOpts(){
-  const brief=worldBrief();
-  return(await ai([{role:'user',content:`Generate 3 distinct D&D 5e-inspired characters suited to this world:\n\n${brief}\n\nMake each character thematically appropriate to this specific setting — names, backgrounds, abilities, and equipment should all fit the world. Vary race (Human,Elf,Dwarf,Half-Orc,Gnome,Tiefling,Dragonborn,Halfling,Aasimar) and class (Fighter,Rogue,Wizard,Ranger,Paladin,Cleric,Warlock,Barbarian,Bard,Druid,Monk) significantly.\n\nReturn ONLY valid JSON:\n{"options":[{"race":"Race","class":"Class","title":"Short evocative title that fits this world","description":"2-3 sentences of flavour and backstory grounded in this setting.","stats":{"STR":14,"DEX":12,"CON":13,"INT":10,"WIS":11,"CHA":8},"hp":28,"abilities":[{"name":"Name","desc":"What it does."}],"inventory":["World-appropriate item 1","Item 2","Item 3"],"gold":15}]}`}],
+  return(await ai([{role:'user',content:`Generate 3 distinct D&D 5e-inspired characters for this world:\n\n${worldBrief()}\n\nMake each thematically appropriate. Vary race (Human,Elf,Dwarf,Half-Orc,Gnome,Tiefling,Dragonborn,Halfling,Aasimar) and class (Fighter,Rogue,Wizard,Ranger,Paladin,Cleric,Warlock,Barbarian,Bard,Druid,Monk).\n\nReturn ONLY JSON:\n{"options":[{"race":"Race","class":"Class","title":"Short evocative title","description":"2 sentences of flavour grounded in this setting.","stats":{"STR":14,"DEX":12,"CON":13,"INT":10,"WIS":11,"CHA":8},"hp":28,"abilities":[{"name":"Name","desc":"Effect."}],"inventory":["Item 1","Item 2","Item 3"],"gold":15}]}`}],
     'Generate D&D character options. Return only JSON.',true,2000)).options;
 }
 
@@ -668,7 +728,6 @@ function renderOpts(opts){
   });
 }
 
-// ── WORLD SCREEN ───────────────────────────────────────────
 function renderWorlds(){
   const g=id('world-grid');g.innerHTML='';
   WORLDS.forEach(w=>{
@@ -685,18 +744,21 @@ function renderWorlds(){
   });
 }
 
-// ── GAME INIT ──────────────────────────────────────────────
+// ============================================================
+// GAME INIT
+// ============================================================
 async function startNew(opt,name){
   G.char={name,race:opt.race,class:opt.class,level:1,xp:0,hp:opt.hp,maxHp:opt.hp,stats:opt.stats,abilities:opt.abilities,inventory:opt.inventory,gold:opt.gold};
   G.world={location:'',visited:[],npcs:[],quests:[],done:[],notes:[],lore:[]};
-  G.history=[];G.summary='';save();showGame();setBusy(true);
-  const opener=`The adventure begins. ${name} (${opt.race} ${opt.class}) arrives in this world. Open with a vivid, atmospheric scene that immediately establishes the world's tone and premise. The System is real here — people know their stats. Introduce an immediate situation or hook that demands a response. Record the first lore entry establishing this world. End with a clear prompt for action.`;
+  G.combat=null;G.history=[];G.summary='';save();showGame();setBusy(true);
+  const opener=`The adventure begins. ${name} (${opt.race} ${opt.class}) arrives. Open with a vivid short scene (2 paragraphs max) that immediately establishes the world's tone. The System is real here. Introduce an immediate situation that demands a response. Record opening lore. Offer 3-4 action choices.`;
   G.history.push({role:'user',content:opener});
   try{
-    const res=await ai(G.history,dmsys(),true);
+    const res=await ai(G.history,dmsys(),true,1200);
     G.history.push({role:'assistant',content:res.narrative});
-    addDM(res.narrative);
-    for(const n of(res.notifications||[])){await sl(260);addSys(n.text,n.type);}
+    if(res.scene)addSceneCard(res.scene);
+    await addDM(res.narrative,res.scene,res.actions);
+    for(const n of(res.notifications||[])){await sl(220);addSys(n.text,n.type);}
     const u=res.updates||{};
     if(u.location)G.world.location=u.location;
     if(u.note)G.world.notes.push(u.note);
@@ -715,118 +777,260 @@ function showGame(){
 
 function resumeGame(){
   id('s-intro').classList.add('gone');id('s-game').classList.remove('gone');
+  if(G.combat)updCombat();
   updHdr();updSheet();updJournal();
   G.history.slice(-6).forEach(m=>{
     if(m.role==='user'&&!m.content.startsWith('The adventure begins'))addPlayer(m.content);
-    else if(m.role==='assistant')addDM(m.content);
+    else if(m.role==='assistant')addDM(m.content,null,null,true);
   });
   addSys(`[SYSTEM: Session resumed — ${G.char.name} returns.]`,'info');
 }
 
-// ── DICE ───────────────────────────────────────────────────
+// ============================================================
+// TYPEWRITER
+// ============================================================
+function parseSegments(text){
+  const segs=[];const rx=/"([^"]+)"/g;let last=0,m;
+  while((m=rx.exec(text))!==null){
+    if(m.index>last)segs.push({type:'text',content:text.slice(last,m.index)});
+    segs.push({type:'dialogue',content:'"'+m[1]+'"'});
+    last=m.index+m[0].length;
+  }
+  if(last<text.length)segs.push({type:'text',content:text.slice(last)});
+  return segs;
+}
+
+async function typewriteParagraph(container,text){
+  const segs=parseSegments(text);
+  for(const seg of segs){
+    const span=mk('span');
+    if(seg.type==='dialogue')span.className='dialogue';
+    container.appendChild(span);
+    const chars=seg.content.split('');
+    for(const ch of chars){
+      span.textContent+=ch;
+      const delay=ch==='.'||ch==='!'||ch==='?'?55:ch===','?22:ch==='"'?15:10;
+      await sl(delay);
+    }
+  }
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function addSceneCard(scene){
+  const mood=scene.mood||'CALM';
+  const el=mk('div');el.className=`scene-card ${mood} msg`;
+  el.innerHTML=`<span class="scene-mood ${mood}">${MOOD_ICONS[mood]||'◌'} ${mood}</span><div class="scene-sep"></div><span class="scene-atm">${esc(scene.atmosphere||'')}</span>`;
+  ap(el);
+}
+
+async function addDM(text,scene,actions,instant=false){
+  const wrap=mk('div');wrap.className='msg dm-wrap';
+  const lbl=mk('div');lbl.className='msg-lbl';lbl.textContent='DUNGEON MASTER';
+  const bubble=mk('div');bubble.className='dm-bubble';
+  wrap.appendChild(lbl);wrap.appendChild(bubble);
+  ap(wrap);
+
+  if(instant){
+    // instant mode for resume — just set content
+    const segs=parseSegments(text);
+    segs.forEach(seg=>{const span=mk('span');if(seg.type==='dialogue')span.className='dialogue';span.textContent=seg.content;bubble.appendChild(span);});
+    bubble.innerHTML=bubble.innerHTML.replace(/\n/g,'<br>');
+    // Add actions
+    if(actions&&actions.length)addActionBtns(actions);
+    return;
+  }
+
+  // Split on double newline for paragraphs
+  const paras=text.split(/\n\n+/);
+  for(let i=0;i<paras.length;i++){
+    if(i>0){bubble.appendChild(mk('br'));bubble.appendChild(mk('br'));}
+    await typewriteParagraph(bubble,paras[i]);
+  }
+
+  // Add action buttons after text is done
+  if(actions&&actions.length){
+    await sl(180);
+    addActionBtns(actions);
+  }
+  scrollNarrative();
+}
+
+function addActionBtns(actions){
+  const row=mk('div');row.className='action-row msg';
+  actions.forEach(a=>{
+    const btn=mk('button');btn.className='act-btn';
+    btn.innerHTML=`<span class="act-ico">${a.icon||'▸'}</span>${esc(a.label)}`;
+    btn.addEventListener('click',()=>{
+      if(G.busy)return;
+      document.querySelectorAll('.action-row').forEach(r=>r.remove());
+      addPlayer(a.text||a.label);
+      toDM(a.text||a.label);
+    });
+    row.appendChild(btn);
+  });
+  ap(row);
+}
+
+function addPlayer(text){
+  const el=mk('div');el.className='msg player-wrap';
+  el.innerHTML=`<div class="msg-lbl">YOU</div><div class="player-bubble">${esc(text)}</div>`;
+  ap(el);
+}
+
+function addSys(text,type='info'){
+  const el=mk('div');el.className=`msg sys-msg sys-${type}`;
+  el.innerHTML=`<div class="sys-bubble">${esc(text)}</div>`;
+  ap(el);
+}
+
+function addDiceCard(dtype,raw,mod,dc,out){
+  const el=mk('div');el.className='msg dice-msg';const tot=raw+(mod||0);
+  let oh='';
+  if(out==='crit')oh=`<div class="dr-out crit">✦ CRITICAL HIT!</div>`;
+  else if(out==='fumble')oh=`<div class="dr-out fumble">💀 CRITICAL FAIL</div>`;
+  else if(out==='success')oh=`<div class="dr-out success">✓ SUCCESS (DC ${dc})</div>`;
+  else if(out==='fail')oh=`<div class="dr-out fail">✗ FAILURE (DC ${dc})</div>`;
+  el.innerHTML=`<div class="dice-card"><div class="dr-type">${dtype.toUpperCase()}</div><div class="dr-num">${raw}</div>${mod?`<div class="dr-mod">${mod>0?'+':''}${mod} = ${tot}</div>`:''}${oh}</div>`;
+  ap(el);
+}
+
+function ap(el){const n=id('narrative');n.appendChild(el);scrollNarrative();}
+function scrollNarrative(){const n=id('narrative');n.scrollTop=n.scrollHeight;}
+
+function showTyping(){
+  const el=mk('div');el.className='msg dm-wrap';el.id='typing';
+  el.innerHTML=`<div class="msg-lbl" style="color:var(--gold-dim)">DUNGEON MASTER</div><div class="typing-bubble"><div class="tdot"></div><div class="tdot"></div><div class="tdot"></div></div>`;
+  ap(el);
+}
+function hideTyping(){const e=id('typing');if(e)e.remove();}
+function setBusy(v){G.busy=v;id('btn-send').disabled=v;id('msg-input').disabled=v;if(v)showTyping();else hideTyping();}
+
+// ============================================================
+// COMBAT BANNER
+// ============================================================
+function updCombat(){
+  const c=G.combat;
+  if(!c||!c.active){id('combat-banner').classList.remove('active');return;}
+  id('combat-banner').classList.add('active');
+  id('cb-name').textContent=c.enemyName.toUpperCase();
+  id('cb-round').textContent=`ROUND ${c.round}`;
+  id('cb-desc').textContent=c.enemyDesc||'';
+  const pct=Math.max(0,Math.min(100,(c.enemyHp/c.enemyMaxHp)*100));
+  id('cb-hp-fill').style.width=pct+'%';
+  id('cb-hp-val').textContent=`${c.enemyHp}/${c.enemyMaxHp}`;
+}
+
+// ============================================================
+// HEADER + SHEET + JOURNAL
+// ============================================================
+function updHdr(){
+  const c=G.char;if(!c)return;
+  id('lvl-badge').textContent=c.level;
+  id('hdr-name').textContent=`${c.name} · ${c.race} ${c.class}`;
+  id('hp-bar').style.width=(c.hp/c.maxHp*100)+'%';
+  const xn=XP[c.level]||XP[c.level-1]*2,xp=XP[c.level-1]||0;
+  id('xp-bar').style.width=Math.min(100,(c.xp-xp)/(xn-xp)*100)+'%';
+}
+
+function updSheet(){
+  const c=G.char;if(!c)return;
+  id('cs-name').textContent=c.name;
+  id('cs-sub').textContent=`${c.race} · ${c.class} · Level ${c.level}`;
+  id('cs-hp-fill').style.width=(c.hp/c.maxHp*100)+'%';
+  id('cs-hp-val').textContent=`${c.hp}/${c.maxHp}`;
+  const xn=XP[c.level]||XP[c.level-1]*2;
+  id('cs-xp-row').textContent=`XP: ${c.xp} / ${xn}  ·  Gold: ${c.gold}g`;
+  id('stats-grid').innerHTML=['STR','DEX','CON','INT','WIS','CHA'].map(s=>{const v=c.stats[s],m=Math.floor((v-10)/2);return`<div class="stat-b"><div class="sn">${s}</div><div class="sv">${v}</div><div class="sm">${m>=0?'+'+m:m}</div></div>`;}).join('');
+  id('ab-list').innerHTML=c.abilities.length?c.abilities.map(a=>`<div class="ab-item"><span class="ab-ico">⚡</span><div><div class="ab-name">${a.name}</div><div class="ab-desc">${a.desc}</div></div></div>`).join(''):'<div class="empty-state">No abilities yet.</div>';
+  // Skills
+  const SKILLS=[['Acrobatics','DEX'],['Animal Handling','WIS'],['Arcana','INT'],['Athletics','STR'],['Deception','CHA'],['History','INT'],['Insight','WIS'],['Intimidation','CHA'],['Investigation','INT'],['Medicine','WIS'],['Nature','INT'],['Perception','WIS'],['Performance','CHA'],['Persuasion','CHA'],['Religion','INT'],['Sleight of Hand','DEX'],['Stealth','DEX'],['Survival','WIS']];
+  const pb=[0,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,6,6,6,6][c.level]||2;
+  const aText=c.abilities.map(a=>a.name.toLowerCase()).join(' ');
+  id('skill-list').innerHTML=SKILLS.map(([name,attr])=>{const base=Math.floor((c.stats[attr]-10)/2);const prof=aText.includes(name.toLowerCase());const tot=base+(prof?pb:0);const sign=tot>=0?'+':'';return`<div class="skill-row"><div class="skill-mod">${sign}${tot}</div><div class="skill-name">${name}${prof?' <span class="skill-prof">◆</span>':''}</div><div class="skill-attr">${attr}</div></div>`;}).join('')+`<div style="font-family:var(--fm);font-size:.52rem;color:var(--text2);margin-top:.5rem;letter-spacing:.05em">◆ Proficient · Prof. Bonus +${pb}</div>`;
+  // Gear
+  const icons={'sword':'⚔️','blade':'⚔️','axe':'🪓','bow':'🏹','staff':'🪄','wand':'🪄','dagger':'🗡️','shield':'🛡️','armour':'🥋','armor':'🥋','robe':'👘','cloak':'🧥','ring':'💍','amulet':'📿','potion':'🧪','scroll':'📜','torch':'🔦','rope':'🪢','book':'📖','ration':'🍖','pack':'🎒','pistol':'🔫','rifle':'🔫','gun':'🔫','knife':'🗡️','spear':'🪃'};
+  function gico(item){const l=item.toLowerCase();for(const[k,v]of Object.entries(icons)){if(l.includes(k))return v;}return'📦';}
+  id('gear-list').innerHTML=c.inventory.length?c.inventory.map(i=>`<div class="gear-item"><span class="gear-ico">${gico(i)}</span><span class="gear-name">${i}</span></div>`).join(''):'<div class="empty-state">Inventory empty.</div>';
+  id('gold-row').textContent=`⚜ ${c.gold} gold pieces`;
+}
+
+function updJournal(){
+  const w=G.world;
+  id('quest-active').innerHTML=w.quests.length?w.quests.map(q=>`<div class="quest-item"><div class="quest-name">${q.name}</div><div class="quest-desc">${q.desc}</div></div>`).join(''):'<div class="empty-state">No active quests.</div>';
+  id('lore-list').innerHTML=w.lore.length?[...w.lore].reverse().map(l=>`<div class="lore-item"><div class="lore-title">📜 ${l.title}</div><div class="lore-content">${l.content}</div></div>`).join(''):'<div class="empty-state">No lore discovered yet.</div>';
+  id('npc-list').innerHTML=w.npcs.length?[...w.npcs].reverse().map(n=>`<div class="npc-item"><div class="npc-disp ${n.disposition||'neutral'}"></div><div><div class="npc-name">${n.name}</div>${n.location?`<div class="npc-loc">◌ ${n.location}</div>`:''}${n.note?`<div class="npc-note">${n.note}</div>`:''}</div></div>`).join(''):'<div class="empty-state">No NPCs encountered yet.</div>';
+}
+
+function openDrw(s){id(s==='l'?'drw-char':'drw-quest').classList.add('open');id('dov').classList.add('vis');}
+function closeDrw(){id('drw-char').classList.remove('open');id('drw-quest').classList.remove('open');id('dov').classList.remove('vis');}
+
+// ============================================================
+// DICE
+// ============================================================
 function dicePrompt(type,mod,dc,reason){return new Promise(r=>{G.pending={type,mod,dc,reason,resolve:r};openDice(type,reason);});}
-function openDice(hi,reason){id('dice-modal').classList.add('open');id('roll-num').style.display='none';id('roll-mod').style.display='none';id('roll-ctx').textContent=reason?reason.toUpperCase():'';document.querySelectorAll('.die-btn').forEach(b=>{b.style.borderColor='';b.style.background='';const s=hi?hi.replace('d',''):null;if(s&&b.dataset.s===s){b.style.borderColor='var(--gold)';b.style.background='rgba(212,168,83,.1)';}});}
+function openDice(hi,reason){
+  id('dice-modal').classList.add('open');
+  id('roll-num').style.display='none';id('roll-mod-txt').style.display='none';
+  id('roll-ctx').textContent=reason?reason.toUpperCase():'';
+  document.querySelectorAll('.die-btn').forEach(b=>{b.style.borderColor='';b.style.background='';const s=hi?hi.replace('d',''):null;if(s&&b.dataset.s===s){b.style.borderColor='var(--gold)';b.style.background='rgba(212,168,83,.1)';}});
+}
 function closeDice(){id('dice-modal').classList.remove('open');document.querySelectorAll('.die-btn').forEach(b=>{b.style.borderColor='';b.style.background='';});}
 async function doRoll(sides){
-  const ne=id('roll-num'),me=id('roll-mod');ne.style.display='block';me.style.display='none';
-  for(let i=0;i<22;i++){await sl(32+i*2);ne.textContent=Math.floor(Math.random()*sides)+1;}
+  const ne=id('roll-num'),me=id('roll-mod-txt');ne.style.display='block';me.style.display='none';
+  for(let i=0;i<22;i++){await sl(30+i*2);ne.textContent=Math.floor(Math.random()*sides)+1;}
   const raw=Math.floor(Math.random()*sides)+1;ne.textContent=raw;
   const p=G.pending,mod=p?.mod||0,dc=p?.dc,total=raw+mod;
   if(mod!==0){me.style.display='block';me.textContent=`${mod>0?'+':''}${mod} modifier → Total: ${total}`;}
   let out=null;
   if(sides===20&&raw===20)out='crit';else if(sides===20&&raw===1)out='fumble';else if(dc!=null)out=total>=dc?'success':'fail';
-  addDiceCard(`d${sides}`,raw,mod,dc,out);await sl(1350);
+  addDiceCard(`d${sides}`,raw,mod,dc,out);
+  await sl(1300);
   if(p){closeDice();G.pending=null;p.resolve({raw,total,pass:out==='success'||out==='crit'});}
-  else{await sl(400);closeDice();}
+  else{await sl(380);closeDice();}
 }
 
-// ── HP EDIT ────────────────────────────────────────────────
+// ============================================================
+// HP EDIT
+// ============================================================
 let hpTmp=0;
 function openHpEdit(){hpTmp=G.char.hp;id('hpe-val').textContent=hpTmp;id('hpe-max').textContent=`of ${G.char.maxHp} maximum`;id('hp-modal').classList.add('open');}
 
-// ── RECAP ──────────────────────────────────────────────────
+// ============================================================
+// RECAP
+// ============================================================
 async function showRecap(){
   id('recap-modal').classList.add('open');id('recap-text').textContent='Narrating your journey...';closeDrw();
   try{
-    const ctx=`World: ${G.premise?.name||'Unknown'}. Hero: ${G.char.name}, Level ${G.char.level} ${G.char.race} ${G.char.class}.\nSummary: ${G.summary||'Just begun.'}\nLore: ${G.world.lore.map(l=>l.title).join(', ')||'None.'}\nQuests: ${G.world.quests.map(q=>q.name).join(', ')||'None.'}\nNPCs: ${G.world.npcs.map(n=>n.name).join(', ')||'None.'}`;
-    const r=await ai([{role:'user',content:`Write a vivid narrator's recap of ${G.char.name}'s adventure so far in the world of "${G.premise?.name||'this realm'}". Evocative, gripping, present tense, 3-4 paragraphs, true to this world's tone. Context:\n${ctx}`}],'You are a dramatic fantasy narrator. Rich immersive prose, true to the world established. No lists, no headers.');
+    const ctx=`World: ${G.premise?.name}. Hero: ${G.char.name}, Level ${G.char.level} ${G.char.race} ${G.char.class}.\nSummary: ${G.summary||'Just begun.'}\nLore: ${G.world.lore.map(l=>l.title).join(', ')||'None.'}\nQuests: ${G.world.quests.map(q=>q.name).join(', ')||'None.'}\nNPCs: ${G.world.npcs.map(n=>n.name).join(', ')||'None.'}`;
+    const r=await ai([{role:'user',content:`Write a vivid narrator's recap of ${G.char.name}'s adventure in "${G.premise?.name||'this realm'}". Evocative, gripping, present tense, 3-4 paragraphs. Context:\n${ctx}`}],'Dramatic fantasy narrator. Rich immersive prose, no lists, no headers.');
     id('recap-text').textContent=r;
   }catch(e){id('recap-text').textContent=`Could not generate recap: ${e.message}`;}
 }
 
-// ── LEVEL UP ───────────────────────────────────────────────
+// ============================================================
+// LEVEL UP
+// ============================================================
 async function showLU(){
   const c=G.char;const hpg=Math.floor(Math.random()*6)+4+Math.floor((c.stats.CON-10)/2);
   c.maxHp+=hpg;c.hp=Math.min(c.hp+hpg,c.maxHp);
   id('lu-sub').textContent=`YOU ARE NOW LEVEL ${c.level}`;
-  id('lu-rewards').innerHTML=`<div class="lu-reward">+ ${hpg} Maximum HP (now ${c.maxHp})</div><div class="lu-reward">+ New abilities may unlock through adventure</div><div class="lu-reward">+ The System acknowledges your growth</div>`;
+  id('lu-rewards').innerHTML=`<div class="lu-reward">+ ${hpg} Maximum HP (now ${c.maxHp})</div><div class="lu-reward">+ New abilities unlock through adventure</div><div class="lu-reward">+ The System acknowledges your growth</div>`;
   id('lu-modal').classList.add('open');
   return new Promise(r=>{id('lu-confirm').onclick=()=>{id('lu-modal').classList.remove('open');updHdr();updSheet();save();r();};});
 }
 
-// ── RENDER ─────────────────────────────────────────────────
-function addDM(t){const el=mk('div');el.className='msg dm';el.innerHTML=`<div class="msg-lbl">DUNGEON MASTER</div><div class="dm-bubble">${esc(t).replace(/\n/g,'<br>')}</div>`;ap(el);}
-function addPlayer(t){const el=mk('div');el.className='msg player-msg';el.innerHTML=`<div class="msg-lbl">YOU</div><div class="player-bubble">${esc(t)}</div>`;ap(el);}
-function addSys(t,type='info'){const el=mk('div');el.className=`msg sys-msg sys-${type}`;el.innerHTML=`<div class="sys-bubble">${esc(t)}</div>`;ap(el);}
-function addDiceCard(dtype,raw,mod,dc,out){const el=mk('div');el.className='msg dice-msg';const tot=raw+(mod||0);let oh='';if(out==='crit')oh=`<div class="dr-out crit">✦ CRITICAL HIT!</div>`;else if(out==='fumble')oh=`<div class="dr-out fumble">💀 CRITICAL FAIL</div>`;else if(out==='success')oh=`<div class="dr-out success">✓ SUCCESS (DC ${dc})</div>`;else if(out==='fail')oh=`<div class="dr-out fail">✗ FAILURE (DC ${dc})</div>`;el.innerHTML=`<div class="dice-card"><div class="dr-type">${dtype.toUpperCase()}</div><div class="dr-num">${raw}</div>${mod?`<div class="dr-mod">${mod>0?'+':''}${mod} = ${tot}</div>`:''}${oh}</div>`;ap(el);}
-function ap(el){const n=id('narrative');n.appendChild(el);n.scrollTop=n.scrollHeight;}
-function showTyping(){const el=mk('div');el.className='msg dm';el.id='typing';el.innerHTML=`<div class="msg-lbl">DUNGEON MASTER</div><div class="typing-bubble"><div class="tdot"></div><div class="tdot"></div><div class="tdot"></div></div>`;ap(el);}
-function hideTyping(){const e=id('typing');if(e)e.remove();}
-function setBusy(v){G.busy=v;id('btn-send').disabled=v;id('msg-input').disabled=v;if(v)showTyping();else hideTyping();}
-function updHdr(){const c=G.char;if(!c)return;id('lvl-badge').textContent=c.level;id('hdr-name').textContent=`${c.name} · ${c.race} ${c.class}`;id('hp-bar').style.width=(c.hp/c.maxHp*100)+'%';const xn=XP[c.level]||XP[c.level-1]*2,xp=XP[c.level-1]||0;id('xp-bar').style.width=Math.min(100,(c.xp-xp)/(xn-xp)*100)+'%';}
-function updSheet(){
-  const c=G.char;if(!c)return;
-  // Identity
-  id('cs-name').textContent=c.name;
-  id('cs-sub').textContent=`${c.race} · ${c.class} · Level ${c.level}`;
-  // Vitals
-  id('cs-hp-fill').style.width=(c.hp/c.maxHp*100)+'%';
-  id('cs-hp-val').textContent=`${c.hp}/${c.maxHp}`;
-  const xn=XP[c.level]||XP[c.level-1]*2;
-  id('cs-xp-row').textContent=`XP: ${c.xp} / ${xn} · Gold: ${c.gold}g`;
-  // Attributes
-  id('stats-grid').innerHTML=['STR','DEX','CON','INT','WIS','CHA'].map(s=>{const v=c.stats[s],m=Math.floor((v-10)/2);return`<div class="stat-b"><div class="sn">${s}</div><div class="sv">${v}</div><div class="sm">${m>=0?'+'+m:m}</div></div>`;}).join('');
-  // Abilities
-  id('ab-list').innerHTML=c.abilities.length?c.abilities.map(a=>`<div class="ab-item"><span class="ab-ico">⚡</span><div><div class="ab-name">${a.name}</div><div class="ab-desc">${a.desc}</div></div></div>`).join(''):'<div class="empty-state">No abilities yet.</div>';
-  // Skills tab — all 18 D&D skills with derived modifiers
-  const SKILLS=[
-    ['Acrobatics','DEX'],['Animal Handling','WIS'],['Arcana','INT'],
-    ['Athletics','STR'],['Deception','CHA'],['History','INT'],
-    ['Insight','WIS'],['Intimidation','CHA'],['Investigation','INT'],
-    ['Medicine','WIS'],['Nature','INT'],['Perception','WIS'],
-    ['Performance','CHA'],['Persuasion','CHA'],['Religion','INT'],
-    ['Sleight of Hand','DEX'],['Stealth','DEX'],['Survival','WIS']
-  ];
-  const profBonus=[0,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,6,6,6,6][c.level]||2;
-  // Detect proficiency: skill name appears in an ability name
-  const abilityText=c.abilities.map(a=>a.name.toLowerCase()).join(' ');
-  id('skill-list').innerHTML=SKILLS.map(([name,attr])=>{
-    const base=Math.floor((c.stats[attr]-10)/2);
-    const prof=abilityText.includes(name.toLowerCase())||abilityText.includes(attr.toLowerCase()+'saving');
-    const total=base+(prof?profBonus:0);
-    const sign=total>=0?'+':'';
-    return`<div class="skill-row">
-      <div class="skill-mod">${sign}${total}</div>
-      <div class="skill-name">${name}${prof?' ◆':''}</div>
-      <div class="skill-attr">${attr}</div>
-    </div>`;
-  }).join('')+`<div style="font-family:var(--fm);font-size:.54rem;color:var(--text2);margin-top:.6rem;letter-spacing:.06em">◆ Proficient (Prof. bonus +${profBonus})</div>`;
-  // Gear tab
-  const gearIcons={'sword':'⚔️','blade':'⚔️','axe':'🪓','bow':'🏹','staff':'🪄','wand':'🪄','dagger':'🗡️','shield':'🛡️','armour':'🥋','armor':'🥋','robe':'👘','cloak':'🧥','ring':'💍','amulet':'📿','potion':'🧪','scroll':'📜','torch':'🔦','rope':'🪢','book':'📖','coin':'💰','gold':'💰','ration':'🍖','pack':'🎒'};
-  function gearIcon(item){const l=item.toLowerCase();for(const[k,v]of Object.entries(gearIcons)){if(l.includes(k))return v;}return'📦';}
-  id('gear-list').innerHTML=c.inventory.length?c.inventory.map(i=>`<div class="gear-item"><span class="gear-ico">${gearIcon(i)}</span><span class="gear-name">${i}</span></div>`).join(''):'<div class="empty-state">Inventory empty.</div>';
-  id('gold-row').textContent=`⚜ ${c.gold} gold pieces`;
-}
-function updJournal(){const w=G.world;id('quest-active').innerHTML=w.quests.length?w.quests.map(q=>`<div class="quest-item"><div class="quest-name">${q.name}</div><div class="quest-desc">${q.desc}</div></div>`).join(''):`<div class="empty-state">No active quests.</div>`;id('lore-list').innerHTML=w.lore.length?[...w.lore].reverse().map(l=>`<div class="lore-item"><div class="lore-title">📜 ${l.title}</div><div class="lore-content">${l.content}</div></div>`).join(''):`<div class="empty-state">No lore discovered yet.</div>`;id('npc-list').innerHTML=w.npcs.length?[...w.npcs].reverse().map(n=>`<div class="npc-item"><div class="npc-disp ${n.disposition||'neutral'}"></div><div><div class="npc-name">${n.name}</div>${n.location?`<div class="npc-loc">◌ ${n.location}</div>`:''}${n.note?`<div class="npc-note">${n.note}</div>`:''}</div></div>`).join(''):`<div class="empty-state">No NPCs encountered yet.</div>`;}
-function openDrw(s){id(s==='l'?'drw-char':'drw-quest').classList.add('open');id('dov').classList.add('vis');}
-function closeDrw(){id('drw-char').classList.remove('open');id('drw-quest').classList.remove('open');id('dov').classList.remove('vis');}
-function id(x){return document.getElementById(x);}function mk(t){return document.createElement(t);}function sl(ms){return new Promise(r=>setTimeout(r,ms));}function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+// ============================================================
+// UTILS
+// ============================================================
+function id(x){return document.getElementById(x);}function mk(t){return document.createElement(t);}function sl(ms){return new Promise(r=>setTimeout(r,ms));}function esc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
-// ── BOOT ───────────────────────────────────────────────────
+// ============================================================
+// BOOT
+// ============================================================
 document.addEventListener('DOMContentLoaded',()=>{
-  // Pre-fill API key if stored
-  const storedKey=loadKey();
-  if(storedKey)id('api-in').value=storedKey;
+  const storedKey=loadKey();if(storedKey)id('api-in').value=storedKey;
   if(hasSave())id('btn-cont').classList.remove('hidden');
   id('loading').classList.add('gone');
   renderWorlds();
@@ -846,38 +1050,25 @@ document.addEventListener('DOMContentLoaded',()=>{
     patchFetch();resumeGame();
   });
 
-  // World confirm
+  // World
   id('btn-world-confirm').addEventListener('click',async()=>{
     const sel=document.querySelector('.world-card.sel');
     if(!sel){id('world-err').textContent='Please select a world.';return;}
     const world=WORLDS.find(w=>w.id===sel.dataset.id);
-    if(world.id==='custom'){
-      const ct=id('custom-ta').value.trim();
-      if(!ct){id('world-err').textContent='Please describe your custom world.';return;}
-      G.premiseCustom=ct;
-    }
+    if(world.id==='custom'){const ct=id('custom-ta').value.trim();if(!ct){id('world-err').textContent='Please describe your custom world.';return;}G.premiseCustom=ct;}
     G.premise=world;
-    // Show loading state ON the world screen — don't transition yet
-    const btn=id('btn-world-confirm');
-    btn.disabled=true;
-    btn.textContent='SUMMONING HEROES...';
+    const btn=id('btn-world-confirm');btn.disabled=true;btn.textContent='SUMMONING HEROES...';
     id('world-err').textContent='';
     try{
-      const opts=await genOpts();
-      G.charOptions=opts;
-      // Only now transition
-      id('s-world').classList.add('gone');
-      id('s-create').classList.remove('gone');
+      const opts=await genOpts();G.charOptions=opts;
+      id('s-world').classList.add('gone');id('s-create').classList.remove('gone');
       id('create-world-tag').textContent=`${world.icon} ${world.name.toUpperCase()}`;
       renderOpts(opts);
-    }catch(e){
-      id('world-err').textContent=`Error: ${e.message}`;
-    }
-    btn.disabled=false;
-    btn.textContent='ENTER THIS WORLD';
+    }catch(e){id('world-err').textContent=`Error: ${e.message}`;}
+    btn.disabled=false;btn.textContent='ENTER THIS WORLD';
   });
 
-  // Begin adventure
+  // Begin
   id('btn-begin').addEventListener('click',async()=>{
     const sel=document.querySelector('.char-card.sel'),n=id('name-in').value.trim();
     if(!sel){id('create-err').textContent='Select a character first.';id('create-err').classList.remove('hidden');return;}
@@ -890,11 +1081,11 @@ document.addEventListener('DOMContentLoaded',()=>{
   async function send(){const inp=id('msg-input'),txt=inp.value.trim();if(!txt||G.busy)return;inp.value='';inp.style.height='auto';addPlayer(txt);await toDM(txt);}
   id('btn-send').addEventListener('click',send);
   id('msg-input').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}});
-  id('msg-input').addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,110)+'px';});
+  id('msg-input').addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,108)+'px';});
 
   // Dice
   id('btn-dice').addEventListener('click',()=>openDice(null,''));
-  document.querySelectorAll('.die-btn').forEach(b=>{b.addEventListener('click',async()=>{if(b.dataset.s==='close'){if(G.pending){openDice(G.pending.type,G.pending.reason);return;}closeDice();return;}await doRoll(parseInt(b.dataset.s));});});
+  document.querySelectorAll('.die-btn').forEach(b=>{b.addEventListener('click',async()=>{if(b.dataset.s==='close'){if(G.pending)return;closeDice();return;}await doRoll(parseInt(b.dataset.s));});});
 
   // HP edit
   id('cs-hp-val').addEventListener('click',openHpEdit);
@@ -915,11 +1106,12 @@ document.addEventListener('DOMContentLoaded',()=>{
   id('close-quest').addEventListener('click',closeDrw);
   id('dov').addEventListener('click',()=>{closeDrw();id('recap-modal').classList.remove('open');});
 
-  // Tabs
-  // Journal tabs
-  document.querySelectorAll('[data-tab]').forEach(t=>{t.addEventListener('click',()=>{const bar=t.closest('.tab-bar');bar.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');const panels=t.closest('.tab-wrap').querySelectorAll('.tab-panel');panels.forEach(x=>x.classList.remove('active'));const key=t.dataset.tab;const panel=id('tab-'+key)||id('cstab-'+key);if(panel)panel.classList.add('active');});});
+  // Tabs — character sheet
+  document.querySelectorAll('[data-cstab]').forEach(t=>{t.addEventListener('click',()=>{const bar=t.closest('.tab-bar');bar.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');t.closest('.tab-wrap').querySelectorAll('.tab-panel').forEach(x=>x.classList.remove('active'));const p=id('cstab-'+t.dataset.cstab);if(p)p.classList.add('active');});});
+  // Tabs — journal
+  document.querySelectorAll('[data-jntab]').forEach(t=>{t.addEventListener('click',()=>{const bar=t.closest('.tab-bar');bar.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');t.closest('.tab-wrap').querySelectorAll('.tab-panel').forEach(x=>x.classList.remove('active'));const p=id('jntab-'+t.dataset.jntab);if(p)p.classList.add('active');});});
 
-  // Level up
+  // Level up confirm
   id('lu-confirm').addEventListener('click',()=>id('lu-modal').classList.remove('open'));
 });
 </script>
