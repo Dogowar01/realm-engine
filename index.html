@@ -291,15 +291,26 @@
     .recap-close{width:100%;margin-top:1.1rem;padding:.6rem;background:transparent;border:1px solid var(--bdr);border-radius:5px;color:var(--text2);font-family:var(--fm);font-size:.6rem;letter-spacing:.12em;cursor:pointer}
 
     /* ── LEVEL UP ── */
-    #lu-modal{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;padding:1.5rem;background:rgba(0,0,0,.82);opacity:0;pointer-events:none;transition:opacity .3s}
+    #lu-modal{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;padding:1rem;background:rgba(0,0,0,.88);opacity:0;pointer-events:none;transition:opacity .3s;overflow-y:auto}
     #lu-modal.open{opacity:1;pointer-events:all}
-    .lu-card{background:var(--bg3);border:2px solid var(--gold);border-radius:11px;padding:1.8rem 1.35rem;text-align:center;width:100%;max-width:325px;box-shadow:0 0 36px rgba(212,168,83,.26);animation:lu-pop .4s ease}
+    .lu-card{background:var(--bg3);border:2px solid var(--gold);border-radius:11px;padding:1.6rem 1.2rem;text-align:center;width:100%;max-width:360px;box-shadow:0 0 36px rgba(212,168,83,.26);animation:lu-pop .4s ease;margin:auto}
     @keyframes lu-pop{from{transform:scale(.88);opacity:0}to{transform:scale(1);opacity:1}}
-    .lu-ico{font-size:2.6rem;margin-bottom:.8rem}
-    .lu-title{font-family:var(--fd);font-size:1.4rem;color:var(--gold);margin-bottom:.2rem;text-shadow:0 0 18px rgba(212,168,83,.32)}
-    .lu-sub{font-family:var(--fm);font-size:.62rem;color:var(--text2);letter-spacing:.2em;margin-bottom:1.2rem}
-    .lu-rewards{text-align:left;margin-bottom:1.2rem;display:flex;flex-direction:column;gap:.3rem}
-    .lu-reward{font-family:var(--fm);font-size:.68rem;color:var(--green);padding:.24rem .46rem;background:rgba(74,222,128,.08);border-radius:3px}
+    .lu-ico{font-size:2.4rem;margin-bottom:.7rem}
+    .lu-title{font-family:var(--fd);font-size:1.35rem;color:var(--gold);margin-bottom:.18rem;text-shadow:0 0 18px rgba(212,168,83,.32)}
+    .lu-sub{font-family:var(--fm);font-size:.6rem;color:var(--text2);letter-spacing:.2em;margin-bottom:1rem}
+    .lu-rewards{text-align:left;margin-bottom:1rem;display:flex;flex-direction:column;gap:.28rem}
+    .lu-reward{font-family:var(--fm);font-size:.66rem;color:var(--green);padding:.22rem .44rem;background:rgba(74,222,128,.08);border-radius:3px}
+    /* Skill pick */
+    .lu-pick-hd{font-family:var(--fm);font-size:.6rem;color:var(--text2);letter-spacing:.18em;margin-bottom:.65rem;padding-top:.8rem;border-top:1px solid var(--bdr)}
+    .lu-loading{font-family:var(--fm);font-size:.65rem;color:var(--text2);letter-spacing:.1em;padding:.8rem 0;text-align:center}
+    .lu-skills{display:flex;flex-direction:column;gap:.5rem;margin-bottom:1rem}
+    .lu-skill-card{background:var(--bg2);border:1px solid var(--bdr);border-radius:7px;padding:.75rem .88rem;cursor:pointer;text-align:left;transition:all .22s;position:relative}
+    .lu-skill-card:hover{border-color:var(--gold);background:rgba(212,168,83,.07)}
+    .lu-skill-card.sel{border-color:var(--gold);background:rgba(212,168,83,.1);box-shadow:0 0 12px rgba(212,168,83,.16)}
+    .lu-skill-card.sel::after{content:'✦';position:absolute;top:.7rem;right:.82rem;color:var(--gold);font-size:.82rem}
+    .lu-sk-name{font-family:var(--fd);font-size:.82rem;color:var(--gold);margin-bottom:.22rem}
+    .lu-sk-type{font-family:var(--fm);font-size:.54rem;color:var(--text2);letter-spacing:.14em;margin-bottom:.35rem}
+    .lu-sk-desc{font-size:.8rem;color:var(--text);line-height:1.55}
 
     /* ── LOADING ── */
     #loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:500;transition:opacity .5s}
@@ -519,7 +530,12 @@
       <div class="lu-title">LEVEL UP!</div>
       <div class="lu-sub" id="lu-sub">YOU ARE NOW LEVEL 2</div>
       <div class="lu-rewards" id="lu-rewards"></div>
-      <button class="btn-gold" id="lu-confirm">ACCEPT POWER</button>
+      <div class="lu-pick-hd">CHOOSE A NEW ABILITY</div>
+      <div id="lu-skills-wrap">
+        <div class="lu-loading" id="lu-loading">⟳ Generating abilities...</div>
+        <div class="lu-skills hidden" id="lu-skills"></div>
+      </div>
+      <button class="btn-gold" id="lu-confirm" disabled>SELECT AN ABILITY</button>
     </div>
   </div>
 </div>
@@ -1180,13 +1196,81 @@ async function showRecap(){
 // ============================================================
 // LEVEL UP
 // ============================================================
+async function genLevelAbilities(){
+  const c=G.char;
+  const sys=`You generate D&D-style ability options for a levelling character. Return only JSON, no markdown.`;
+  const existing=c.abilities.map(a=>a.name).join(', ')||'None';
+  const prompt=`Generate 3 distinct ability options for a Level ${c.level} ${c.race} ${c.class} in this world: ${worldBrief().slice(0,200)}
+
+Character already has: ${existing}
+Stats: STR${c.stats.STR} DEX${c.stats.DEX} CON${c.stats.CON} INT${c.stats.INT} WIS${c.stats.WIS} CHA${c.stats.CHA}
+
+Rules: abilities must be class-appropriate, varied in style (offensive / defensive / utility), and thematically fit the world. Each should feel meaningfully different. No duplicates of existing abilities.
+
+Return ONLY valid JSON:
+{"abilities":[{"name":"Ability Name","type":"PASSIVE|ACTIVE|COMBAT|UTILITY","desc":"Clear 1-2 sentence description of what it does mechanically and narratively."}]}`;
+  const res=await ai([{role:'user',content:prompt}],sys,true,800);
+  return res.abilities;
+}
+
 async function showLU(){
-  const c=G.char;const hpg=Math.floor(Math.random()*6)+4+Math.floor((c.stats.CON-10)/2);
+  const c=G.char;
+  const hpg=Math.floor(Math.random()*6)+4+Math.floor((c.stats.CON-10)/2);
   c.maxHp+=hpg;c.hp=Math.min(c.hp+hpg,c.maxHp);
+
   id('lu-sub').textContent=`YOU ARE NOW LEVEL ${c.level}`;
-  id('lu-rewards').innerHTML=`<div class="lu-reward">+ ${hpg} Maximum HP (now ${c.maxHp})</div><div class="lu-reward">+ New abilities unlock through adventure</div><div class="lu-reward">+ The System acknowledges your growth</div>`;
+  id('lu-rewards').innerHTML=`<div class="lu-reward">+ ${hpg} Maximum HP (now ${c.maxHp})</div><div class="lu-reward">+ 1 New Ability — your choice</div>`;
+
+  // Reset pick UI
+  id('lu-loading').classList.remove('hidden');
+  id('lu-skills').classList.add('hidden');
+  id('lu-skills').innerHTML='';
+  const confirmBtn=id('lu-confirm');
+  confirmBtn.disabled=true;
+  confirmBtn.textContent='SELECT AN ABILITY';
   id('lu-modal').classList.add('open');
-  return new Promise(r=>{id('lu-confirm').onclick=()=>{id('lu-modal').classList.remove('open');updHdr();updSheet();save();r();};});
+
+  // Generate options
+  let abilities=[];
+  try{
+    abilities=await genLevelAbilities();
+  }catch(e){
+    // Fallback abilities if API fails
+    abilities=[
+      {name:'Battle Hardened',type:'PASSIVE',desc:'Years of survival have sharpened your instincts. +2 to all saving throws.'},
+      {name:'Quick Strike',type:'COMBAT',desc:'Once per combat, make an additional attack immediately after rolling a critical hit.'},
+      {name:'Arcane Sense',type:'UTILITY',desc:'You can detect magic, traps, and hidden doors within 30 feet by concentrating for one minute.'}
+    ];
+  }
+
+  // Render cards
+  id('lu-loading').classList.add('hidden');
+  const list=id('lu-skills');
+  list.classList.remove('hidden');
+  let chosen=null;
+  abilities.forEach((ab,i)=>{
+    const card=mk('div');card.className='lu-skill-card';
+    card.innerHTML=`<div class="lu-sk-name">${esc(ab.name)}</div><div class="lu-sk-type">${esc(ab.type)}</div><div class="lu-sk-desc">${esc(ab.desc)}</div>`;
+    card.addEventListener('click',()=>{
+      list.querySelectorAll('.lu-skill-card').forEach(c=>c.classList.remove('sel'));
+      card.classList.add('sel');
+      chosen=ab;
+      confirmBtn.disabled=false;
+      confirmBtn.textContent='ACCEPT POWER';
+    });
+    list.appendChild(card);
+  });
+
+  return new Promise(r=>{
+    confirmBtn.onclick=()=>{
+      if(!chosen)return;
+      G.char.abilities.push({name:chosen.name,desc:chosen.desc});
+      id('lu-modal').classList.remove('open');
+      addSys(`⚡ NEW ABILITY UNLOCKED: ${chosen.name}`,'skill');
+      updHdr();updSheet();save();
+      r();
+    };
+  });
 }
 
 // ============================================================
