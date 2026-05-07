@@ -44,15 +44,15 @@
     #s-world{overflow-y:auto;padding:1rem 1rem 2rem}
     .world-hd{font-family:var(--fd);font-size:.98rem;color:var(--gold);text-align:center;letter-spacing:.12em;margin-bottom:.22rem}
     .world-sub{font-family:var(--fm);font-size:.6rem;color:var(--text2);text-align:center;letter-spacing:.12em;margin-bottom:1.1rem}
-    .world-grid{display:flex;flex-direction:column;gap:.7rem;margin-bottom:.9rem}
-    .world-card{background:var(--bg3);border:1px solid var(--bdr);border-radius:8px;padding:.95rem;cursor:pointer;transition:all .25s;position:relative;overflow:hidden}
+    .world-grid{display:flex;flex-direction:column;gap:.62rem;margin-bottom:.9rem}
+    .world-card{background:var(--bg3);border:1px solid var(--bdr);border-radius:8px;padding:.82rem;cursor:pointer;transition:all .25s;position:relative;overflow:hidden}
     .world-card:hover,.world-card.sel{border-color:var(--gold);box-shadow:0 0 12px rgba(212,168,83,.13)}
     .world-card.sel::after{content:'✦';position:absolute;top:.72rem;right:.82rem;color:var(--gold);font-size:.85rem}
     .world-accent{position:absolute;top:0;left:0;width:3px;height:100%;border-radius:8px 0 0 8px}
     .world-icon{font-size:1.4rem;margin-bottom:.4rem}
     .world-name{font-family:var(--fd);font-size:.88rem;color:var(--gold);margin-bottom:.15rem;letter-spacing:.05em}
     .world-tag{font-family:var(--fm);font-size:.58rem;color:var(--text2);letter-spacing:.13em;margin-bottom:.5rem}
-    .world-desc{font-size:.86rem;color:var(--text);line-height:1.58}
+    .world-desc{font-size:.82rem;color:var(--text);line-height:1.55}
     .custom-wrap{display:none;margin-top:.6rem}
     .custom-wrap.show{display:block}
     .custom-ta{width:100%;min-height:88px;resize:vertical;font-family:var(--fb);font-size:.88rem;line-height:1.55;color:var(--text);background:var(--bg3);border:1px solid var(--bdr);border-radius:5px;padding:.62rem .82rem;outline:none;-webkit-appearance:none}
@@ -348,6 +348,27 @@
     .cmb-btn.cmb-flee{border-color:rgba(96,165,250,.22);color:var(--blue)}
     .cmb-btn.cmb-flee:hover{border-color:var(--blue);background:rgba(96,165,250,.08);color:var(--blue)}
     .cmb-btn:disabled{opacity:.35;cursor:not-allowed}
+
+    /* ── ITEM / SKILL INFO MODAL ── */
+    #info-modal{position:fixed;inset:0;z-index:400;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.65);opacity:0;pointer-events:none;transition:opacity .22s}
+    #info-modal.open{opacity:1;pointer-events:all}
+    .info-sheet{background:var(--bg3);border:1px solid var(--bdr);border-top:2px solid var(--gold);border-bottom:none;border-radius:14px 14px 0 0;padding:1.3rem 1.3rem 2.6rem;width:100%;max-width:480px;transform:translateY(100%);transition:transform .28s ease}
+    #info-modal.open .info-sheet{transform:translateY(0)}
+    .info-ico{font-size:2rem;margin-bottom:.5rem;text-align:center}
+    .info-name{font-family:var(--fd);font-size:1rem;color:var(--gold);letter-spacing:.08em;margin-bottom:.22rem;text-align:center}
+    .info-type{font-family:var(--fm);font-size:.58rem;color:var(--text2);letter-spacing:.18em;margin-bottom:.85rem;text-align:center}
+    .info-desc{font-family:var(--fb);font-size:.96rem;line-height:1.7;color:var(--text);margin-bottom:.85rem}
+    .info-detail{background:var(--bg2);border:1px solid var(--bdr);border-radius:6px;padding:.65rem .82rem;font-family:var(--fm);font-size:.64rem;color:var(--text2);line-height:1.6;letter-spacing:.04em;white-space:pre-wrap}
+    .info-generating{font-family:var(--fm);font-size:.64rem;color:var(--text2);letter-spacing:.12em;text-align:center;padding:.5rem 0}
+    .info-close{width:100%;margin-top:1rem;padding:.62rem;background:transparent;border:1px solid var(--bdr);border-radius:5px;color:var(--text2);font-family:var(--fm);font-size:.6rem;letter-spacing:.12em;cursor:pointer;transition:all .2s}
+    .info-close:hover{border-color:var(--gold-dim);color:var(--gold)}
+    /* Make gear and skill items look tappable */
+    .gear-item{cursor:pointer;transition:all .2s}
+    .gear-item:hover,.gear-item:active{border-color:var(--gold-dim);background:rgba(212,168,83,.06)}
+    .skill-row{cursor:pointer;transition:all .2s}
+    .skill-row:hover,.skill-row:active{border-color:var(--gold-dim);background:rgba(212,168,83,.06)}
+    .ab-item{cursor:pointer;transition:all .2s}
+    .ab-item:hover,.ab-item:active{border-color:var(--gold-dim);background:rgba(212,168,83,.08)}
     .hidden{display:none!important}
   </style>
 </head>
@@ -431,6 +452,20 @@
       <button class="dice-btn" id="btn-dice">🎲</button>
       <textarea id="msg-input" placeholder="What do you do?" rows="1"></textarea>
       <button class="send-btn" id="btn-send">➤</button>
+    </div>
+
+    <!-- COMBAT ACTIONS -->
+    <div id="combat-input">
+      <div class="cmb-row">
+        <button class="cmb-btn cmb-attack" id="cmb-attack"><span class="cmb-ico">⚔️</span>ATTACK</button>
+        <button class="cmb-btn" id="cmb-dodge"><span class="cmb-ico">🛡️</span>DODGE</button>
+        <button class="cmb-btn" id="cmb-spell"><span class="cmb-ico">🎯</span>SKILL</button>
+      </div>
+      <div class="cmb-row" id="cmb-ability-row"></div>
+      <div class="cmb-row">
+        <button class="cmb-btn" id="cmb-item"><span class="cmb-ico">🎒</span>USE ITEM</button>
+        <button class="cmb-btn cmb-flee" id="cmb-flee"><span class="cmb-ico">🏃</span>FLEE</button>
+      </div>
     </div>
   </div>
 
@@ -538,6 +573,19 @@
       <button class="btn-gold" id="lu-confirm" disabled>SELECT AN ABILITY</button>
     </div>
   </div>
+  <!-- ITEM / SKILL INFO MODAL -->
+  <div id="info-modal">
+    <div class="info-sheet">
+      <div class="info-ico" id="info-ico">📦</div>
+      <div class="info-name" id="info-name">Item Name</div>
+      <div class="info-type" id="info-type">ITEM</div>
+      <div class="info-desc" id="info-desc"></div>
+      <div class="info-detail" id="info-detail" style="display:none"></div>
+      <div class="info-generating hidden" id="info-generating">⟳ Looking up details...</div>
+      <button class="info-close" id="info-close">CLOSE</button>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -571,7 +619,58 @@ const WORLDS=[
    brief:`WORLD — THE VERDANT CORRUPTION: Something ancient has awakened beneath the earth. The Corruption spreads — transforming flora and fauna into predatory interconnected horrors. The System tracks CORRUPTION alongside HP. At low levels it grants strange abilities; at high levels the player begins to change. TONE: Survival horror with body-horror undertones. Nature is beautiful and monstrous. ELEMENTS: Quarantine zones, the debate between burning everything and seeking a cure, nature gods that are awake and alien.`},
   {id:'custom',icon:'✦',name:'Custom World',tag:'YOUR VISION · UNLIMITED · DEFINE EVERYTHING',
    desc:'Describe your own world. The DM will anchor every scene, NPC, and lore entry to whatever premise you create.',
-   accent:'#d4a853',brief:null}
+   accent:'#d4a853',brief:null},
+  {id:'faerun',icon:'🏰',name:'Forgotten Realms — Faerûn',tag:'HIGH FANTASY · SWORD COAST · EPIC ADVENTURE',
+   desc:'The most storied world in D&D. From Waterdeep\u2019s bright spires to the Underdark\u2019s lightless depths, Faer\u00fbn is a continent of epic heroes, ancient magic, scheming factions, and world-shaking gods. The Harpers fight tyranny in the shadows while the Zhentarim pursue profit by any means. Your legend begins here.',
+   accent:'#6366f1',
+   brief:`WORLD — FORGOTTEN REALMS (FAERÛN):
+The continent of Faerûn on the world of Abeir-Toril. High fantasy, rich with centuries of history, warring factions, divine intrigue, and epic adventure. Magic flows through a cosmic force called the Weave, maintained by the goddess Mystra. The System here manifests as the natural magic of the Weave — adventurers feel their power quantified by forces older than memory.
+
+GEOGRAPHY & KEY LOCATIONS:
+- Sword Coast: The western seaboard. Waterdeep (City of Splendors, seat of the masked Lords), Baldur's Gate (gritty port city ruled by the Dukes, rife with corruption and opportunity), Neverwinter (City of Skilled Hands, rebuilding after a volcanic cataclysm), Candlekeep (fortress library, repository of all knowledge, requires a book as entry toll).
+- The Dalelands: Frontier settlements surrounding Cormanthor forest and the ruins of Myth Drannor — once the greatest elven city, now a haunted ruin of ancient power. Shadowdale is home to the legendary archmage Elminster.
+- Icewind Dale: The frozen north beyond the Spine of the World. Ten-Towns clustered around the lakes, survival horror, the legend of Drizzt Do'Urden.
+- The Underdark: A vast subterranean world beneath Faerûn. Drow cities, mind flayer colonies, beholder lairs, and horrors that have never seen sunlight.
+- Thay: Eastern magocracy ruled by the lich Szass Tam and his Red Wizards — a genuine existential threat to the rest of Faerûn.
+
+MAJOR FACTIONS:
+- The Harpers: Secret network opposing tyranny and preserving balance. Bards, rogues, rangers. Work in shadows and song.
+- The Zhentarim (Black Network): Mercantile criminal organisation. "Family" that offers protection, profit, and power — at a price. Morally grey.
+- The Lords' Alliance: Coalition of northern cities (Waterdeep, Neverwinter, Baldur's Gate) maintaining order through mutual self-interest.
+- The Red Wizards of Thay: Tattooed wizards seeking magical supremacy, frequently employing undead armies.
+- The Arcane Brotherhood: Ruthless mage society based in Luskan, pursuing arcane power above all else.
+- The Emerald Enclave: Druidic order protecting the natural world from imbalance.
+- The Order of the Gauntlet: Paladin-heavy faction fighting evil directly and openly.
+
+TONE: High fantasy epic. Tavern rumours become world-shaking quests. Ancient gods meddle in mortal affairs. Moral complexity exists but heroism is possible and celebrated. History runs deep — every ruin has a story. The world rewards curious adventurers.
+
+KEY LORE: The Weave of magic was severed during the Spellplague when Mystra was killed, causing magical catastrophe. The Sundering later restored stability. Gods walk Faerûn during the Time of Troubles. Elminster of Shadowdale is centuries old and serves as Mystra's Chosen. R.A. Salvatore's drow ranger Drizzt Do'Urden is the most celebrated hero of the age.
+
+DM GUIDANCE: Use authentic Faerûn location names, faction politics, and lore. NPCs should reference the Harpers, Zhentarim, or other factions naturally. Merchants worry about Zhentarim tolls. Guards serve the Lords' Alliance. Ancient ruins connect to historical events. Magic feels woven into the world's fabric. Elminster may be referenced but is not a quest-giver — he is a force of nature.`},
+  {id:'ravenloft',icon:'🧛',name:'Ravenloft — Domains of Dread',tag:'GOTHIC HORROR · DARK POWERS · INESCAPABLE DREAD',
+   desc:'You have been drawn into the Mists. The Demiplane of Dread is a prison dimension in the Shadowfell, a collection of isolated gothic horror domains each ruled by a Darklord — a tortured soul of great evil, simultaneously all-powerful and eternally tormented. The Dark Powers watch everything. Escape is a rumour. Despair is the currency. Can you survive the Mists?',
+   accent:'#7c3aed',
+   brief:`WORLD — RAVENLOFT (DOMAINS OF DREAD):
+The Demiplane of Dread — a pocket dimension in the Shadowfell controlled by the mysterious Dark Powers. The player character has been drawn through the Mists into this realm of gothic and fantasy horror. Escape is theoretically possible but practically nearly impossible. The Dark Powers observe all and reward evil with greater power and worse curses.
+
+THE NATURE OF RAVENLOFT:
+- The Mists: Thick supernatural fog separates all Domains of Dread. They are near-impassable. Characters who enter the Mists risk becoming lost forever or emerging in a different, worse domain. Only the Vistani (a nomadic people of the Mists) navigate them with any reliability.
+- Dark Powers: Incomprehensible entities that control the Demiplane. They are drawn to evil acts. They grant power to those who commit great wrongs — then curse them with a torment perfectly calibrated to maximise suffering. They also occasionally show mercy to the innocent.
+- Death: Dying in Ravenloft is dire. Resurrection within 24 hours is possible but leaves the soul scarred. After 24 hours, the soul is trapped, reincarnating endlessly within the Mists.
+- Dark Powers Checks: When the player commits morally questionable acts, note it. The Dark Powers may be watching.
+
+KEY DOMAINS:
+- Barovia: The most famous Domain. Gothic Eastern European horror. Ruled by Count Strahd von Zarovich, believed to be the first vampire, who murdered his brother for love of Tatyana — who is reincarnated endlessly to torment him. Castle Ravenloft looms over fog-shrouded villages of terrified peasants. Wolves and undead roam the forests. The Vistani dwell here.
+- Bluetspur: Cosmic horror. The surface is uninhabitable. Mind flayers dwell in underground tunnels led by the God-Brain — a mad Elder Brain that knows too much. Inhabitants experience missing time, implanted memories, and psychic violation.
+- Mordent: Ghost horror. When people die they return as ghosts, haunting the living. The Darklord Wilfred Godefroy murdered his family and returned as a ghost himself, unable to escape the haunting.
+- Borca: Noble intrigue horror. Aristocratic families exploit common folk in displays of obscene wealth. Poison, betrayal, and social manipulation are the primary weapons.
+- Lamordia: Body horror. A cold domain of mad science, where the Darklord Viktra Mordenheim experiments on living bodies in the name of progress.
+
+DARKLORDS: Every domain has a Darklord — a being of great evil who is simultaneously the ruler and prisoner of their realm, tormented by the Dark Powers in ways they may not even consciously recognise. They cannot leave their domain. They have supernatural powers and are very difficult to permanently destroy.
+
+TONE: Gothic and fantasy horror. Dread over gore. Atmosphere is everything — fog, shadows, the sound of wolves, the silence of villagers who know better than to speak. Hope exists but is fragile and hard-won. The players should feel the weight of this world. Not everything can be fought. Sometimes survival is victory. The Vistani are ambiguous allies. Priests find their gods distant here — divine magic still functions but feels muffled, as if the gods' eyes struggle to pierce the Mists.
+
+DM GUIDANCE: Lean into the horror subgenres. Barovia gets gothic vampire horror — use Strahd's obsession with Tatyana and his iron grip on the land. Reference the Vistani as mysterious figures who know more than they say. Make the Mists feel like a character. NPCs are either broken by despair or desperately, preciously hopeful. The Dark Powers should feel present but never seen. When the player does something morally grey, hint that something noticed.`}
 ];
 
 // ============================================================
@@ -1132,12 +1231,19 @@ function updSheet(){
   const SKILLS=[['Acrobatics','DEX'],['Animal Handling','WIS'],['Arcana','INT'],['Athletics','STR'],['Deception','CHA'],['History','INT'],['Insight','WIS'],['Intimidation','CHA'],['Investigation','INT'],['Medicine','WIS'],['Nature','INT'],['Perception','WIS'],['Performance','CHA'],['Persuasion','CHA'],['Religion','INT'],['Sleight of Hand','DEX'],['Stealth','DEX'],['Survival','WIS']];
   const pb=[0,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,6,6,6,6][c.level]||2;
   const aText=c.abilities.map(a=>a.name.toLowerCase()).join(' ');
-  id('skill-list').innerHTML=SKILLS.map(([name,attr])=>{const base=Math.floor((c.stats[attr]-10)/2);const prof=aText.includes(name.toLowerCase());const tot=base+(prof?pb:0);const sign=tot>=0?'+':'';return`<div class="skill-row"><div class="skill-mod">${sign}${tot}</div><div class="skill-name">${name}${prof?' <span class="skill-prof">◆</span>':''}</div><div class="skill-attr">${attr}</div></div>`;}).join('')+`<div style="font-family:var(--fm);font-size:.52rem;color:var(--text2);margin-top:.5rem;letter-spacing:.05em">◆ Proficient · Prof. Bonus +${pb}</div>`;
+  const skillHtml=SKILLS.map(([name,attr])=>{const base=Math.floor((c.stats[attr]-10)/2);const prof=aText.includes(name.toLowerCase());const tot=base+(prof?pb:0);const sign=tot>=0?'+':'';return`<div class="skill-row" data-skill="${name}" data-attr="${attr}" data-mod="${tot}"><div class="skill-mod">${sign}${tot}</div><div class="skill-name">${name}${prof?' <span class="skill-prof">◆</span>':''}</div><div class="skill-attr">${attr}</div><span style="font-size:.55rem;color:var(--text2)">›</span></div>`;}).join('')+`<div style="font-family:var(--fm);font-size:.52rem;color:var(--text2);margin-top:.5rem;letter-spacing:.05em">◆ Proficient · Prof. Bonus +${pb} · Tap any skill for details</div>`;
+  id('skill-list').innerHTML=skillHtml;
+  id('skill-list').querySelectorAll('.skill-row').forEach(el=>{el.addEventListener('click',()=>showSkillInfo(el.dataset.skill,el.dataset.attr,parseInt(el.dataset.mod)));});
   // Gear
   const icons={'sword':'⚔️','blade':'⚔️','axe':'🪓','bow':'🏹','staff':'🪄','wand':'🪄','dagger':'🗡️','shield':'🛡️','armour':'🥋','armor':'🥋','robe':'👘','cloak':'🧥','ring':'💍','amulet':'📿','potion':'🧪','scroll':'📜','torch':'🔦','rope':'🪢','book':'📖','ration':'🍖','pack':'🎒','pistol':'🔫','rifle':'🔫','gun':'🔫','knife':'🗡️','spear':'🪃'};
   function gico(item){const l=item.toLowerCase();for(const[k,v]of Object.entries(icons)){if(l.includes(k))return v;}return'📦';}
-  id('gear-list').innerHTML=c.inventory.length?c.inventory.map(i=>`<div class="gear-item"><span class="gear-ico">${gico(i)}</span><span class="gear-name">${i}</span></div>`).join(''):'<div class="empty-state">Inventory empty.</div>';
+  const gearList=id('gear-list');
+  gearList.innerHTML=c.inventory.length?c.inventory.map(i=>`<div class="gear-item" data-item="${esc(i)}"><span class="gear-ico">${gico(i)}</span><span class="gear-name">${i}</span><span style="font-size:.65rem;color:var(--text2);margin-left:auto">›</span></div>`).join(''):'<div class="empty-state">Inventory empty.</div>';
+  gearList.querySelectorAll('.gear-item').forEach(el=>{el.addEventListener('click',()=>showItemInfo(el.dataset.item));});
   id('gold-row').textContent=`⚜ ${c.gold} gold pieces`;
+  // Wire ability clicks
+  const abList=id('ab-list');
+  if(abList){abList.querySelectorAll('.ab-item').forEach((el,i)=>{if(c.abilities[i])el.addEventListener('click',()=>showAbilityInfo(c.abilities[i]));});}
 }
 
 function updJournal(){
@@ -1279,6 +1385,115 @@ async function showLU(){
 function id(x){return document.getElementById(x);}function mk(t){return document.createElement(t);}function sl(ms){return new Promise(r=>setTimeout(r,ms));}function esc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 // ============================================================
+// ITEM / SKILL INFO SYSTEM
+// ============================================================
+const INFO_ICONS = {
+  sword:'⚔️',blade:'⚔️',axe:'🪓',bow:'🏹',staff:'🪄',wand:'🪄',dagger:'🗡️',
+  shield:'🛡️',armour:'🥋',armor:'🥋',robe:'👘',cloak:'🧥',ring:'💍',
+  amulet:'📿',potion:'🧪',scroll:'📜',torch:'🔦',rope:'🪢',book:'📖',
+  ration:'🍖',pack:'🎒',pistol:'🔫',rifle:'🔫',gun:'🔫',knife:'🗡️',
+  spear:'🪃',coin:'💰',gold:'💰',gem:'💎',crystal:'🔮',flask:'🧪',
+  helmet:'🪖',boots:'👢',gloves:'🧤',belt:'🟤'
+};
+function getItemIcon(name){
+  const l=name.toLowerCase();
+  for(const[k,v]of Object.entries(INFO_ICONS)){if(l.includes(k))return v;}
+  return'📦';
+}
+function getSkillIcon(name){
+  const icons={Acrobatics:'🤸',Athletics:'💪','Animal Handling':'🐾',Arcana:'✨',
+    Deception:'🎭',History:'📜',Insight:'👁️',Intimidation:'😤',Investigation:'🔍',
+    Medicine:'⚕️',Nature:'🌿',Perception:'👀',Performance:'🎵',Persuasion:'💬',
+    Religion:'⛪',Stealth:'👤','Sleight of Hand':'🤏',Survival:'🏕️'};
+  return icons[name]||'🎯';
+}
+
+async function showItemInfo(itemName){
+  id('info-ico').textContent=getItemIcon(itemName);
+  id('info-name').textContent=itemName;
+  id('info-type').textContent='INVENTORY ITEM';
+  id('info-desc').textContent='';
+  id('info-detail').style.display='none';
+  id('info-generating').classList.remove('hidden');
+  id('info-close').textContent='CLOSE';
+  id('info-modal').classList.add('open');
+  try{
+    const c=G.char;
+    const prompt=`The player in a ${G.premise?.name||'fantasy'} setting has the item: "${itemName}".
+Character: Level ${c.level} ${c.race} ${c.class}.
+World context: ${worldBrief().slice(0,200)}
+
+Give a brief but flavourful description (2-3 sentences) of what this item looks like and where it might have come from, then list its practical uses and any mechanical bonuses it might provide. Keep it concise and world-appropriate.
+
+Return JSON only: {"description":"Flavourful 2-3 sentence description.","uses":"Practical uses and any bonuses, one per line separated by \n","weight":"Light|Medium|Heavy","rarity":"Common|Uncommon|Rare|Very Rare"}`;
+    const res=await ai([{role:'user',content:prompt}],'You describe D&D items concisely. Return only JSON.',true,600);
+    id('info-desc').textContent=res.description||'';
+    const detail=[];
+    if(res.uses)detail.push('USES\n'+res.uses);
+    if(res.weight)detail.push('WEIGHT: '+res.weight);
+    if(res.rarity)detail.push('RARITY: '+res.rarity);
+    if(detail.length){id('info-detail').textContent=detail.join('\n\n');id('info-detail').style.display='block';}
+  }catch(e){
+    id('info-desc').textContent='A useful item for any adventurer.';
+  }
+  id('info-generating').classList.add('hidden');
+}
+
+async function showSkillInfo(skillName, attrKey, modTotal){
+  id('info-ico').textContent=getSkillIcon(skillName);
+  id('info-name').textContent=skillName;
+  id('info-type').textContent=`SKILL · ${attrKey} · MODIFIER ${modTotal>=0?'+':''}${modTotal}`;
+  id('info-desc').textContent='';
+  id('info-detail').style.display='none';
+  id('info-generating').classList.remove('hidden');
+  id('info-modal').classList.add('open');
+  try{
+    const c=G.char;
+    const prompt=`Explain the D&D skill "${skillName}" (based on ${attrKey}) to a player whose character is a Level ${c.level} ${c.race} ${c.class} with a modifier of ${modTotal>=0?'+':''}${modTotal}. World: ${G.premise?.name||'fantasy'}.
+
+Explain: what situations this skill applies to, how it interacts with this character's class/race, and 2-3 specific examples of when the DM might call for this check in ${G.premise?.name||'this world'}.
+
+Return JSON only: {"description":"What this skill covers in 2 sentences.","examples":"3 specific in-world examples, one per line separated by \n","tip":"One tactical tip for this character specifically."}`;
+    const res=await ai([{role:'user',content:prompt}],'You explain D&D skills concisely. Return only JSON.',true,600);
+    id('info-desc').textContent=res.description||'';
+    const detail=[];
+    if(res.examples)detail.push('WHEN IT\u2019S USED\n'+res.examples);
+    if(res.tip)detail.push('TIP FOR YOU\n'+res.tip);
+    if(detail.length){id('info-detail').textContent=detail.join('\n\n');id('info-detail').style.display='block';}
+  }catch(e){
+    id('info-desc').textContent='A useful skill for any adventurer.';
+  }
+  id('info-generating').classList.add('hidden');
+}
+
+async function showAbilityInfo(ability){
+  id('info-ico').textContent='⚡';
+  id('info-name').textContent=ability.name;
+  id('info-type').textContent='ABILITY';
+  id('info-desc').textContent=ability.desc||'';
+  id('info-detail').style.display='none';
+  id('info-generating').classList.remove('hidden');
+  id('info-modal').classList.add('open');
+  try{
+    const c=G.char;
+    const prompt=`The D&D player has the ability "${ability.name}": ${ability.desc}
+Character: Level ${c.level} ${c.race} ${c.class}. World: ${G.premise?.name||'fantasy'}.
+
+Expand on this ability: explain exactly how to use it in combat and outside combat, what dice might be involved, and 2 specific tactical situations where it excels.
+
+Return JSON only: {"howToUse":"1-2 sentences on activation and mechanics.","combatUse":"Best combat application.","outOfCombat":"Out-of-combat use case.","synergy":"What other abilities or stats it synergises with."}`;
+    const res=await ai([{role:'user',content:prompt}],'You explain D&D abilities concisely. Return only JSON.',true,600);
+    const detail=[];
+    if(res.howToUse)detail.push('HOW TO USE\n'+res.howToUse);
+    if(res.combatUse)detail.push('IN COMBAT\n'+res.combatUse);
+    if(res.outOfCombat)detail.push('OUTSIDE COMBAT\n'+res.outOfCombat);
+    if(res.synergy)detail.push('SYNERGY\n'+res.synergy);
+    if(detail.length){id('info-detail').textContent=detail.join('\n\n');id('info-detail').style.display='block';}
+  }catch(e){}
+  id('info-generating').classList.add('hidden');
+}
+
+// ============================================================
 // BOOT
 // ============================================================
 document.addEventListener('DOMContentLoaded',()=>{
@@ -1363,12 +1578,17 @@ document.addEventListener('DOMContentLoaded',()=>{
   // Tabs — journal
   document.querySelectorAll('[data-jntab]').forEach(t=>{t.addEventListener('click',()=>{const bar=t.closest('.tab-bar');bar.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');t.closest('.tab-wrap').querySelectorAll('.tab-panel').forEach(x=>x.classList.remove('active'));const p=id('jntab-'+t.dataset.jntab);if(p)p.classList.add('active');});});
 
-  // Combat buttons
-  id('cmb-attack').addEventListener('click',combatAttack);
-  id('cmb-dodge').addEventListener('click',combatDodge);
-  id('cmb-spell').addEventListener('click',combatSkillCheck);
-  id('cmb-item').addEventListener('click',combatUseItem);
-  id('cmb-flee').addEventListener('click',combatFlee);
+  // Combat buttons (null-guarded)
+  const _wire=(eid,fn)=>{const el=id(eid);if(el)el.addEventListener('click',fn);};
+  _wire('cmb-attack',combatAttack);
+  _wire('cmb-dodge',combatDodge);
+  _wire('cmb-spell',combatSkillCheck);
+  _wire('cmb-item',combatUseItem);
+  _wire('cmb-flee',combatFlee);
+
+  // Info modal
+  id('info-close').addEventListener('click',()=>id('info-modal').classList.remove('open'));
+  id('info-modal').addEventListener('click',(e)=>{if(e.target===id('info-modal'))id('info-modal').classList.remove('open');});
 
   // Level up confirm
   id('lu-confirm').addEventListener('click',()=>id('lu-modal').classList.remove('open'));
