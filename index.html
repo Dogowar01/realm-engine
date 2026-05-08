@@ -957,6 +957,8 @@ async function startNew(opt,name){
     for(const nt of(res.notif||[])){if(nt?.text){await sl(220);addSys(nt.text,nt.type||'info');}}
     const u=res.upd||{};
     if(u.loc)G.world.location=u.loc;
+    // If DM didn't return a location, seed one from the world name
+    if(!G.world.location&&G.premise)G.world.location=G.premise.name.split('—')[0].trim();
     if(u.note)G.world.notes.push(u.note);
     if(u.lore&&u.loreD)G.world.lore.push({title:u.lore,content:u.loreD});
     if(u.npc)G.world.npcs.push({name:u.npc,disp:u.npcDisp||'neutral',loc:G.world.location,note:u.npcNote||'',rel:0});
@@ -975,6 +977,8 @@ function resumeGame(){
   const game=id('s-game');if(game)game.classList.remove('gone');
   if(G.combat&&G.combat.active)updCbt();
   updHdr();updSheet();updJournal();updLocBar(G.combat?'COMBAT':'CALM');
+  // Force scene image on resume even if same location (lastSceneLoc is reset on page load)
+  if(G.world?.location)generateSceneImage(G.world.location,G.combat?'COMBAT':'CALM');
   G.history.slice(-6).forEach(m=>{
     if(m.role==='user'&&!m.content.startsWith('The adventure begins'))addPlayer(m.content);
     else if(m.role==='assistant')addDMInstant(m.content);
@@ -1343,24 +1347,42 @@ const SCENE_STYLES={
   'Ravenloft — Domains of Dread':'gothic horror, dark mists, candlelight, expressionist shadows, Transylvanian dread'
 };
 const MOOD_STYLES={CALM:'soft light, peaceful atmosphere',TENSE:'dramatic shadows, uneasy',DANGEROUS:'dark, threatening, danger imminent',MYSTERIOUS:'ethereal mist, hidden secrets',EERIE:'unsettling, otherworldly silence',COMBAT:'battle chaos, smoke, violence'};
-let lastSceneLoc='';
+let lastSceneLoc='',lastSceneMood='';
 function hashS(s){let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;}return Math.abs(h);}
 
 async function generateSceneImage(location,mood){
   try{
-    if(!location||location===lastSceneLoc)return;
-    lastSceneLoc=location;
-    const wrap=id('scene-wrap');const img=id('scene-img');const lbl=id('scene-lbl');
+    // Use world name as fallback if no location yet
+    const loc=location||(G.premise?.name)||'fantasy realm';
+    // Only skip if same location AND image already visible
+    const img=id('scene-img');
+    const alreadyShowing=img&&img.classList.contains('vis')&&loc===lastSceneLoc;
+    if(alreadyShowing&&mood===lastSceneMood)return;
+    lastSceneLoc=loc;lastSceneMood=mood;
+    const wrap=id('scene-wrap');const lbl=id('scene-lbl');
     if(!wrap||!img)return;
     const ws=SCENE_STYLES[G.premise?.name]||'epic fantasy environment';
     const ms=MOOD_STYLES[mood]||'atmospheric';
-    const prompt=location+', '+ws+', '+ms+', no people, concept art, digital painting, highly detailed, fantasy RPG environment, cinematic composition';
-    const seed=hashS(location+mood)%99999;
+    const prompt=loc+', '+ws+', '+ms+', no people, concept art, digital painting, highly detailed, fantasy RPG environment, cinematic composition, wide establishing shot';
+    const seed=hashS(loc+(mood||''))%99999;
     const url='https://image.pollinations.ai/prompt/'+encodeURIComponent(prompt)+'?width=800&height=320&seed='+seed+'&nologo=true';
+    // Show wrap immediately with old image fading
     wrap.style.display='block';
-    img.className='';img.src=url;
-    img.onload=()=>{try{img.classList.add('vis');if(lbl)lbl.textContent=location.toUpperCase();}catch(e){}};
-    img.onerror=()=>{try{wrap.style.display='none';}catch(e){}};
+    img.style.opacity='0';
+    img.className='';
+    // Small delay so CSS transition is visible
+    await sl(50);
+    img.src=url;
+    img.onload=()=>{
+      try{
+        img.classList.add('vis');
+        if(lbl)lbl.textContent=loc.toUpperCase();
+      }catch(e){}
+    };
+    img.onerror=()=>{
+      // Don't hide wrap on error — just keep old image or blank
+      console.warn('Scene image failed to load for:',loc);
+    };
   }catch(e){console.warn('Scene image error:',e);}
 }
 
