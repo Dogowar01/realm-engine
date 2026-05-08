@@ -492,7 +492,7 @@ input:focus,textarea:focus{border-color:var(--gdim)}
       <button class="hdr-btn" id="btn-map">MAP</button>
       <button class="hdr-btn" id="btn-recap">RECAP</button>
       <button class="hdr-btn" id="btn-export">LOG</button>
-      <button class="hdr-btn" id="btn-companion">🤝</button>
+      <button class="hdr-btn" id="btn-companion" title="Recruit a companion">🤝 ALLY</button>
     </div>
   </div>
   <div id="loc-bar"><span id="loc-icon">◌</span><span id="loc-name">—</span><span id="loc-mood"></span></div>
@@ -501,6 +501,7 @@ input:focus,textarea:focus{border-color:var(--gdim)}
     <div class="cbt-desc" id="cbt-desc"></div>
     <div class="cbt-bar-w"><span class="cbt-lbl">HP</span><div class="cbt-trk"><div class="cbt-fill" id="cbt-fill" style="width:100%"></div></div><span class="cbt-val" id="cbt-val">—</span></div>
   </div>
+  <div id="scene-wrap"><img id="scene-img" src="" alt=""><div id="scene-lbl"></div></div>
   <div id="narrative"></div>
   <div id="inp-area">
     <button class="ico-btn" id="btn-dice">🎲</button>
@@ -915,7 +916,10 @@ async function rebuildBible(){if(G.busy||!G.char)return;try{const p='Write a Wor
 // ── CHAR GEN ─────────────────────────────────────────────────
 async function genChars(){
   const br=brief().slice(0,500);
-  const prompt='Generate 3 D&D 5e characters suited to this world: '+br+'\n\nVary race (Human,Elf,Dwarf,Half-Orc,Gnome,Tiefling,Dragonborn,Halfling,Aasimar) and class (Fighter,Rogue,Wizard,Ranger,Paladin,Cleric,Warlock,Barbarian,Bard,Druid,Monk). Make them thematically appropriate to the world above.\n\nReturn ONLY JSON starting with { and ending with }:\n{"options":[{"race":"Race","cls":"Class","title":"Evocative title","desc":"2 sentences of world-appropriate backstory.","stats":{"STR":14,"DEX":12,"CON":13,"INT":10,"WIS":11,"CHA":8},"hp":28,"abilities":[{"name":"Ability","desc":"What it does."}],"inventory":["Item 1","Item 2","Item 3"],"gold":15}]}';
+  // Random seed forces genuinely different characters each call
+  const seed=Math.floor(Math.random()*9999);
+  const forbidden=['Human Fighter','Elf Rogue','Dwarf Cleric']; // prevent boring defaults
+  const prompt='Generate 3 COMPLETELY DISTINCT D&D 5e characters for this world: '+br+'\n\nSeed: '+seed+' (use this to create unique combinations you would not normally choose).\n\nRules:\n- NO two characters share a race OR class\n- Avoid these overused combinations: '+forbidden.join(', ')+'\n- Each must have a unique mechanical identity (different stat priorities, different playstyle)\n- Make them unexpected and interesting — antiheroes, specialists, unusual backstories\n- All three must feel like they belong in the world described above\n\nReturn ONLY JSON starting with { and ending with }:\n{"options":[{"race":"Race","cls":"Class","title":"Evocative title","desc":"2 sentences of world-appropriate backstory.","stats":{"STR":14,"DEX":12,"CON":13,"INT":10,"WIS":11,"CHA":8},"hp":28,"abilities":[{"name":"Ability","desc":"What it does."}],"inventory":["Item 1","Item 2","Item 3"],"gold":15}]}';
   for(let attempt=0;attempt<3;attempt++){
     try{
       const res=await ai([{role:'user',content:prompt}],'Generate D&D characters. Return only JSON starting with {.',true,1800);
@@ -1052,6 +1056,7 @@ function updLocBar(mood){
   const ic=id('loc-icon');if(ic)ic.textContent=MI[mood]||'◌';
   const m=id('loc-mood');if(m){m.textContent=mood||'CALM';m.className=mood||'CALM';}
   triggerSound(mood);
+  if(G.world?.location)generateSceneImage(G.world.location,mood);
 }
 
 // ── HEADER ────────────────────────────────────────────────────
@@ -1324,6 +1329,39 @@ function drawMap(){
   });
   (G.world.connections||[]).forEach(conn=>{const[a,b]=conn.split('|||');if(nodes[a]&&nodes[b]){ctx.strokeStyle='rgba(122,112,96,.3)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(nodes[a].x,nodes[a].y);ctx.lineTo(nodes[b].x,nodes[b].y);ctx.stroke();}});
   visited.forEach(loc=>{const n=nodes[loc];if(!n)return;const cur=loc===G.world.location;if(cur){const g=ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,16);g.addColorStop(0,'rgba(212,168,83,.3)');g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.beginPath();ctx.arc(n.x,n.y,16,0,Math.PI*2);ctx.fill();}ctx.beginPath();ctx.arc(n.x,n.y,cur?7:5,0,Math.PI*2);ctx.fillStyle=cur?'#d4a853':'rgba(122,112,96,.65)';ctx.fill();if(cur){ctx.strokeStyle='#d4a853';ctx.lineWidth=2;ctx.stroke();}ctx.fillStyle=cur?'#d4a853':'rgba(122,112,96,.8)';ctx.font=(cur?'bold ':'')+' 9px monospace';ctx.textAlign='center';const lbl=loc.length>20?loc.slice(0,18)+'...':loc;ctx.fillText(lbl,n.x,n.y+(cur?18:14));});
+}
+
+// ── SCENE IMAGERY (Pollinations.ai) ─────────────────────────
+const SCENE_STYLES={
+  'The Sunken Kingdoms':'flooded ruins, shallow inland sea, salvagepunk coastal, salt-weathered stone, grey skies, dark watercolour',
+  'The Iron Ascendancy':'grimdark empire architecture, oppressive stone, iron and blood, torchlit, desaturated palette',
+  'The Fractured System':'glitching digital reality, LitRPG aesthetic, corrupted environment, neon cracks in reality',
+  'The Last Frontier':'post-apocalyptic wasteland, dusty ruins, harsh light, frontier desolation',
+  'The Eternal Tournament':'extradimensional arena, era-clashing architecture, dramatic colosseum lighting',
+  'The Verdant Corruption':'nature horror, bioluminescent overgrowth, twisted organic forms, dark forest',
+  'Forgotten Realms — Faerûn':'high fantasy D&D environment, painterly, Sword Coast architecture, medieval splendour',
+  'Ravenloft — Domains of Dread':'gothic horror, dark mists, candlelight, expressionist shadows, Transylvanian dread'
+};
+const MOOD_STYLES={CALM:'soft light, peaceful atmosphere',TENSE:'dramatic shadows, uneasy',DANGEROUS:'dark, threatening, danger imminent',MYSTERIOUS:'ethereal mist, hidden secrets',EERIE:'unsettling, otherworldly silence',COMBAT:'battle chaos, smoke, violence'};
+let lastSceneLoc='';
+function hashS(s){let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;}return Math.abs(h);}
+
+async function generateSceneImage(location,mood){
+  try{
+    if(!location||location===lastSceneLoc)return;
+    lastSceneLoc=location;
+    const wrap=id('scene-wrap');const img=id('scene-img');const lbl=id('scene-lbl');
+    if(!wrap||!img)return;
+    const ws=SCENE_STYLES[G.premise?.name]||'epic fantasy environment';
+    const ms=MOOD_STYLES[mood]||'atmospheric';
+    const prompt=location+', '+ws+', '+ms+', no people, concept art, digital painting, highly detailed, fantasy RPG environment, cinematic composition';
+    const seed=hashS(location+mood)%99999;
+    const url='https://image.pollinations.ai/prompt/'+encodeURIComponent(prompt)+'?width=800&height=320&seed='+seed+'&nologo=true';
+    wrap.style.display='block';
+    img.className='';img.src=url;
+    img.onload=()=>{try{img.classList.add('vis');if(lbl)lbl.textContent=location.toUpperCase();}catch(e){}};
+    img.onerror=()=>{try{wrap.style.display='none';}catch(e){}};
+  }catch(e){console.warn('Scene image error:',e);}
 }
 
 // ── PORTRAIT ─────────────────────────────────────────────────
