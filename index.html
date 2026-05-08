@@ -972,7 +972,8 @@ async function startNew(opt,name){
     if(u.npc)G.world.npcs.push({name:u.npc,disp:u.npcDisp||'neutral',loc:G.world.location,note:u.npcNote||'',rel:0});
     updLocBar(res.mood||'CALM');updHdr();updSheet();updJournal();save();
   }catch(e){console.error('startNew error:',e);addSys('[SYSTEM ERROR: '+e.message+']','damage');}
-  try{if(!G.char.portraitUrl)genPortrait();}catch(e){}
+  // Delay portrait so it doesn't compete with scene image request
+  setTimeout(()=>{try{if(G.char&&!G.char.portraitUrl)genPortrait();}catch(e){}},3000);
   setBusy(false);
 }
 function showGame(){
@@ -1409,25 +1410,48 @@ const W_IMG={
   'Forgotten Realms — Faerûn':'high fantasy D&D art, painterly, Sword Coast architecture',
   'Ravenloft — Domains of Dread':'gothic dark fantasy, candlelight, expressionist fog shadows'
 };
-async function genPortrait(){
+async function genPortrait(attempt){
+  attempt=attempt||0;
   try{
     const c=G.char;if(!c)return;
     const ws=W_IMG[G.premise?.name]||'epic fantasy';
-    const prompt=c.name+' the '+c.race+' '+c.cls+', '+ws+', fantasy character portrait, face and upper body, dramatic lighting, digital painting, highly detailed, no text';
-    const seed=hashS(c.name+c.race+c.cls)%99999;
+    const prompt=c.name+' the '+c.race+' '+c.cls+', '+ws+', character portrait, face and upper body, dramatic lighting, digital painting, detailed, no text, no watermark';
+    // Use different seeds on retry
+    const seed=(hashS(c.name+c.race+c.cls)+attempt*7919)%99999;
     const url='https://image.pollinations.ai/prompt/'+encodeURIComponent(prompt)+'?width=512&height=512&seed='+seed+'&nologo=true';
     G.char.portraitUrl=url;save();
-    loadPortrait(url);
+    loadPortrait(url,attempt);
   }catch(e){console.warn('Portrait gen error:',e);}
 }
-function loadPortrait(url){
+function loadPortrait(url,attempt){
+  attempt=attempt||0;
   try{
     const gen=id('cs-port-gen');const img=id('cs-port-img');const reg=id('cs-port-regen');
     if(!img)return;
-    if(gen)gen.style.display='flex';img.style.display='none';if(reg)reg.classList.add('hidden');
-    img.src=url;img.style.display='block';
-    img.onload=()=>{try{img.classList.add('vis');if(gen)gen.style.display='none';if(reg)reg.classList.remove('hidden');}catch(e){}};
-    img.onerror=()=>{try{if(gen){gen.innerHTML='<div class="cs-port-lbl">Portrait unavailable</div>';}}catch(e){}};
+    // Show loading state
+    if(gen){gen.style.display='flex';gen.innerHTML='<div class="spin" style="width:22px;height:22px;margin:0"></div><div class="cs-port-lbl">GENERATING PORTRAIT...</div>';}
+    img.style.display='none';
+    if(reg)reg.classList.add('hidden');
+    const thisImg=new Image();
+    thisImg.onload=()=>{
+      try{
+        img.src=url;img.style.display='block';
+        // Force reflow then add vis
+        requestAnimationFrame(()=>{img.classList.add('vis');});
+        if(gen)gen.style.display='none';
+        if(reg)reg.classList.remove('hidden');
+      }catch(e){}
+    };
+    thisImg.onerror=()=>{
+      if(attempt<3){
+        // Retry after a delay
+        console.warn('Portrait attempt '+(attempt+1)+' failed, retrying...');
+        setTimeout(()=>genPortrait(attempt+1),4000+attempt*2000);
+      }else{
+        try{if(gen)gen.innerHTML='<div class="cs-port-lbl" style="color:var(--text2);font-size:.5rem">PORTRAIT UNAVAILABLE</div>';}catch(e){}
+      }
+    };
+    thisImg.src=url;
   }catch(e){console.warn('Portrait load error:',e);}
 }
 
