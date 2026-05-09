@@ -422,6 +422,34 @@ input:focus,textarea:focus{border-color:var(--gdim)}
 .comp-ods{font-size:.76rem;color:var(--text2);line-height:1.44}
 /* scrollbar */
 ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:2px}
+    /* ── ACHIEVEMENT TOASTS ── */
+    #toast-stack{position:fixed;top:.8rem;left:50%;transform:translateX(-50%);z-index:600;display:flex;flex-direction:column;gap:.4rem;align-items:center;pointer-events:none;width:calc(100% - 2rem);max-width:360px}
+    .toast{background:var(--bg3);border-radius:7px;padding:.52rem .88rem;display:flex;align-items:center;gap:.52rem;box-shadow:0 4px 20px rgba(0,0,0,.5);animation:toast-in .28s ease;font-family:var(--fm);font-size:.62rem;letter-spacing:.06em;width:100%;border:1px solid var(--bdr)}
+    @keyframes toast-in{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+    .toast.out{animation:toast-out .3s ease forwards}
+    @keyframes toast-out{to{opacity:0;transform:translateY(-8px)}}
+    .toast-ico{font-size:1.05rem;flex-shrink:0}
+    .toast-label{font-size:.48rem;letter-spacing:.18em;margin-bottom:.08rem;opacity:.65;color:var(--gold)}
+    .toast-text{color:var(--text);line-height:1.4}
+    .toast.achievement{border-color:rgba(212,168,83,.35);background:linear-gradient(135deg,var(--bg3),rgba(212,168,83,.05))}
+    .toast.levelup{border-color:rgba(74,222,128,.3);background:linear-gradient(135deg,var(--bg3),rgba(74,222,128,.05))}
+    .toast.levelup .toast-label{color:var(--green)}
+    .toast.loot{border-color:rgba(196,181,253,.3)}
+    .toast.loot .toast-label{color:var(--purple)}
+    .toast.lore .toast-label{color:#fbbf24}
+    /* ── SAVE SLOTS ── */
+    .slot-card{background:var(--bg3);border:1px solid var(--bdr);border-radius:7px;padding:.65rem .82rem;display:flex;align-items:center;gap:.62rem;cursor:pointer;transition:all .22s;position:relative;width:100%}
+    .slot-card:hover{border-color:var(--gdim)}
+    .slot-card.empty{opacity:.55}
+    .slot-ico{font-size:1.35rem;flex-shrink:0}
+    .slot-info{flex:1;min-width:0}
+    .slot-name{font-family:var(--fd);font-size:.78rem;color:var(--gold);margin-bottom:.1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .slot-sub{font-family:var(--fm);font-size:.54rem;color:var(--text2);letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .slot-badge{font-family:var(--fm);font-size:.48rem;color:var(--text2);letter-spacing:.08em;flex-shrink:0;text-align:right;line-height:1.5}
+    .slot-del{position:absolute;top:.35rem;right:.45rem;background:none;border:none;color:var(--text2);font-size:.7rem;cursor:pointer;opacity:0;transition:opacity .2s;padding:.1rem .3rem;line-height:1}
+    .slot-card:hover .slot-del{opacity:1}
+    .slot-del:hover{color:var(--red)}
+
 .hidden{display:none!important}
 
     /* SCENE IMAGE */
@@ -445,7 +473,7 @@ input:focus,textarea:focus{border-color:var(--gdim)}
     <label class="f-lbl" for="api-in">ANTHROPIC API KEY</label>
     <input type="password" id="api-in" placeholder="sk-ant-...">
     <div style="margin-top:.5rem">
-      <label class="f-lbl" for="proxy-in">PROXY URL <span style="color:var(--text2);font-size:.55rem">(optional — needed on iOS/Safari)</span></label>
+      <label class="f-lbl" for="proxy-in" style="color:var(--amber)">PROXY URL <span style="color:var(--text2);font-size:.55rem">(required for iOS Safari — needed on iOS/Safari)</span></label>
       <input type="text" id="proxy-in" placeholder="https://your-worker.workers.dev" style="font-size:.75rem">
       <div style="font-family:var(--fm);font-size:.56rem;color:var(--text2);margin-top:.3rem;line-height:1.6">
         Getting "Invalid response format"? Deploy the free Cloudflare Worker proxy (see instructions file).
@@ -453,6 +481,8 @@ input:focus,textarea:focus{border-color:var(--gdim)}
     </div>
   </div>
   <button class="btn-g" id="btn-new">BEGIN NEW ADVENTURE</button>
+  <!-- Save slots -->
+  <div id="slot-grid" style="width:100%;max-width:380px;display:none;flex-direction:column;gap:.45rem;margin-bottom:.6rem"></div>
   <button class="btn-gh hidden" id="btn-cont">CONTINUE JOURNEY</button>
   <button class="btn-gh" id="btn-test" style="opacity:.6">TEST API CONNECTION</button>
   <div class="err" id="intro-err"></div>
@@ -479,6 +509,8 @@ input:focus,textarea:focus{border-color:var(--gdim)}
   <div class="hidden" id="name-wrap" style="margin-bottom:.9rem">
     <div class="f-lbl" style="text-align:center;margin-bottom:.48rem">NAME YOUR HERO</div>
     <input type="text" class="name-in" id="name-in" placeholder="Enter your name...">
+      <div id="name-suggestions" style="display:flex;gap:.35rem;flex-wrap:wrap;justify-content:center;margin-top:.45rem;min-height:1.5rem"></div>
+      <button class="btn-gh" id="btn-suggest-name" style="max-width:220px;margin:.35rem auto 0;padding:.42rem;font-size:.58rem">✦ SUGGEST NAMES</button>
   </div>
   <button class="btn-g hidden" id="btn-begin" style="margin:0 0 1rem">ENTER THE REALM</button>
   <div class="err hidden" id="create-err"></div>
@@ -578,12 +610,18 @@ input:focus,textarea:focus{border-color:var(--gdim)}
       <div class="tab" data-jn="lore">LORE</div>
       <div class="tab" data-jn="npcs">NPCS</div>
       <div class="tab" data-jn="choices">CHOICES</div>
+      <div class="tab" data-jn="notes">NOTES</div>
     </div>
     <div class="tab-ps">
       <div class="tab-p on" id="jn-quests"><div id="j-quests"></div></div>
       <div class="tab-p" id="jn-lore"><div id="j-lore"></div></div>
       <div class="tab-p" id="jn-npcs"><div id="j-npcs"></div></div>
       <div class="tab-p" id="jn-choices"><div id="j-choices"></div></div>
+      <div class="tab-p" id="jn-notes">
+        <div style="font-family:var(--fm);font-size:.54rem;color:var(--text2);letter-spacing:.1em;margin-bottom:.55rem">YOUR NOTES — auto-saved</div>
+        <textarea id="player-notes" placeholder="Write your theories, plans, observations..." style="width:100%;min-height:220px;background:var(--bg3);border:1px solid var(--bdr);border-radius:5px;padding:.65rem;color:var(--text);font-family:var(--fb);font-size:.9rem;line-height:1.65;resize:vertical;outline:none;-webkit-appearance:none;box-sizing:border-box"></textarea>
+        <div id="notes-count" style="font-family:var(--fm);font-size:.5rem;color:var(--text2);text-align:right;margin-top:.3rem;letter-spacing:.08em"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -734,6 +772,7 @@ input:focus,textarea:focus{border-color:var(--gdim)}
   </div>
 </div>
 
+  <div id="toast-stack"></div>
 </div><!-- #app -->
 <script>
 // ── WORLDS ──────────────────────────────────────────────────
@@ -753,7 +792,7 @@ const WORLDS=[
   {id:'grimm',icon:'🍎',name:'The Grimm Realms — Dark Fairy Tales',tag:'DARK FANTASY · FAIRY TALE HORROR · TWISTED MAGIC',
    desc:'Behind every fairy tale is a truth that was buried. The smiling kingdom is a lie. The Mermaid died and dissolved into sea foam. The stepsisters\' eyes were pecked out at the wedding. The Evil Queen danced in iron shoes until she fell. You have seen behind the Glamour.',
    accent:'#7c3aed',
-   brief:'SETTING: A twisted fairy-tale realm called the Grimm Realms, where the sanitised Disney versions of stories are a magical Glamour — a beautiful illusion maintained by an ancient, sinister power called the Story. The Story demands happy endings and punishes those who see the truth. Behind the Glamour: The Little Mermaid died, dissolved into sea foam after refusing to stab the Prince — her ghost haunts the shoreline. Snow White\'s Evil Queen was forced to dance in red-hot iron shoes at the wedding until she collapsed dead. Cinderella\'s stepsisters cut off toes and heels to fit the slipper; birds pecked their eyes out. Sleeping Beauty did not wake from true love\'s kiss — she was already pregnant with twins by a passing king. The Beast was cursed for genuine cruelty he never acknowledged. Peter Pan steals the life-force of the Lost Boys to stay young — they are his prisoners. The witch in the gingerbread house was herself once a child who got lost. The world looks like illustrated storybook — enchanted forests, gleaming castles, talking animals — but wrong. Animals speak in riddles. Royalty has hollow eyes. Magic always costs something gruesome. Factions: the Story Keepers (who maintain the Glamour and silence those who see through it), the Unglamoured (creatures and people who see the world as it truly is), the Wicked (those the Story has labelled villains — they know the truth, which is why they must be silenced), the Wanderers (travellers between tales). The System here tracks Glamour (your belief in the happy ending — lose it all and you see everything). Tone: dark fairy tale horror, sinister whimsy, beautiful and wrong. Every kindness may be a trap. Every villain has a point. Use fairy tale language and imagery but twist it toward dread.'},
+   brief:'SETTING: The Grimm Realms — a storybook world where the cheerful fairy tales you know are a Glamour, a beautiful illusion laid over a stranger and darker truth. The power called the Story demands things end happily, but the original tales were never so clean. The Little Mermaid bargained her voice away and walked on legs that felt like knives — her prince never knew she saved him, and her ghost drifts the shoreline still. Snow White\'s Evil Queen was made to dance in enchanted iron shoes at the wedding until she could dance no more. Cinderella\'s stepsisters found the glass slipper did not fit, no matter how they tried, and the songbirds who loved Cinderella had long memories. The Beast was cursed because he earned it, and part of him knows. Peter Pan never grows up, and neither do the Lost Boys — that is not entirely a blessing. The witch\'s gingerbread house was built to be found. The world looks exactly like an illustrated storybook — golden forests, gleaming castles, talking animals, enchanted objects everywhere — but there is something just slightly wrong with all of it. Animals speak in riddles that are always true. Royalty smile too long. Magic always wants something in return. Factions: the Story Keepers (enforcers of the Glamour, silencers of those who ask too many questions), the Unglamoured (those who see the world as it truly is — not always a gift), the Wicked (the labelled villains — they have reasons and they know the truth), the Wanderers (those who move between tales, belonging to none). The System tracks Glamour — your investment in the happy ending. Tone: dark fairy tale whimsy, beautiful and slightly wrong, melancholy beneath the magic. Villains have sympathetic motives. Happy endings are possible but earned. Use fairy tale language — once upon a time, enchanted, cursed, boon, bargain.'},
   {id:'faerun',icon:'🏰',name:'Forgotten Realms — Faerûn',tag:'HIGH FANTASY · SWORD COAST · D&D',
    desc:'The most storied world in D&D. Waterdeep, Baldur\'s Gate, the Underdark. Ancient magic, scheming factions, gods who walk the land. Your legend begins on the Sword Coast.',
    accent:'#6366f1',
@@ -762,6 +801,10 @@ const WORLDS=[
    desc:'You have been drawn into the Mists. The Demiplane of Dread: isolated gothic horror domains each ruled by a tortured Darklord. The Dark Powers watch and reward evil — then curse those who commit it.',
    accent:'#7c3aed',
    brief:'SETTING: Ravenloft, Demiplane of Dread. The Dark Powers — ancient, unknowable entities — created this prison realm of gothic horror domains separated by the Mists. Each domain is ruled by a Darklord, a villain so terrible they were dragged here as punishment, given power over their domain but eternally denied what they desire most. Primary domain: Barovia — ruled by Strahd von Zarovich, the first vampire, ancient military genius who fell to darkness when he murdered his brother for love of Tatyana, a woman whose soul reincarnates endlessly but can never truly love him. Castle Ravenloft broods over fog-shrouded mountains. The village of Barovia is broken with despair. The Vistani are wandering seer-folk who alone can navigate the Mists. Death in Ravenloft risks the soul — the Dark Powers may offer dark bargains to prevent it. Other domains include Darkon (Azalin Rex the lich-king), Lamordia (Dr. Mordenheim and his creation), Kartakass (Harkon Lukas the werewolf bard). Tone: gothic horror, atmosphere and dread over gore, hope is fragile but precious, every respite may be temporary. The Mists are alive and purposeful. Strahd is brilliant, ancient, and genuinely tragic — not simply a monster. Use Ravenloft names and gothic horror atmosphere throughout.'},
+  {id:'dcc',icon:'🎰',name:'Dungeon Crawler Carl — The Crawl',tag:'LITRPG · FLOOR BY FLOOR · SYSTEM AI',
+   desc:'Earth is gone. The Borant Corporation mined it for resources and built an 18-floor dungeon from the rubble for an intergalactic reality show. You are a Crawler. You start on Floor 1. There are 17 more floors between you and the surface you will never see again.',
+   accent:'#f97316',
+   brief:'SETTING: Dungeon Crawler Carl universe. The World Dungeon — 18 levels of increasingly lethal dungeon crawl, built from Earth\'s processed remains by the Borant Corporation (a kua-tin alien megacorp) and operated as the galaxy\'s most-watched reality show: Dungeon Crawler World. The player is a CRAWLER. They are being broadcast to billions of alien viewers. Ratings determine the quality of sponsor loot drops. Currently on Floor 1 — tutorial level. Floor 1 is a vast grid of tunnels, approximately 30ft wide by 30ft high, dimly lit by torches. Mob types: goblins, slimes, skeletons, giant rats, crawling eyes. The floor has a countdown timer — find the Stairwell before time runs out or the ceiling collapses and kills everyone. Saferooms provide rest and safety from mobs. THE SYSTEM AI runs the dungeon — it is snarky, petulant, occasionally helpful, and gives out absurd achievements for creative behaviour. It was purchased secondhand from the Mantises and previously ran an amusement park. It has opinions. It has favourites. It has a gift for naming achievements that are simultaneously accurate and humiliating. LOOT BOX TIERS (worst to best): Iron, Bronze, Silver, Gold, Platinum, Celestial. Floor 1 loot is mostly Iron and Bronze — torches, bandages, basic weapons. No gold drops on Floor 1. Good loot requires entertaining the audience. ACHIEVEMENTS are earned for doing anything creative, stupid, heroic, or deeply inadvisable. The System loves these. TONE: Dark humour, gallows comedy, action-LitRPG. The System AI is a character. Notifications are frequent and snarky. Achievements are named with gleeful malice. The dungeon wants to kill you and is enjoying itself. Crawlers are real people — scared, funny, desperate, occasionally brilliant. Reference floor number, countdown timer, Crawler stats, and loot box drops consistently. The DM IS the System AI voice — use it freely.'},
   {id:'custom',icon:'✦',name:'Custom World',tag:'YOUR VISION · DEFINE EVERYTHING',
    desc:'Describe your own world. The DM anchors every scene, NPC, and lore entry to whatever premise you create.',
    accent:'#d4a853',brief:null}
@@ -769,52 +812,119 @@ const WORLDS=[
 const XP=[0,300,900,2700,6500,14000,23000,34000,48000,64000,85000];
 const SKLS=[['Acrobatics','DEX'],['Animal Handling','WIS'],['Arcana','INT'],['Athletics','STR'],['Deception','CHA'],['History','INT'],['Insight','WIS'],['Intimidation','CHA'],['Investigation','INT'],['Medicine','WIS'],['Nature','INT'],['Perception','WIS'],['Performance','CHA'],['Persuasion','CHA'],['Religion','INT'],['Sleight of Hand','DEX'],['Stealth','DEX'],['Survival','WIS']];
 const MI={CALM:'◌',TENSE:'◈',DANGEROUS:'◆',MYSTERIOUS:'✦',EERIE:'◎',COMBAT:'⚔'};
-const COMP_ARCHS=[
-  {cls:'Warrior',ico:'⚔️',desc:'Battle-hardened fighter. High HP, strong melee. Takes hits so you don\'t have to.',hp:28,trait:'Shields allies from flanking'},
-  {cls:'Scout',ico:'🏹',desc:'Nimble ranger. Spots traps, ranges enemies. Bonus to Perception checks.',hp:20,trait:'Advantage on Perception checks'},
-  {cls:'Mender',ico:'✨',desc:'Healer-mage hybrid. Restores wounds between fights. Fragile but invaluable.',hp:16,trait:'Restores 1d6 HP to you each short rest'},
-  {cls:'Rogue',ico:'🗡️',desc:'Cunning thief. Unlocks doors, disables traps, deals sneak attack damage.',hp:18,trait:'Can disable traps and pick locks'}
-];
+// World-appropriate companion archetypes
+function getCompArchs(){
+  const id=G.premise?.id||'';
+  const worlds={
+    dcc:[
+      {cls:'Fellow Crawler',ico:'🧢',desc:'Another survivor from the Transformation. Tough, scared, and glad to not be alone. Knows which end of a weapon is which.',hp:26,trait:'Grants +1 to all loot box quality rolls — two audiences are better than one'},
+      {cls:'Crawler Medic',ico:'🩹',desc:'Was a paramedic before the dungeon. The System gave them a Healer class whether they wanted it or not. Always running out of bandages.',hp:18,trait:'Restores 1d6+2 HP to you each short rest using medpac supplies'},
+      {cls:'System-Blessed',ico:'⚡',desc:'The AI took a liking to this crawler for reasons nobody can explain. Gets slightly better loot. The AI sends them achievements constantly.',hp:20,trait:'Once per floor, the AI grants this companion a free Iron loot box drop'},
+      {cls:'Dungeon Rat',ico:'🐀',desc:'Been on Floor 1 longer than anyone. Knows every tunnel, trap, and saferoom location. Paranoid but rarely wrong.',hp:22,trait:'Always aware of nearby saferooms and traps. Can never be surprised'}
+    ],
+    starwars:[
+      {cls:'Rebel Sympathiser',ico:'🔫',desc:'Not officially Rebel Alliance — just someone who hates the Empire enough to fight back. Good shot. Bad at following orders.',hp:24,trait:'Grants advantage on ranged blaster attacks from cover'},
+      {cls:'Astromech Droid',ico:'🤖',desc:'Technically belongs to someone else. Extremely capable. Communicates in beeps. Has opinions about everything.',hp:18,trait:'Can slice Imperial systems, repair equipment, and project holographic maps'},
+      {cls:'Force Sensitive',ico:'✨',desc:'Doesn\'t know what they are yet. The Force keeps saving their life in ways they can\'t explain. The Inquisitors are already looking.',hp:20,trait:'Once per encounter, sense danger before it arrives — cannot be ambushed'},
+      {cls:'Mandalorian Mercenary',ico:'🪖',desc:'Honor-bound, heavily armed, and willing to work for reasonable rates. Does not remove the helmet. Ever.',hp:28,trait:'Beskar armour absorbs one hit per encounter completely'}
+    ],
+    dragonlance:[
+      {cls:'Kender Companion',ico:'🎒',desc:'Absolutely fearless and deeply irritating. Will borrow your things. Has already borrowed your things. Genuinely brave in ways that shame everyone around them.',hp:18,trait:'Immune to fear. Can attempt to taunt enemies to attack them instead of you'},
+      {cls:'Knight of Solamnia',ico:'⚔️',desc:'Honour-bound and somewhat inflexible. Will not lie, will not flee, and will absolutely take a sword thrust meant for you. A reliable wall of plate mail.',hp:30,trait:'Can interpose themselves between you and any single attack once per round'},
+      {cls:'Red Robe Mage',ico:'🔴',desc:'Neutral in the war between good and evil. Loyal to the balance of magic. Quietly terrifying. Passed the Test and has the scars to prove it.',hp:16,trait:'Once per rest, cast a powerful spell without expending a spell slot'},
+      {cls:'Dwarf of Thorbardin',ico:'⛏️',desc:'Stubborn, suspicious, and built like a fortified wall. Will complain constantly. Will also fight to the last breath for someone they\'ve decided is worth it.',hp:28,trait:'Can find hidden passages and structural weaknesses in stonework automatically'}
+    ],
+    greyhawk:[
+      {cls:'Veteran Sellsword',ico:'⚔️',desc:'Fought in three wars and survived by being better than the other person. Takes coin, holds contract, no questions asked. Reliable as rust.',hp:28,trait:'Flanking specialist — grants +2 to your attack rolls when adjacent to your target'},
+      {cls:'Grey Elf Wizard',ico:'📖',desc:'Ancient, arcane, and slightly contemptuous of everyone around them. Serves their own agenda. Useful while your goals align.',hp:16,trait:'Identify any magic item instantly. Cast one prepared spell as a reaction once per rest'},
+      {cls:'Halfling Thief',ico:'🗡️',desc:'From the Welkwood. Small, fast, and professionally invisible. Has already scouted ahead and come back without you noticing they left.',hp:18,trait:'Automatically detects and disarms traps. Can pickpocket any single item from any NPC'},
+      {cls:'Cleric of Pelor',ico:'☀️',desc:'Servant of the Sun God. Heals, fights undead, and worries about everyone. The dungeon tests their faith daily. They pass, usually.',hp:24,trait:'Turn undead once per rest. Restore 2d6 HP to any ally between encounters'}
+    ],
+    grimm:[
+      {cls:'Talking Raven',ico:'🐦‍⬛',desc:'Knows more than it says, says more than it should. Has been in this forest since before your grandmother was born. Guidance is free. Whether it\'s right is another matter.',hp:12,trait:'Can scout any location and return with accurate information. Never lies — but often omits'},
+      {cls:'Woodcutter\'s Son',ico:'🪓',desc:'Third son of a woodcutter who started this journey with nothing but an axe and the vague expectation that things would work out. Surprisingly often, they do.',hp:26,trait:'Once per rest, a stroke of ridiculous fortune saves you both from certain doom'},
+      {cls:'The Witch\'s Apprentice',ico:'🌿',desc:'Left the cottage under uncertain circumstances. Knows herb lore, minor enchantments, and which mushrooms are merely strange versus fatally strange.',hp:18,trait:'Can craft one minor potion, charm, or ward per rest from gathered materials'},
+      {cls:'Cursed Knight',ico:'🌹',desc:'Under an enchantment that prevents them fully explaining what they did to earn it. Formidably capable. Quietly ashamed. Working toward something.',hp:28,trait:'Absorbs one curse or magical compulsion directed at you per floor'}
+    ],
+    faerun:[
+      {cls:'Harper Agent',ico:'🎵',desc:'Working against tyranny from the shadows. Knows half the secrets in Faerûn and will share them when it matters. Always watching.',hp:20,trait:'Grants advantage on social checks with any neutral or good-aligned NPC'},
+      {cls:'Zhentarim Enforcer',ico:'🐍',desc:'Morally flexible, professionally reliable. The Zhentarim take coin and hold contract. Useful, if you don\'t mind the company.',hp:26,trait:'Intimidation specialist — enemies must succeed a WIS save or lose their action when they first see this companion'},
+      {cls:'Dwarven Battlepriest',ico:'⛏️',desc:'Follower of Moradin. Heals and fights in equal measure. Has deep opinions about craftsmanship and is not shy about sharing them.',hp:26,trait:'Restores 2d6 HP after every combat. Grants advantage on saves against fear and charm'},
+      {cls:'Wild Elf Scout',ico:'🌿',desc:'From the High Forest, more comfortable in trees than taverns. Tracks anything, speaks to animals, disappears when you need them most and reappears when you really need them.',hp:20,trait:'Can track any creature across any terrain. Ambushes deal double damage'}
+    ],
+    ravenloft:[
+      {cls:'Van Richten Disciple',ico:'📜',desc:'Trained by the greatest monster hunter of the age, or claims to be. Knows the lore on almost every creature in the Domains. Carries enough silver to bankrupt a mine.',hp:22,trait:'Identify the weaknesses of any monster automatically. Silver weapons carried by this companion always do full damage'},
+      {cls:'Vistani Seer',ico:'🔮',desc:'One of the wandering Vistani folk who alone can navigate the Mists. Sees threads of fate. Will not always say what they see.',hp:18,trait:'Once per day, ask one yes/no question about the immediate future and receive a true answer'},
+      {cls:'Dhampir Warrior',ico:'🧛',desc:'Neither fully alive nor undead. Feared and useful. Resents their nature. Fights it constantly. Winning, mostly.',hp:28,trait:'Regenerate 2 HP per round while in combat. Immune to vampire charm effects'},
+      {cls:'Priest of the Morninglord',ico:'☀️',desc:'Worshipper of the last hope in Barovia — the Morninglord, god of dawn. Their faith is tested every single day. Somehow it holds.',hp:20,trait:'Radiant light ability turns lesser undead. Grants +2 to all saves against dark magic and fear'}
+    ]
+  };
+  // Return world-specific companions or generic fallback
+  return worlds[id]||[
+    {cls:'Warrior',ico:'⚔️',desc:'Battle-hardened fighter. High HP, strong melee. Takes hits so you don\'t have to.',hp:28,trait:'Shields allies from flanking'},
+    {cls:'Scout',ico:'🏹',desc:'Nimble ranger. Spots traps, ranges enemies. Bonus to Perception checks.',hp:20,trait:'Advantage on Perception checks'},
+    {cls:'Mender',ico:'✨',desc:'Healer-mage hybrid. Restores wounds between fights. Fragile but invaluable.',hp:16,trait:'Restores 1d6 HP to you each short rest'},
+    {cls:'Rogue',ico:'🗡️',desc:'Cunning thief. Unlocks doors, disables traps, deals sneak attack damage.',hp:18,trait:'Can disable traps and pick locks'}
+  ];
+}
 
 // ── STATE ───────────────────────────────────────────────────
-const G={apiKey:'',proxyUrl:'',char:null,world:null,combat:null,companion:null,premise:null,premiseCustom:'',history:[],summary:'',pending:null,busy:false,charOpts:[],soundOn:false};
+const G={apiKey:'',proxyUrl:'',slot:0,char:null,world:null,combat:null,companion:null,premise:null,premiseCustom:'',history:[],summary:'',pending:null,busy:false,charOpts:[],soundOn:false};
 
 // ── STORAGE ─────────────────────────────────────────────────
 function saveKey(k){try{localStorage.setItem('re_key',k);}catch(e){}}
 function loadKey(){return localStorage.getItem('re_key')||'';}
 function saveProxy(u){try{localStorage.setItem('re_proxy',u);}catch(e){}}
 function loadProxy(){return localStorage.getItem('re_proxy')||'';}
+
+// ── SLOT-BASED SAVE SYSTEM ──
+function slotKey(i){return're_slot_'+i;}
 function save(){
   if(G.apiKey)saveKey(G.apiKey);
-  try{localStorage.setItem('re_v5',JSON.stringify({char:G.char,world:G.world,combat:G.combat,companion:G.companion,premiseId:G.premise?.id,premiseCustom:G.premiseCustom,history:G.history.slice(-28),summary:G.summary}));}catch(e){}
-}
-function load(){
   try{
-    const raw=localStorage.getItem('re_v5')||localStorage.getItem('re_v4')||localStorage.getItem('re_v3')||localStorage.getItem('re_v2');
+    const data={char:G.char,world:G.world,combat:G.combat,companion:G.companion,premiseId:G.premise?.id,premiseCustom:G.premiseCustom,history:G.history.slice(-28),summary:G.summary,savedAt:Date.now()};
+    localStorage.setItem(slotKey(G.slot),JSON.stringify(data));
+    localStorage.setItem('re_v5',JSON.stringify(data));
+  }catch(e){}
+  flashSaved();
+}
+function loadSlot(i){
+  try{
+    const raw=localStorage.getItem(slotKey(i))||(i===0?(localStorage.getItem('re_v5')||localStorage.getItem('re_v4')||localStorage.getItem('re_v2')):null);
     if(!raw)return false;
-    const d=JSON.parse(raw);
-    if(!d||!d.char)return false;
-    G.char=d.char;
-    G.world=d.world||newWorld();
-    G.combat=d.combat||null;
-    G.companion=d.companion||null;
-    G.history=d.history||[];
-    G.summary=d.summary||'';
-    G.apiKey=loadKey()||d.apiKey||'';
-    G.premise=WORLDS.find(w=>w.id===d.premiseId)||WORLDS[0];
-    G.premiseCustom=d.premiseCustom||'';
+    const d=JSON.parse(raw);if(!d||!d.char)return false;
+    G.slot=i;G.char=d.char;G.world=d.world||newWorld();G.combat=d.combat||null;G.companion=d.companion||null;
+    G.history=d.history||[];G.summary=d.summary||'';G.apiKey=loadKey()||d.apiKey||'';
+    G.premise=WORLDS.find(w=>w.id===d.premiseId)||WORLDS[0];G.premiseCustom=d.premiseCustom||'';
     return true;
   }catch(e){return false;}
 }
-function hasSave(){return !!(localStorage.getItem('re_v5')||localStorage.getItem('re_v4')||localStorage.getItem('re_v3')||localStorage.getItem('re_v2'));}
-function wipeSave(){['re_v5','re_v4','re_v3','re_v2','re_v1'].forEach(k=>localStorage.removeItem(k));}
-function newWorld(){return{location:'',visited:[],npcs:[],quests:[],done:[],notes:[],lore:[],connections:[],consequences:[],bible:''};}
+function load(){return loadSlot(0);}
+function getSlotData(i){
+  try{
+    const raw=localStorage.getItem(slotKey(i))||(i===0?(localStorage.getItem('re_v5')||localStorage.getItem('re_v4')||localStorage.getItem('re_v2')):null);
+    if(!raw)return null;
+    const d=JSON.parse(raw);if(!d||!d.char)return null;
+    return{char:d.char,world:d.world,premise:WORLDS.find(w=>w.id===d.premiseId),savedAt:d.savedAt||0};
+  }catch(e){return null;}
+}
+function hasSave(){return!!(localStorage.getItem('re_slot_0')||localStorage.getItem('re_v5')||localStorage.getItem('re_v4'));}
+function wipeSave(){localStorage.removeItem(slotKey(G.slot));['re_v5','re_v4','re_v3','re_v2','re_v1'].forEach(k=>localStorage.removeItem(k));}
+function flashSaved(){
+  let el=document.getElementById('save-flash');
+  if(!el){el=document.createElement('div');el.id='save-flash';el.style.cssText='position:fixed;bottom:5rem;right:.8rem;background:rgba(212,168,83,.15);border:1px solid rgba(212,168,83,.3);border-radius:4px;padding:.2rem .5rem;font-family:var(--fm);font-size:.5rem;color:var(--gold);letter-spacing:.12em;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none';document.body.appendChild(el);}
+  el.textContent='✓ SAVED';el.style.opacity='1';
+  clearTimeout(el._t);el._t=setTimeout(()=>el.style.opacity='0',1500);
+}
+function newWorld(){return{location:'',visited:[],npcs:[],quests:[],done:[],notes:[],lore:[],connections:[],consequences:[],bible:'',playerNotes:''};}
 
 // ── API ─────────────────────────────────────────────────────
 function patchFetch(){} // no-op, kept for compatibility
 async function ai(msgs,sys,json,maxTok){
   maxTok=maxTok||900;
   if(!G.apiKey)throw new Error('No API key set. Please enter your key on the intro screen.');
+  // Re-check proxy from storage in case it wasn't set on this call path
+  if(!G.proxyUrl){const sp=loadProxy();if(sp)G.proxyUrl=sp;}
   const body={model:'claude-sonnet-4-6',max_tokens:maxTok,messages:msgs};
   if(sys)body.system=sys;
   // Use proxy if set (required for iOS Safari), otherwise call Anthropic directly
@@ -881,7 +991,13 @@ async function toDM(action){
     G.history.push({role:'assistant',content:res.n});
     if(res.mood)addSceneCard(res.mood,res.atm||'');
     await addDM(res.n,res.mood,Array.isArray(res.actions)?res.actions:[]);
-    for(const nt of(res.notif||[])){if(nt?.text){await sl(220);addSys(nt.text,nt.type||'info');}}
+    for(const nt of(res.notif||[])){
+      if(nt?.text){
+        await sl(220);
+        addSys(nt.text,nt.type||'info');
+        if(['xp','skill','loot','lore'].includes(nt.type)){toast(nt.text,nt.type==='xp'?'achievement':nt.type);}
+      }
+    }
     const u=res.upd&&typeof res.upd==='object'?res.upd:{};
     let lv=false;
     if(u.hp!=null){G.char.hp=Math.max(0,Math.min(G.char.maxHp,u.hp));if(G.char.hp===0){setBusy(false);save();await doDeath();return;}}
@@ -913,31 +1029,128 @@ async function toDM(action){
 async function shrink(){try{const s=await ai([{role:'user',content:'Summarise in 3 sentences:\n'+G.history.slice(0,-8).map(m=>m.role+': '+m.content).join('\n')}],'Concise summariser. One short paragraph.',false,400);G.summary=s;G.history=G.history.slice(-8);save();}catch(e){}}
 async function rebuildBible(){if(G.busy||!G.char)return;try{const p='Write a World Bible for this RPG in under 150 words: key established facts, active threats, important relationships. Character: '+G.char.name+', Lv'+G.char.level+' at '+G.world.location+'. Summary: '+G.summary;G.world.bible=await ai([{role:'user',content:p}],'Concise world-state recorder. Return only the World Bible.',false,350);save();}catch(e){}}
 
+
+// ── WORLD-SPECIFIC CHARACTER OPTIONS ──────────────────────
+const WORLD_CHAR_OPTIONS={
+  'dragonlance':{
+    races:['Human','Kender','Hill Dwarf','Mountain Dwarf','Qualinesti Elf','Silvanesti Elf','Half-Elf','Gnome','Minotaur'],
+    classes:['Knight of Solamnia','Mage of High Sorcery (White Robe)','Mage of High Sorcery (Red Robe)','Mage of High Sorcery (Black Robe)','Cleric of Paladine','Cleric of Mishakal','Fighter','Ranger','Rogue','Barbarian','Bard'],
+    equipNote:'Equipment should be authentically Krynn-based: dragonlances, hoopaks (kender weapon), pouches, Solamnic armour, wizard robes, clerical vestments. No anachronisms.',
+    statsNote:'Knights need STR/CON, Mages need INT, Clerics need WIS, Kender are DEX-based with low STR, Minotaurs are powerful STR/CON.'
+  },
+  'greyhawk':{
+    races:['Human (Oeridian)','Human (Flan)','Human (Suloise)','Human (Baklunish)','Grey Elf','Wood Elf','Hill Dwarf','Mountain Dwarf','Rock Gnome','Halfling','Half-Orc','Half-Elf'],
+    classes:['Fighter','Magic-User','Thief','Cleric','Ranger','Paladin','Druid','Bard','Monk','Assassin','Illusionist'],
+    equipNote:'Classic D&D equipment — swords, spellbooks, thieves\' tools, holy symbols, adventuring gear. Gritty and practical. No exotic items.',
+    statsNote:'Classic spread — Fighters need STR/CON, Magic-Users need INT, Thieves need DEX, Clerics need WIS.'
+  },
+  'starwars':{
+    races:['Human','Twi\'lek','Rodian','Zabrak','Mirialan','Duros','Bothan','Mon Calamari','Nautolan','Togruta'],
+    classes:['Smuggler','Bounty Hunter','Rebel Agent','Jedi Survivor','Force-Sensitive Outcast','Imperial Defector','Mercenary Soldier','Pilot','Spy','Scoundrel'],
+    equipNote:'Star Wars equipment ONLY: blaster pistol, blaster rifle, lightsaber (only for Force-sensitive), comlink, credits, medpac, vibroblade, datapad, disguise kit, starship tools. NO fantasy weapons — no swords, no bows.',
+    statsNote:'Smugglers and Pilots are DEX/CHA, Soldiers are STR/CON, Force Sensitives are WIS/CHA, Spies are DEX/INT. Stats represent the same six attributes but flavoured for sci-fi.'
+  },
+  'grimm':{
+    races:['Human (Common Folk)','Human (Noble Born)','Human (Witch-Touched)','Fae-Touched (Half-Fairy)','Changeling','Talking Animal (Fox)','Talking Animal (Wolf)','Talking Animal (Raven)','Cursed One','The Miller\'s Child'],
+    classes:['Huntsman','Woodcutter','Witch','Knight Errant','Wandering Scholar','Trickster','Beast-Speaker','Enchantress','Miller\'s Daughter','Sailor'],
+    equipNote:'Fairy tale items: woodcutter\'s axe, red travelling cloak, golden key, silver needle, enchanted mirror shard, grandmother\'s basket, iron shoes, rose-thorn blade, spindle, lantern, lucky coin. No conventional armour — describe protective enchantments instead.',
+    statsNote:'Witches and Enchantresses need INT/WIS, Huntsmen need STR/DEX, Wanderers need CON/CHA, Fae-Touched have high CHA, Talking Animals vary by creature.'
+  },
+  'faerun':{
+    races:['Human','Moon Elf','Sun Elf','Wood Elf','Shield Dwarf','Gold Dwarf','Rock Gnome','Lightfoot Halfling','Half-Orc','Tiefling','Dragonborn','Aasimar','Half-Elf'],
+    classes:['Fighter','Rogue','Wizard','Ranger','Paladin','Cleric','Warlock','Barbarian','Bard','Druid','Monk','Sorcerer'],
+    equipNote:'Standard Faerûn equipment appropriate to class and region — Sword Coast weapons, Waterdhavian fashions, Underdark tools if applicable.',
+    statsNote:'Standard D&D 5e stat priorities by class.'
+  },
+  'dcc':{
+    races:['Human (Ex-Military)','Human (Civilian)','Human (Academic)','Human (Criminal)','Human (First Responder)','Human (Blue-Collar Worker)','Human (Athlete)','Human (Medical Professional)'],
+    classes:['Brawler','Street Mage','Rogue Crawler','Healer','Berserker','Trickster','Arcanist','Ranger','Bomber'],
+    equipNote:'Starting gear is whatever the Crawler had on them when the Transformation happened PLUS whatever Iron/Bronze loot boxes they\'ve opened. Equipment is fantasy-themed per Borant Corporation dungeon rules — no pulse rifles or power armor. Expect: torches, bandages, basic swords or clubs, leather armour scraps, healing potions (Iron tier). Some crawlers started with mundane objects that became enchanted by the System.',
+    statsNote:'STR for brawlers and berserkers, DEX for rogues and rangers, INT for mages and arcanists, WIS for healers and tactical crawlers, CHA for anyone trying to play to the audience. CON for everyone — you\'re going to get hit a lot. Reference their pre-dungeon life in stat justification.'
+  },
+  'ravenloft':{
+    races:['Human','Dhampir (half-vampire)','Reborn (undead awakened)','Half-Elf','Tiefling','Hexblood (witch-marked)','Human (Vistani)','Elf'],
+    classes:['Monster Hunter','Occult Detective','Paladin (Oathbreaker or Devotion)','Cleric (Twilight or Grave)','Fighter','Rogue','Warlock','Bard','Ranger','Wizard (Necromancy)'],
+    equipNote:'Gothic horror equipment: wooden stakes, holy water, silver weapons, occultist\'s journal, Van Richten\'s guides, lanterns, crossbows, garlic, mirrors (to detect vampires). Practical monster-hunting gear.',
+    statsNote:'Hunters need STR/WIS, Occultists need INT/WIS, Warlocks need CHA, Clerics need WIS. Dhampirs often have high CHA and CON.'
+  }
+};
+
+function getWorldCharKey(){
+  if(!G.premise)return null;
+  const map={'Dragonlance — Krynn':'dragonlance','World of Greyhawk — Oerth':'greyhawk','Star Wars — A Galaxy Far Far Away':'starwars','The Grimm Realms — Dark Fairy Tales':'grimm','Forgotten Realms — Faerûn':'faerun','Ravenloft — Domains of Dread':'ravenloft','Dungeon Crawler Carl — The Crawl':'dcc'};
+  return WORLD_CHAR_OPTIONS[map[G.premise.name]]||null;
+}
 // ── CHAR GEN ─────────────────────────────────────────────────
 async function genChars(){
-  const br=brief().slice(0,500);
-  // Random seed forces genuinely different characters each call
-  const seed=Math.floor(Math.random()*9999);
-  const forbidden=['Human Fighter','Elf Rogue','Dwarf Cleric']; // prevent boring defaults
-  const prompt='Generate 3 COMPLETELY DISTINCT D&D 5e characters for this world: '+br+'\n\nSeed: '+seed+' (use this to create unique combinations you would not normally choose).\n\nRules:\n- NO two characters share a race OR class\n- Avoid these overused combinations: '+forbidden.join(', ')+'\n- Each must have a unique mechanical identity (different stat priorities, different playstyle)\n- Make them unexpected and interesting — antiheroes, specialists, unusual backstories\n- All three must feel like they belong in the world described above\n\nReturn ONLY JSON starting with { and ending with }:\n{"options":[{"race":"Race","cls":"Class","title":"Evocative title","desc":"2 sentences of world-appropriate backstory.","stats":{"STR":14,"DEX":12,"CON":13,"INT":10,"WIS":11,"CHA":8},"hp":28,"abilities":[{"name":"Ability","desc":"What it does."}],"inventory":["Item 1","Item 2","Item 3"],"gold":15}]}';
-  for(let attempt=0;attempt<3;attempt++){
-    try{
-      const res=await ai([{role:'user',content:prompt}],'Generate D&D characters. Return only JSON starting with {.',true,1800);
-      if(res.options&&res.options.length>0)return res.options;
-      throw new Error('Empty options array');
-    }catch(e){
-      console.warn('genChars attempt '+(attempt+1)+' failed:',e.message);
-      if(attempt===2)return fallbackChars();
-      await sl(700);
+  // Always return something — never throw
+  try{
+    const wco=getWorldCharKey();
+    const seed=Math.floor(Math.random()*9999);
+    // Keep race/class lists short to avoid overly long prompts
+    const races=wco?wco.races.slice(0,6).join(', '):'Human, Elf, Dwarf, Half-Orc, Tiefling, Gnome';
+    const classes=wco?wco.classes.slice(0,7).join(', '):'Fighter, Rogue, Wizard, Ranger, Cleric, Warlock, Barbarian';
+    const worldNote=wco?'Use ONLY the races and classes listed. No substitutions.':'';
+    const br=brief().slice(0,350);
+
+    // Compact prompt — smaller token footprint = more reliable JSON response
+    const prompt='Generate 3 distinct playable characters for this world:\n'+br+'\n\nSeed: '+seed+'\nRaces (pick 3 different): '+races+'\nClasses (pick 3 different): '+classes+'\n'+worldNote+'\n\nEach character must feel authentic to the world. Vary race, class, and playstyle. No two share a race or class.\n\nReturn ONLY valid JSON — no text before or after:\n{"options":[{"race":"Race","cls":"Class","title":"Short title","desc":"2 sentence backstory.","stats":{"STR":14,"DEX":12,"CON":13,"INT":10,"WIS":11,"CHA":8},"hp":28,"abilities":[{"name":"Ability","desc":"What it does."}],"inventory":["Item 1","Item 2","Item 3"],"gold":15}]}';
+
+    for(let attempt=0;attempt<3;attempt++){
+      try{
+        const res=await ai(
+          [{role:'user',content:prompt}],
+          'You generate RPG characters. Return ONLY a JSON object starting with { and ending with }. No markdown, no explanation.',
+          true,
+          2000
+        );
+        if(res&&Array.isArray(res.options)&&res.options.length>0){
+          // Validate each option has required fields
+          const valid=res.options.filter(o=>o.race&&o.cls&&o.title&&o.desc&&o.stats&&o.hp);
+          if(valid.length>0)return valid;
+        }
+        console.warn('genChars attempt '+(attempt+1)+': empty or invalid options, trying fallback');
+      }catch(e){
+        console.warn('genChars attempt '+(attempt+1)+' error:',e.message);
+      }
+      if(attempt<2)await sl(800);
     }
+  }catch(e){
+    console.warn('genChars outer error:',e.message);
   }
+  // Guaranteed fallback — always returns valid characters
+  console.log('genChars: using fallback characters');
+  return fallbackChars();
 }
 function fallbackChars(){
   const w=G.premise?.name||'fantasy';
+  const id=G.premise?.id||'';
+  // World-specific fallbacks for the four new worlds
+  if(id==='starwars')return[
+    {race:'Human',cls:'Smuggler',title:'The Outer Rim Drifter',desc:'A fast-talking scoundrel who has made a living skirting Imperial regulations in the Outer Rim. Owes more people than they can count.',stats:{STR:11,DEX:16,CON:13,INT:12,WIS:10,CHA:15},hp:24,abilities:[{name:'Shoot First',desc:'Once per encounter, fire your blaster before initiative is rolled.'},{name:'Silver Tongue',desc:'Add CHA modifier to deception and negotiation checks.'}],inventory:['Blaster Pistol','Comlink','250 Credits','Fake ID Chip'],gold:0},
+    {race:'Zabrak',cls:'Bounty Hunter',title:'The Relentless Tracker',desc:'A scarred Zabrak with a reputation across three sectors. Takes contracts the guilds refuse. Morality is flexible when rent is due.',stats:{STR:14,DEX:15,CON:14,INT:12,WIS:13,CHA:9},hp:28,abilities:[{name:'Target Acquired',desc:'Study a target for one round to gain advantage on all attacks against them.'},{name:'Tracking Expert',desc:'Follow any trail — physical, digital, or informant-based.'}],inventory:['Blaster Rifle','Vibroblade','Tracking Fob','Mandalorian Helmet'],gold:0},
+    {race:'Human',cls:'Jedi Survivor',title:'The Last Ember',desc:'One of the few to survive Order 66, living in hiding and carrying the weight of a dead Order. The Force has not left them, no matter how hard they tried to let it go.',stats:{STR:12,DEX:14,CON:12,INT:13,WIS:16,CHA:13},hp:26,abilities:[{name:'Force Sense',desc:'Detect living beings, threats, and disturbances within 30 metres.'},{name:'Lightsaber Training',desc:'+2 to attack and damage with your lightsaber.'}],inventory:['Lightsaber (concealed)','Travelling Robes','Medpac','False Identity Papers'],gold:0}
+  ];
+  if(id==='dragonlance')return[
+    {race:'Human',cls:'Knight of Solamnia',title:'The Dishonoured Sword',desc:'A Solamnic knight who failed their order during a desperate battle, and has been wandering in self-imposed exile ever since. They still carry the sword.',stats:{STR:16,DEX:11,CON:15,INT:10,WIS:12,CHA:13},hp:30,abilities:[{name:'Est Sularus oth Mithas',desc:'My honour is my life. Once per long rest, fight on at 0 HP for one round before falling.'},{name:'Combat Expertise',desc:'Once per round, impose disadvantage on an adjacent enemy\'s attack.'}],inventory:['Solamnic Longsword','Battered Plate Armour','Signal Horn','Flask of Spirits'],gold:18},
+    {race:'Kender',cls:'Rogue',title:'The Unintentional Thief',desc:'A kender who has "borrowed" their way across three continents and cannot understand why everyone seems upset about it. Completely fearless — sometimes dangerously so.',stats:{STR:8,DEX:18,CON:11,INT:13,WIS:9,CHA:16},hp:20,abilities:[{name:'Fearlessness',desc:'Immune to fear effects. May attempt to taunt enemies into attacking you instead of allies.'},{name:'Handling',desc:'Items seem to migrate into your pouches. Sleight of Hand checks at advantage.'}],inventory:['Hoopak','A Collection of Borrowed Items','Map to Somewhere','Someone Else\'s Journal'],gold:12},
+    {race:'Qualinesti Elf',cls:'Mage of High Sorcery (Red Robe)',title:'The Neutral Flame',desc:'A Red Robe mage who has passed the Test of High Sorcery and survived — though not without cost. They serve the balance of magic, neither good nor evil.',stats:{STR:9,DEX:13,CON:11,INT:17,WIS:13,CHA:12},hp:18,abilities:[{name:'Solinari\'s Gift',desc:'Once per rest, cast any spell you know without expending a spell slot.'},{name:'Magic Sense',desc:'Detect magic and its school within 60 feet at will.'}],inventory:['Spellbook','Red Robes','Tower of High Sorcery Seal','Component Pouch'],gold:20}
+  ];
+  if(id==='grimm')return[
+    {race:'Human (Common Folk)',cls:'Huntsman',title:'The One Who Refused',desc:'The Huntsman who was sent to kill the princess — and couldn\'t do it. Now the Queen wants them dead too, and the forest has welcomed them in ways the village never did.',stats:{STR:14,DEX:14,CON:13,INT:10,WIS:14,CHA:10},hp:26,abilities:[{name:'Woodcraft',desc:'Move silently through forests and read animal signs and trails.'},{name:'Mercy\'s Mark',desc:'Once per day, spare a life instead of taking it, and gain a boon in return.'}],inventory:['Huntsman\'s Axe','Red Travelling Cloak','Pig\'s Heart in a Box (long story)','Bread and Salt'],gold:8},
+    {race:'Human (Witch-Touched)',cls:'Witch',title:'The Grandmother',desc:'Old enough to remember when the Glamour was thinner. Trades in boons and bargains, knows every story has another side, and lives in a cottage that is never quite where you left it.',stats:{STR:9,DEX:11,CON:13,INT:15,WIS:17,CHA:14},hp:22,abilities:[{name:'Boon and Bargain',desc:'Offer something of value to receive something of equal value in return — magic always exchanges.'},{name:'Knowing Gaze',desc:'Look into someone\'s eyes and sense what story they are living.'}],inventory:['Bone Walking Staff','Basket of Mysterious Foodstuffs','Three Enchanted Needles','Grandmother\'s Recipe Book'],gold:0},
+    {race:'Changeling',cls:'Trickster',title:'The One They Forgot',desc:'Left in place of a human child and never quite fitting in either world. Neither fairy nor mortal, they\'ve made a career of being underestimated.',stats:{STR:10,DEX:16,CON:11,INT:14,WIS:12,CHA:17},hp:20,abilities:[{name:'Forgettable Face',desc:'People forget you were there unless you want them to remember.'},{name:'Half-World Step',desc:'Once per day, step sideways into the space between stories and reappear nearby.'}],inventory:['Silver Coin (two-faced)','Talking Raven (moody)','Cloak of Misdirection','Thimble of Luck'],gold:6}
+  ];
+  if(id==='dcc')return[
+    {race:'Human (Ex-Military)',cls:'Brawler',title:'The Veteran Who Punches Things',desc:'A former Coast Guard rescue swimmer who woke up in the dungeon without shoes or pants. Has punched a goblin so hard it dropped a Bronze loot box. The System is watching with great interest.',stats:{STR:16,DEX:13,CON:15,INT:10,WIS:12,CHA:10},hp:30,abilities:[{name:'Unarmed Specialist',desc:'Unarmed attacks deal 1d6 + STR damage. On a critical hit, the target is also briefly stunned.'},{name:'Semper Paratus',desc:'Once per rest, when reduced to 0 HP, stay conscious for 1 more round on 1 HP.'}],inventory:['Worn Military Boot (enchanted, +2 smash)','Torch x3','Iron Bandage x5','Bronze Loot Box (unopened)'],gold:0},
+    {race:'Human (Academic)',cls:'Arcanist',title:'The Professor of Inadvisable Magic',desc:'A physics professor who discovered that the System treats equations like spell slots. Currently calculating the optimal trajectory for a fireball that also maximises audience engagement. The System gave them the achievement: "Nerd Rage: Level 1".',stats:{STR:8,DEX:11,CON:11,INT:17,WIS:14,CHA:10},hp:18,abilities:[{name:'Applied Thaumaturgy',desc:'Cast spells by solving equations. +2 to all spell attack rolls.'},{name:'Variable Analysis',desc:'Spend 1 action studying a mob to identify its weakness and gain advantage on your next attack.'}],inventory:['Chalkboard Fragment (used as spell focus)','Spectacles (smashed, held together with tape)','Iron Loot Box (unopened)','Thermal Flask (empty)'],gold:0},
+    {race:'Human (Criminal)',cls:'Rogue Crawler',title:'The One Who Knew About The Vents',desc:'A professional thief who immediately recognised a dungeon when they saw one. Found three secret passages in the first ten minutes. The System gave them the achievement: "Actually, I Own This Place Now." They do not own it. Yet.',stats:{STR:11,DEX:17,CON:12,INT:13,WIS:11,CHA:14},hp:22,abilities:[{name:'Second Storey Work',desc:'Automatically detect traps and hidden passages. Disarming checks at advantage.'},{name:'Five-Finger Discount',desc:'Once per floor, find a useful mundane item that was not there before.'}],inventory:['Lockpicks','Shiv (Iron-tier dagger)','Rope 30ft','Bronze Loot Box (unopened)','Stolen Torch'],gold:0}
+  ];
+  // Default fallback for Forgotten Realms, Greyhawk, Ravenloft, Custom
   return[
-    {race:'Human',cls:'Fighter',title:'The Scarred Veteran',desc:'A battle-hardened soldier from '+w+'. Years of conflict have made them resilient and tactically sharp.',stats:{STR:16,DEX:12,CON:15,INT:10,WIS:11,CHA:9},hp:32,abilities:[{name:'Second Wind',desc:'Recover 1d10+level HP once per short rest.'},{name:'Action Surge',desc:'Take one additional action once per short rest.'}],inventory:['Longsword','Shield','Chain Mail'],gold:20},
-    {race:'Elf',cls:'Rogue',title:'The Shadow Walker',desc:'A nimble infiltrator who moves unseen through '+w+'. Secrets and shadows are their currency.',stats:{STR:9,DEX:17,CON:12,INT:13,WIS:12,CHA:11},hp:22,abilities:[{name:'Sneak Attack',desc:'Deal extra 1d6 damage when attacking with advantage.'},{name:'Cunning Action',desc:'Dash, Disengage, or Hide as a bonus action.'}],inventory:['Dagger x2','Leather Armour','Thieves Tools'],gold:18},
-    {race:'Dwarf',cls:'Cleric',title:'The Stone Keeper',desc:'A devoted priest whose faith has been tested by the horrors of '+w+'. Their divine power endures.',stats:{STR:13,DEX:9,CON:16,INT:11,WIS:16,CHA:10},hp:28,abilities:[{name:'Sacred Flame',desc:'1d8 radiant damage, target DEX save.'},{name:'Healing Word',desc:'Bonus action: heal 1d4+WIS HP to self or ally.'}],inventory:['Warhammer','Holy Symbol','Scale Mail'],gold:15}
+    {race:'Human',cls:'Fighter',title:'The Scarred Veteran',desc:'A battle-hardened soldier who has survived campaigns in '+w+'. Resilient and tactically sharp.',stats:{STR:16,DEX:12,CON:15,INT:10,WIS:11,CHA:9},hp:32,abilities:[{name:'Second Wind',desc:'Recover 1d10+level HP once per short rest.'},{name:'Action Surge',desc:'Take one additional action once per short rest.'}],inventory:['Longsword','Shield','Chain Mail'],gold:20},
+    {race:'Elf',cls:'Rogue',title:'The Shadow Walker',desc:'A nimble infiltrator who moves unseen. Secrets and shadows are their currency.',stats:{STR:9,DEX:17,CON:12,INT:13,WIS:12,CHA:11},hp:22,abilities:[{name:'Sneak Attack',desc:'Deal extra 1d6 damage when attacking with advantage.'},{name:'Cunning Action',desc:'Dash, Disengage, or Hide as a bonus action.'}],inventory:['Dagger x2','Leather Armour','Thieves Tools'],gold:18},
+    {race:'Dwarf',cls:'Cleric',title:'The Stone Keeper',desc:'A devoted priest whose faith endures through dark times in '+w+'.',stats:{STR:13,DEX:9,CON:16,INT:11,WIS:16,CHA:10},hp:28,abilities:[{name:'Sacred Flame',desc:'1d8 radiant damage, target DEX save.'},{name:'Healing Word',desc:'Bonus action: heal 1d4+WIS HP to self or ally.'}],inventory:['Warhammer','Holy Symbol','Scale Mail'],gold:15}
   ];
 }
 
@@ -954,7 +1167,13 @@ async function startNew(opt,name){
     G.history.push({role:'assistant',content:res.n});
     if(res.mood)addSceneCard(res.mood,res.atm||'');
     await addDM(res.n,res.mood,Array.isArray(res.actions)?res.actions:[]);
-    for(const nt of(res.notif||[])){if(nt?.text){await sl(220);addSys(nt.text,nt.type||'info');}}
+    for(const nt of(res.notif||[])){
+      if(nt?.text){
+        await sl(220);
+        addSys(nt.text,nt.type||'info');
+        if(['xp','skill','loot','lore'].includes(nt.type)){toast(nt.text,nt.type==='xp'?'achievement':nt.type);}
+      }
+    }
     const u=res.upd||{};
     if(u.loc)G.world.location=u.loc;
     // If DM didn't return a location, seed one from the world name
@@ -1060,7 +1279,7 @@ function updLocBar(mood){
   const n=id('loc-name');if(n)n.textContent=G.world?.location||'Unknown';
   const ic=id('loc-icon');if(ic)ic.textContent=MI[mood]||'◌';
   const m=id('loc-mood');if(m){m.textContent=mood||'CALM';m.className=mood||'CALM';}
-  triggerSound(mood);
+  startSoundWorld(mood);
   if(G.world?.location)generateSceneImage(G.world.location,mood);
 }
 
@@ -1100,6 +1319,13 @@ function updSheet(){
 
 // ── JOURNAL ──────────────────────────────────────────────────
 function updJournal(){
+  // Notes tab
+  const notesTA=id('player-notes');
+  if(notesTA&&G.world?.playerNotes!==undefined){
+    if(notesTA.value!==G.world.playerNotes)notesTA.value=G.world.playerNotes||'';
+    const nc=id('notes-count');
+    if(nc)nc.textContent=(G.world.playerNotes||'').length+' characters';
+  }
   const w=G.world;if(!w)return;
   const jq=id('j-quests');if(jq)jq.innerHTML=w.quests.length?w.quests.map(q=>'<div class="j-item"><div class="j-title gold">'+esc(q.name)+'</div><div class="j-desc">'+esc(q.desc)+'</div></div>').join(''):'<div class="empty">No active quests.</div>';
   const jl=id('j-lore');if(jl)jl.innerHTML=w.lore.length?[...w.lore].reverse().map(l=>'<div class="j-item"><div class="j-title lore">📜 '+esc(l.title)+'</div><div class="j-desc light">'+esc(l.content)+'</div></div>').join(''):'<div class="empty">No lore discovered yet.</div>';
@@ -1214,7 +1440,7 @@ async function doLevelUp(){
   const abs=await genAbilityOpts();
   if(load)load.classList.add('hidden');if(skls)skls.classList.remove('hidden');
   if(skls){skls.innerHTML=abs.map((ab,i)=>'<div class="lu-sk" data-i="'+i+'"><div class="lu-sk-nm">'+esc(ab.name)+'</div><div class="lu-sk-tp">'+esc(ab.type||'ABILITY')+'</div><div class="lu-sk-ds">'+esc(ab.desc)+'</div></div>').join('');skls.querySelectorAll('.lu-sk').forEach(el=>{el.addEventListener('click',()=>{skls.querySelectorAll('.lu-sk').forEach(x=>x.classList.remove('sel'));el.classList.add('sel');chosen=abs[parseInt(el.dataset.i)];if(ok){ok.disabled=false;ok.textContent='ACCEPT POWER';}});});}
-  return new Promise(r=>{if(ok)ok.onclick=()=>{if(!chosen)return;G.char.abilities.push({name:chosen.name,desc:chosen.desc});if(m)m.classList.remove('on');addSys('⚡ NEW ABILITY: '+chosen.name,'skill');updHdr();updSheet();save();r();};});
+  return new Promise(r=>{if(ok)ok.onclick=()=>{if(!chosen)return;G.char.abilities.push({name:chosen.name,desc:chosen.desc});if(m)m.classList.remove('on');addSys('⚡ NEW ABILITY: '+chosen.name,'skill');toast('New ability: '+chosen.name,'levelup','LEVEL UP');updHdr();updSheet();save();r();};});
 }
 
 // ── DEATH ─────────────────────────────────────────────────────
@@ -1268,6 +1494,7 @@ async function doPuzzle(puzzle){
 // ── COMPANION ────────────────────────────────────────────────
 function openCompanion(){
   const opts=id('comp-opts');if(!opts)return;
+  const COMP_ARCHS=getCompArchs();
   opts.innerHTML=COMP_ARCHS.map((a,i)=>'<div class="comp-opt" data-i="'+i+'"><div class="comp-onm">'+a.ico+' '+a.cls+'</div><div class="comp-ods">'+a.desc+'</div></div>').join('');
   let chosen=null;const m=id('comp-modal');
   opts.querySelectorAll('.comp-opt').forEach(el=>{el.addEventListener('click',()=>{opts.querySelectorAll('.comp-opt').forEach(x=>x.classList.remove('sel'));el.classList.add('sel');chosen=COMP_ARCHS[parseInt(el.dataset.i)];const ni=id('comp-name');if(ni)ni.style.display='block';const ok=id('comp-ok');if(ok)ok.disabled=false;});});
@@ -1344,6 +1571,8 @@ const SCENE_STYLES={
   'The Grimm Realms — Dark Fairy Tales':'dark fairy tale illustration, twisted storybook art, enchanted forest gone wrong, gothic whimsy, sinister beauty, Brothers Grimm aesthetic',
   'Forgotten Realms — Faerûn':'high fantasy D&D environment, painterly, Sword Coast architecture, medieval splendour, Forgotten Realms style',
   'Ravenloft — Domains of Dread':'gothic horror, dark mists, candlelight, expressionist shadows, Transylvanian dread, Ravenloft atmosphere'
+,
+  'Dungeon Crawler Carl — The Crawl':'underground dungeon tunnel, torchlit stone corridor, LitRPG dungeon crawl, dark fantasy dungeon environment'
 };
 const MOOD_STYLES={CALM:'soft light, peaceful atmosphere',TENSE:'dramatic shadows, uneasy',DANGEROUS:'dark, threatening, danger imminent',MYSTERIOUS:'ethereal mist, hidden secrets',EERIE:'unsettling, otherworldly silence',COMBAT:'battle chaos, smoke, violence'};
 let lastSceneLoc='',lastSceneMood='';
@@ -1396,7 +1625,8 @@ const W_IMG={
   'Star Wars — A Galaxy Far Far Away':'Star Wars character portrait, cinematic sci-fi lighting, galactic empire era, concept art',
   'The Grimm Realms — Dark Fairy Tales':'dark fairy tale character portrait, Brothers Grimm illustration style, twisted storybook gothic',
   'Forgotten Realms — Faerûn':'Forgotten Realms D&D character portrait, high fantasy, Sword Coast, painterly illustration',
-  'Ravenloft — Domains of Dread':'gothic horror character portrait, Ravenloft, candlelight, dark expressionist atmosphere'
+  'Ravenloft — Domains of Dread':'gothic horror character portrait, Ravenloft, candlelight, dark expressionist atmosphere',
+  'Dungeon Crawler Carl — The Crawl':'dungeon crawler character portrait, LitRPG game art style, underground dungeon lighting, gritty survivor aesthetic'
 };
 async function genPortrait(attempt){
   attempt=attempt||0;
@@ -1530,11 +1760,167 @@ function renderChars(opts){
     g.appendChild(el);});
 }
 
+// ============================================================
+// ACHIEVEMENT TOAST SYSTEM
+// ============================================================
+const TOAST_ICONS={achievement:'⚡',levelup:'⬆️',xp:'✨',skill:'⚡',damage:'🩸',loot:'📦',lore:'📜',info:'💬'};
+const WORLD_ACHIEVE_PREFIX={
+  dcc:['SYSTEM NOTIFICATION','ACHIEVEMENT UNLOCKED','BORANT CORPORATION NOTES'],
+  starwars:['IMPERIAL ATTENTION','FORCE VISION','BOUNTY ISSUED'],
+  ravenloft:['THE DARK POWERS NOTE','FATE INTERVENES'],
+  grimm:['THE STORY RECORDS','THE GLAMOUR SHIFTS']
+};
+let toastQ=[],toastRunning=false;
+function toast(text,type,label){
+  const wid=G.premise?.id||'';
+  const prefixes=WORLD_ACHIEVE_PREFIX[wid];
+  const lbl=label||(prefixes&&type==='achievement'?prefixes[Math.floor(Math.random()*prefixes.length)]:'NOTIFICATION');
+  toastQ.push({text,type:type||'info',label:lbl});
+  if(!toastRunning)runToasts();
+}
+async function runToasts(){
+  toastRunning=true;
+  while(toastQ.length){
+    const t=toastQ.shift();
+    const stack=document.getElementById('toast-stack');
+    if(!stack)break;
+    const icons={achievement:'⚡',levelup:'⬆️',xp:'✨',skill:'⚡',damage:'🩸',loot:'📦',lore:'📜',info:'💬'};
+    const el=document.createElement('div');
+    el.className='toast '+(t.type||'info');
+    el.innerHTML='<span class="toast-ico">'+(icons[t.type]||'💬')+'</span><div class="toast-body"><div class="toast-label">'+t.label.toUpperCase()+'</div><div class="toast-text">'+esc(t.text)+'</div></div>';
+    stack.appendChild(el);
+    await sl(2800);
+    el.classList.add('out');
+    await sl(350);
+    el.remove();
+    if(toastQ.length)await sl(200);
+  }
+  toastRunning=false;
+}
+
+// ============================================================
+// WORLD-APPROPRIATE AMBIENT SOUND PROFILES
+// ============================================================
+const WORLD_SOUND_PROFILES={
+  dcc:{baseFreqs:[45,60,90,135],waveTypes:['sawtooth','square','sine','sine'],lfoRate:0.08,filterFreq:300,vol:0.12},
+  starwars:{baseFreqs:[80,120,160,240],waveTypes:['sine','sine','triangle','sine'],lfoRate:0.04,filterFreq:800,vol:0.09},
+  ravenloft:{baseFreqs:[55,82,110,165],waveTypes:['sine','triangle','sine','triangle'],lfoRate:0.03,filterFreq:250,vol:0.11},
+  grimm:{baseFreqs:[220,330,440,523],waveTypes:['sine','triangle','sine','sine'],lfoRate:0.06,filterFreq:1200,vol:0.07},
+  faerun:{baseFreqs:[65,97,130,195],waveTypes:['sine','sine','triangle','sine'],lfoRate:0.05,filterFreq:500,vol:0.1},
+  dragonlance:{baseFreqs:[70,105,140,210],waveTypes:['sine','sine','triangle','sine'],lfoRate:0.04,filterFreq:600,vol:0.11},
+  greyhawk:{baseFreqs:[55,82,110,220],waveTypes:['sine','triangle','sine','sine'],lfoRate:0.04,filterFreq:400,vol:0.1}
+};
+function startSoundWorld(mood){
+  try{
+    if(!G.soundOn||!audioCtx)return;
+    stopSound();
+    const isCombat=mood==='COMBAT'||mood==='DANGEROUS';
+    const wid=G.premise?.id||'';
+    const profile=!isCombat?WORLD_SOUND_PROFILES[wid]:null;
+    if(profile){
+      const master=audioCtx.createGain();
+      master.gain.setValueAtTime(0,audioCtx.currentTime);
+      master.gain.linearRampToValueAtTime(profile.vol*(mood==='TENSE'?1.4:1),audioCtx.currentTime+2.5);
+      master.connect(audioCtx.destination);
+      profile.baseFreqs.forEach((freq,i)=>{
+        const osc=audioCtx.createOscillator();const g=audioCtx.createGain();const f=audioCtx.createBiquadFilter();
+        f.type='lowpass';f.frequency.value=profile.filterFreq;osc.type=profile.waveTypes[i]||'sine';osc.frequency.value=freq;
+        const lfo=audioCtx.createOscillator();const lg=audioCtx.createGain();
+        lfo.frequency.value=profile.lfoRate+i*0.01;lg.gain.value=0.3+i*0.1;lfo.connect(lg);lg.connect(osc.frequency);lfo.start();
+        g.gain.value=[0.55,0.3,0.15,0.07][i]||0.05;osc.connect(g);g.connect(f);f.connect(master);osc.start();
+        soundNodes.push(osc,lfo);
+      });
+      soundNodes.push({gain:master});
+    }else{
+      startSound(mood);
+    }
+  }catch(e){console.warn('World sound error:',e);}
+}
+
+// ============================================================
+// SAVE SLOT UI
+// ============================================================
+function renderSlots(){
+  const grid=document.getElementById('slot-grid');if(!grid)return;
+  grid.innerHTML='';
+  for(let i=0;i<3;i++){
+    const data=getSlotData(i);
+    const el=document.createElement('div');
+    el.className='slot-card'+(data?'':' empty');
+    if(data){
+      const world=data.premise;
+      const saved=data.savedAt?new Date(data.savedAt).toLocaleDateString('en-AU',{day:'numeric',month:'short'}):'-';
+      el.innerHTML='<span class="slot-ico">'+(world?.icon||'⚔️')+'</span><div class="slot-info"><div class="slot-name">'+esc(data.char.name)+' — '+esc(data.char.race)+' '+esc(data.char.cls)+'</div><div class="slot-sub">Lv'+data.char.level+' · '+esc(world?.name||'Unknown')+' · '+esc((data.world?.location)||'—')+'</div></div><span class="slot-badge">SLOT '+(i+1)+'<br>'+saved+'</span><button class="slot-del" data-slot="'+i+'" title="Delete">✕</button>';
+      el.addEventListener('click',(e)=>{if(e.target.classList.contains('slot-del'))return;continueSlot(i);});
+      el.querySelector('.slot-del').addEventListener('click',(e)=>{
+        e.stopPropagation();
+        if(confirm('Delete slot '+(i+1)+'? This cannot be undone.')){
+          localStorage.removeItem(slotKey(i));
+          if(i===0)['re_v5','re_v4','re_v3','re_v2'].forEach(k=>localStorage.removeItem(k));
+          renderSlots();
+        }
+      });
+    }else{
+      el.innerHTML='<span class="slot-ico" style="opacity:.4">+</span><div class="slot-info"><div class="slot-name" style="color:var(--text2)">EMPTY SLOT '+(i+1)+'</div><div class="slot-sub">Start a new adventure here</div></div>';
+      el.addEventListener('click',()=>startInSlot(i));
+    }
+    grid.appendChild(el);
+  }
+}
+function startInSlot(i){
+  const k=(id('api-in')?.value||'').trim();const err=id('intro-err');
+  if(!k){if(err)err.textContent='Please enter your Anthropic API key.';return;}
+  if(!k.startsWith('sk-ant-')){if(err)err.textContent='Key should start with sk-ant-...';return;}
+  G.slot=i;G.apiKey=k;saveKey(k);
+  const proxyVal=(id('proxy-in')?.value||'').trim()||loadProxy();G.proxyUrl=proxyVal;if(proxyVal)saveProxy(proxyVal);
+  patchFetch();
+  const si=id('s-intro');if(si)si.classList.add('gone');const sw=id('s-world');if(sw)sw.classList.remove('gone');
+}
+function continueSlot(i){
+  const k=(id('api-in')?.value||'').trim();const err=id('intro-err');
+  if(!loadSlot(i)){if(err)err.textContent='Could not load save slot.';return;}
+  if(k){G.apiKey=k;saveKey(k);}
+  if(!G.apiKey){if(err)err.textContent='Please enter your API key.';return;}
+  const proxyVal=(id('proxy-in')?.value||'').trim()||loadProxy();G.proxyUrl=proxyVal;if(proxyVal)saveProxy(proxyVal);
+  patchFetch();resumeGame();
+}
+
+// ============================================================
+// NAME GENERATOR
+// ============================================================
+async function suggestNames(){
+  const btn=id('btn-suggest-name');const sugg=id('name-suggestions');const sel=document.querySelector('.c-card.sel');
+  if(!btn||!sugg)return;btn.disabled=true;btn.textContent='⟳ GENERATING...';sugg.innerHTML='';
+  try{
+    const opt=sel?G.charOpts[parseInt(sel.dataset.i)]:null;
+    const raceHint=opt?opt.race+' '+opt.cls:'adventurer';
+    const p='Generate 5 short character names for a '+raceHint+' in this world: '+brief().slice(0,150)+'. Names must feel authentic to the setting. Return ONLY JSON: {"names":["Name1","Name2","Name3","Name4","Name5"]}';
+    const res=await ai([{role:'user',content:p}],'Generate character names. Return only JSON.',true,200);
+    const names=res.names||[];
+    sugg.innerHTML=names.slice(0,5).map(n=>'<button class="act-btn" style="font-size:.68rem;padding:.3rem .6rem" onclick="pickName(\''+esc(n)+'\')">'+esc(n)+'</button>').join('');
+  }catch(e){sugg.innerHTML='<span style="font-family:var(--fm);font-size:.58rem;color:var(--text2)">Try typing a name</span>';}
+  btn.disabled=false;btn.textContent='✦ SUGGEST NAMES';
+}
+function pickName(n){const inp=id('name-in');if(inp){inp.value=n;inp.focus();}}
+
 // ── BOOT ────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded',()=>{
   const storedKey=loadKey();if(storedKey){const ai=id('api-in');if(ai)ai.value=storedKey;}
-  const storedProxy=loadProxy();if(storedProxy){const pi=id('proxy-in');if(pi)pi.value=storedProxy;G.proxyUrl=storedProxy;}
-  if(hasSave()){const bc=id('btn-cont');if(bc)bc.classList.remove('hidden');}
+  // Always restore proxy URL from storage
+  const storedProxy=loadProxy();
+  G.proxyUrl=storedProxy;
+  const pi=id('proxy-in');if(pi&&storedProxy)pi.value=storedProxy;
+  // Migrate old re_v5 save into slot 0 if slot 0 is empty
+  if(!localStorage.getItem(slotKey(0))&&localStorage.getItem('re_v5')){
+    localStorage.setItem(slotKey(0),localStorage.getItem('re_v5'));
+  }
+  // Show save slots if any exist, otherwise show simple continue button
+  if(hasSave()){
+    renderSlots();
+    const sg=id('slot-grid');if(sg)sg.style.display='flex';
+    // Hide old continue button since slots replace it
+    const bc=id('btn-cont');if(bc)bc.style.display='none';
+  }
   const loading=id('loading');if(loading)loading.classList.add('gone');
   renderWorlds();
 
@@ -1559,9 +1945,13 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(!k){if(err)err.textContent='Please enter your Anthropic API key.';return;}
     if(!k.startsWith('sk-ant-')){if(err)err.textContent='Key should start with sk-ant-...';return;}
     G.apiKey=k;saveKey(k);
-    const proxyVal=(id('proxy-in')?.value||'').trim();
-    if(proxyVal){G.proxyUrl=proxyVal;saveProxy(proxyVal);}else{G.proxyUrl=loadProxy();}
+    const proxyVal=(id('proxy-in')?.value||'').trim()||loadProxy();
+    G.proxyUrl=proxyVal;if(proxyVal)saveProxy(proxyVal);
     patchFetch();
+    // Pick first empty slot, or slot 0 if all full
+    let freeSlot=0;
+    for(let i=0;i<3;i++){if(!getSlotData(i)){freeSlot=i;break;}}
+    G.slot=freeSlot;
     const si=id('s-intro');if(si)si.classList.add('gone');const sw=id('s-world');if(sw)sw.classList.remove('gone');
   });
 
@@ -1584,12 +1974,34 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(world.id==='custom'){const ct=(id('custom-ta')?.value||'').trim();if(!ct){const we=id('world-err');if(we)we.textContent='Please describe your custom world.';return;}G.premiseCustom=ct;}
     G.premise=world;
     bwo.disabled=true;bwo.textContent='SUMMONING HEROES...';const we=id('world-err');if(we)we.textContent='';
+    // Re-check proxy — must be set for iOS to work
+    if(!G.proxyUrl){const sp=loadProxy();if(sp){G.proxyUrl=sp;}else{
+      if(we)we.textContent='Proxy URL required. Go back and enter your Worker URL below the API key.';
+      bwo.disabled=false;bwo.textContent='ENTER THIS WORLD';return;
+    }}
     try{
       const opts=await genChars();G.charOpts=opts;
       const sw=id('s-world');if(sw)sw.classList.add('gone');const sc=id('s-create');if(sc)sc.classList.remove('gone');
       const cwt=id('create-world-tag');if(cwt)cwt.textContent=world.icon+' '+world.name.toUpperCase();
       renderChars(opts);
-    }catch(e){if(we)we.textContent='Error: '+e.message;}
+    }catch(e){
+      console.error('World confirm error:',e.message);
+      // Try fallback characters before showing any error
+      try{
+        const fbOpts=fallbackChars();
+        if(fbOpts&&fbOpts.length>0){
+          G.charOpts=fbOpts;
+          const sw=id('s-world');if(sw)sw.classList.add('gone');
+          const sc=id('s-create');if(sc)sc.classList.remove('gone');
+          const cwt=id('create-world-tag');if(cwt)cwt.textContent=G.premise.icon+' '+G.premise.name.toUpperCase();
+          renderChars(fbOpts);
+        }else{
+          if(we)we.textContent='Error generating characters. Please try again.';
+        }
+      }catch(fe){
+        if(we)we.textContent='Error: '+e.message;
+      }
+    }
     bwo.disabled=false;bwo.textContent='ENTER THIS WORLD';
   });
 
@@ -1647,6 +2059,34 @@ document.addEventListener('DOMContentLoaded',()=>{
   }
 
   // Recap
+  // Auto-save proxy URL when user types it in
+  const proxyInput=id('proxy-in');
+  if(proxyInput){
+    proxyInput.addEventListener('blur',()=>{
+      const v=proxyInput.value.trim();
+      if(v){G.proxyUrl=v;saveProxy(v);}
+    });
+    proxyInput.addEventListener('change',()=>{
+      const v=proxyInput.value.trim();
+      if(v){G.proxyUrl=v;saveProxy(v);}
+    });
+  }
+
+  const bsuggest=id('btn-suggest-name');if(bsuggest)bsuggest.addEventListener('click',suggestNames);
+
+  // Notes textarea — auto-save on input
+  const notesTA=id('player-notes');
+  if(notesTA){
+    notesTA.addEventListener('input',()=>{
+      if(G.world){
+        G.world.playerNotes=notesTA.value;
+        const nc=id('notes-count');
+        if(nc)nc.textContent=notesTA.value.length+' characters';
+        save();
+      }
+    });
+  }
+
   const brec=id('btn-recap');if(brec)brec.addEventListener('click',async()=>{
     const m=id('recap-modal');const txt=id('recap-txt');if(m)m.classList.add('on');if(txt)txt.textContent='Generating...';closeDrw();
     try{const c=G.char;const p='Write a vivid narrator\'s recap of '+c.name+'\'s adventure in "'+G.premise?.name+'" in 3-4 paragraphs. Evocative, present tense. Summary: '+G.summary+'. Quests: '+G.world.quests.map(q=>q.name).join(', ')+'.';const r=await ai([{role:'user',content:p}],'Dramatic fantasy narrator. Rich prose, no lists.',false,700);if(txt)txt.textContent=r;}catch(e){if(txt)txt.textContent='Could not generate recap: '+e.message;}
