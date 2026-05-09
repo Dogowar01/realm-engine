@@ -922,17 +922,15 @@ function newWorld(){return{location:'',visited:[],npcs:[],quests:[],done:[],note
 function patchFetch(){} // no-op, kept for compatibility
 async function ai(msgs,sys,json,maxTok){
   maxTok=maxTok||900;
-  if(!G.apiKey)throw new Error('No API key set. Please enter your key on the intro screen.');
-  // Re-check proxy from storage in case it wasn't set on this call path
-  if(!G.proxyUrl){const sp=loadProxy();if(sp)G.proxyUrl=sp;}
+  if(!G.apiKey)throw new Error('No API key. Enter your Anthropic key on the intro screen.');
+  // Always pull proxy from storage — belt and suspenders for iOS
+  if(!G.proxyUrl){G.proxyUrl=loadProxy();}
   const body={model:'claude-sonnet-4-6',max_tokens:maxTok,messages:msgs};
   if(sys)body.system=sys;
-  // Use proxy if set (required for iOS Safari), otherwise call Anthropic directly
-  const endpoint=G.proxyUrl?G.proxyUrl.replace(/\/$/,''):'https://api.anthropic.com/v1/messages';
-  const headers={'Content-Type':'application/json','x-api-key':G.apiKey};
-  if(!G.proxyUrl)headers['anthropic-version']='2023-06-01';
-  if(!G.proxyUrl)headers['anthropic-dangerous-direct-browser-access']='true';
-  if(G.proxyUrl)headers['anthropic-version']='2023-06-01';
+  const proxy=G.proxyUrl?G.proxyUrl.replace(/\/+$/,''):'';
+  const endpoint=proxy||'https://api.anthropic.com/v1/messages';
+  const headers={'Content-Type':'application/json','x-api-key':G.apiKey,'anthropic-version':'2023-06-01'};
+  if(!proxy)headers['anthropic-dangerous-direct-browser-access']='true';
   let r;
   try{
     r=await fetch(endpoint,{method:'POST',headers,body:JSON.stringify(body)});
@@ -973,6 +971,8 @@ function dmsys(){
 
 // ── DM LOOP ─────────────────────────────────────────────────
 async function toDM(action){
+  // Ensure proxy always loaded for iOS
+  if(!G.proxyUrl)G.proxyUrl=loadProxy();
   setBusy(true);
   document.querySelectorAll('.act-row').forEach(el=>el.remove());
   G.history.push({role:'user',content:action});
@@ -1156,6 +1156,9 @@ function fallbackChars(){
 
 // ── GAME INIT ────────────────────────────────────────────────
 async function startNew(opt,name){
+  // Always ensure proxy and key are loaded before API calls
+  if(!G.proxyUrl)G.proxyUrl=loadProxy();
+  if(!G.apiKey)G.apiKey=loadKey();
   G.char={name,race:opt.race,cls:opt.cls,level:1,xp:0,hp:opt.hp,maxHp:opt.hp,stats:opt.stats,abilities:opt.abilities,inventory:opt.inventory,gold:opt.gold,portraitUrl:''};
   G.world=newWorld();G.combat=null;G.companion=null;G.history=[];G.summary='';
   save();showGame();setBusy(true);
@@ -1618,7 +1621,6 @@ async function generateSceneImage(location,mood){
 }
 
 // ── PORTRAIT ─────────────────────────────────────────────────
-function hashS(s){let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;}return Math.abs(h);}
 const W_IMG={
   'Dragonlance — Krynn':'Dragonlance D&D art style, epic high fantasy, Ansalon, dramatic war lighting, painterly fantasy portrait',
   'World of Greyhawk — Oerth':'classic D&D art style, Greyhawk, gritty medieval fantasy portrait, dungeon aesthetic',
@@ -1890,10 +1892,15 @@ function continueSlot(i){
 // ============================================================
 async function suggestNames(){
   const btn=id('btn-suggest-name');const sugg=id('name-suggestions');const sel=document.querySelector('.c-card.sel');
-  if(!btn||!sugg)return;btn.disabled=true;btn.textContent='⟳ GENERATING...';sugg.innerHTML='';
+  if(!btn||!sugg)return;
+  // Ensure proxy is loaded
+  if(!G.proxyUrl)G.proxyUrl=loadProxy();
+  if(!G.apiKey)G.apiKey=loadKey();
+  if(!G.apiKey){if(sugg)sugg.innerHTML='<span style="font-family:var(--fm);font-size:.58rem;color:var(--red)">Enter API key first</span>';return;}
+  btn.disabled=true;btn.textContent='⟳ GENERATING...';sugg.innerHTML='';
   try{
     const opt=sel?G.charOpts[parseInt(sel.dataset.i)]:null;
-    const raceHint=opt?opt.race+' '+opt.cls:'adventurer';
+    const raceHint=opt?(opt.race+' '+opt.cls):'adventurer';
     const p='Generate 5 short character names for a '+raceHint+' in this world: '+brief().slice(0,150)+'. Names must feel authentic to the setting. Return ONLY JSON: {"names":["Name1","Name2","Name3","Name4","Name5"]}';
     const res=await ai([{role:'user',content:p}],'Generate character names. Return only JSON.',true,200);
     const names=res.names||[];
@@ -2010,7 +2017,10 @@ document.addEventListener('DOMContentLoaded',()=>{
     const sel=document.querySelector('.c-card.sel');const name=(id('name-in')?.value||'').trim();const ce=id('create-err');
     if(!sel){if(ce){ce.textContent='Select a character first.';ce.classList.remove('hidden');}return;}
     if(!name){if(ce){ce.textContent='Name your hero.';ce.classList.remove('hidden');}return;}
-    bb.disabled=true;wipeSave();await startNew(G.charOpts[parseInt(sel.dataset.i)],name);
+    bb.disabled=true;
+    // Clear only this slot's save before starting fresh
+    try{localStorage.removeItem(slotKey(G.slot));}catch(e){}
+    await startNew(G.charOpts[parseInt(sel.dataset.i)],name);
   });
 
   // Send message
@@ -2126,8 +2136,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   function cw(eid,fn){const el=id(eid);if(el)el.addEventListener('click',fn);}
   cw('cbt-atk',cbtAttack);cw('cbt-dodge',cbtDodge);cw('cbt-skill',cbtSkill);cw('cbt-item',cbtItem);cw('cbt-flee',cbtFlee);
 
-  // Level up confirm
-  const luo=id('lu-ok');if(luo)luo.addEventListener('click',()=>{});// handled in doLevelUp
+  // Level up confirm handled inside doLevelUp() via onclick
 
   // Death
   const dn=id('death-new');if(dn)dn.addEventListener('click',()=>{wipeSave();location.reload();});
