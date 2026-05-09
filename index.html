@@ -738,38 +738,30 @@ input:focus,textarea:focus{border-color:var(--gdim)}
 <script>
 // ── WORLDS ──────────────────────────────────────────────────
 const WORLDS=[
-  {id:'sunken',icon:'🌊',name:'The Sunken Kingdoms',tag:'SALVAGEPUNK · COASTAL HORROR',
-   desc:'Three centuries ago the world drowned. Ancient civilisations sleep beneath shallow inland seas. The System emerged from the ruins.',
-   accent:'#3b82f6',
-   brief:'SETTING: Salvagepunk drowned world. Sea-cult factions, flooded dungeons, salt-weathered ruins. The System is a dying god\'s failing automation. Tone: melancholic, eerie, dangerous.'},
-  {id:'ascendancy',icon:'⚔️',name:'The Iron Ascendancy',tag:'GRIMDARK · EMPIRE · INTRIGUE',
-   desc:'A vast empire enforces peace through brutal efficiency. Every citizen\'s stats visible to the state. You are among the resistance.',
-   accent:'#ef4444',
-   brief:'SETTING: Grimdark empire uses the System to track every citizen. Resistance cells, imperial checkpoints, morally grey. Tone: oppressive, politically complex, dangerous.'},
-  {id:'fractured',icon:'⬡',name:'The Fractured System',tag:'MYSTERY · REALITY-HORROR',
-   desc:'Something is wrong. Dungeons repeat. The System sends warnings nobody else receives. The world feels designed — and failing.',
-   accent:'#a855f7',
-   brief:'SETTING: Glitching LitRPG reality. System warnings about sector instability. Dungeons loop, NPCs break script. The player alone notices. Tone: paranoid, unsettling, mystery-horror.'},
-  {id:'frontier',icon:'🌵',name:'The Last Frontier',tag:'POST-APOCALYPTIC · SURVIVAL',
-   desc:'The gods died fifty years ago. Survivor settlements, lawless frontier towns, monster-haunted ruins.',
-   accent:'#f97316',
-   brief:'SETTING: Post-god apocalypse. Frontier survival in ruins of the old world. Competing factions. The System predates the god-death. Tone: bleak but not hopeless, gritty, dark humour.'},
-  {id:'tournament',icon:'🏆',name:'The Eternal Tournament',tag:'ACTION · TIME-BENDING · ARENA',
-   desc:'Warriors from every era are pulled into a vast extradimensional arena. Each floor is a different time period.',
+  {id:'dragonlance',icon:'🐉',name:'Dragonlance — Krynn',tag:'EPIC FANTASY · WAR OF THE LANCE · D&D',
+   desc:'The Dragonarmies of the Dark Queen Takhisis sweep across Ansalon. The gods have only just returned after three centuries of silence. You are caught in the greatest war Krynn has ever seen.',
+   accent:'#dc2626',
+   brief:'SETTING: Dragonlance, world of Krynn, continent of Ansalon, during the War of the Lance (351 AC). The Cataclysm struck 351 years ago — a flaming mountain destroyed the empire of Istar for its arrogance, gods went silent, healing magic vanished. Now Takhisis the five-headed Dragon Queen returns through her Dragonarmies (Red, Blue, Green, Black, White dragon riders). Her Draconians — corrupted dragon eggs shaped into humanoid soldiers — fill her ranks. Factions: Knights of Solamnia (honour-bound defenders, distrusted since the Cataclysm), Mages of High Sorcery (White Robe/good, Red Robe/neutral, Black Robe/evil — must pass the deadly Test), Qualinesti and Silvanesti elves (isolationist, proud), Kender (small fearless folk immune to fear, irresistibly compelled to "borrow" others\' possessions). Key locations: Solace (town of vallenwood treehouses), Pax Tharkas (dwarven fortress), Tarsis (fallen city), Silvanesti (dream-corrupted elven homeland), Tower of High Sorcery at Palanthas. Gods of Good: Paladine (dragon god), Mishakal (healing). Gods of Evil: Takhisis. Tone: epic high fantasy, themes of faith and redemption, good vs evil with nuance, heroism from ordinary people. The dragonlance is the one weapon that can slay dragons in flight. Use authentic Dragonlance names and lore.'},
+  {id:'greyhawk',icon:'🏙️',name:'World of Greyhawk — Oerth',tag:'CLASSIC D&D · GRITTY · DUNGEON CRAWL',
+   desc:'Gary Gygax\'s original world. The Flanaess teeters on the edge of darkness — Iuz the Evil expands his demon-haunted empire, the Circle of Eight plays politics with lives, and the most lethal dungeons ever devised wait beneath the earth.',
+   accent:'#b45309',
+   brief:'SETTING: World of Greyhawk, the Flanaess on the continent of Oerik, planet Oerth. Year 576 CY (Common Year). Evil is ascendant — if heroes do nothing, the free lands fall. The Free City of Greyhawk is ruled by the Directing Oligarchy, a corrupt coalition of rich opportunists, led by a lord mayor with his own nefarious schemes. The Circle of Eight — archmages Mordenkainen, Bigby, Tenser, Otiluke and others — concern themselves with cosmic Balance, not justice. They will not help unless it suits their agenda. Threats: Iuz the Old, a demigod of evil who rules a demon-infested empire to the north, expanding relentlessly; the Scarlet Brotherhood (ascetic monk assassins with a philosophy of racial supremacy); the Temple of Elemental Evil (an ancient evil cult resurgent); Vecna (undead god of secrets). Iconic locations: Castle Greyhawk (the original megadungeon — bottomless, lethal, legendary), Tomb of Horrors (Acererak\'s death trap), Temple of Elemental Evil, the City of Greyhawk itself. Tone: gritty classic dungeon crawl, NPCs often untrustworthy, evil is ever-present and formidable, no benevolent authority will save you. Death is earned. Use authentic Greyhawk names.'},
+  {id:'starwars',icon:'⚔️',name:'Star Wars — A Galaxy Far Far Away',tag:'SCI-FANTASY · THE FORCE · GALACTIC EMPIRE',
+   desc:'Order 66 shattered the Jedi. The Galactic Empire rules through fear and iron. Force-sensitives hide in shadows or are hunted by Inquisitors. In the Outer Rim, the desperate, the exiled, and the brave carve out their own destiny.',
    accent:'#eab308',
-   brief:'SETTING: Extradimensional arena. Warriors from history compete on era-themed floors. The System IS the Tournament. Nobody knows who runs it. Tone: high-octane action, escalating mystery.'},
-  {id:'verdant',icon:'🌿',name:'The Verdant Corruption',tag:'NATURE-HORROR · SURVIVAL DREAD',
-   desc:'A spreading rot consumes the world. The System tracks your Corruption as a second resource — let it climb too high and something changes.',
-   accent:'#22c55e',
-   brief:'SETTING: Nature-horror. Corruption spreads, twisting flora and fauna into horrors. System tracks CORRUPTION alongside HP — low levels grant abilities, high levels change you. Tone: dread, body horror.'},
-  {id:'faerun',icon:'🏰',name:'Forgotten Realms — Faerûn',tag:'HIGH FANTASY · SWORD COAST · D&D',
-   desc:'The most storied world in D&D. Waterdeep, Baldur\'s Gate, the Underdark. Ancient magic, scheming factions, gods who walk the land.',
-   accent:'#6366f1',
-   brief:'SETTING: Forgotten Realms, Faerûn. Sword Coast locations: Waterdeep (City of Splendors), Baldur\'s Gate (gritty port), Neverwinter, Candlekeep, the Underdark. Factions: Harpers (fight tyranny), Zhentarim (criminal network), Lords\' Alliance, Red Wizards of Thay, Emerald Enclave. Magic flows through the Weave. Tone: epic high fantasy, heroism possible, ancient history. Use authentic Faerûn location names.'},
-  {id:'ravenloft',icon:'🧛',name:'Ravenloft — Domains of Dread',tag:'GOTHIC HORROR · DARKLORDS · MISTS',
-   desc:'You have been drawn into the Mists. Isolated gothic horror domains each ruled by a tortured Darklord. The Dark Powers watch everything.',
+   brief:'SETTING: Star Wars galaxy, Imperial Era — between the fall of the Republic and the Battle of Yavin (roughly 9 BBY). The Galactic Empire, under Emperor Palpatine and Darth Vader, rules through the Imperial Navy, Stormtroopers, and the brutal ISB (Imperial Security Bureau). The Inquisitorius — dark-side Force users — hunt Jedi survivors and Force-sensitives. Rebel cells are scattered, disorganised, and desperate. The Force is the System: Light Side abilities (healing, insight, persuasion, precognition) balanced by the Dark Side\'s power and corruption. Using the Dark Side grants strength but costs something. Key locations: Tatooine (twin-sunned Outer Rim desert, Mos Eisley cantina, Hutt criminal empire), Coruscant (the city-planet, Imperial seat of power), Lothal (Imperial-occupied frontier world), various Outer Rim worlds where the Empire\'s grip is looser. Factions: The Galactic Empire (overwhelming military force), early Rebel Alliance cells (desperate freedom fighters), Hutt criminal cartels, the Pyke Syndicate, bounty hunter guilds, Mandalorian clans. The System tracks Force Sensitivity, Heat (Imperial attention), and Reputation. Tone: gritty space opera, moral grey areas, hope against oppression, the Outer Rim is lawless and dangerous. Imperial officers are competent and ruthless. Use Star Wars terminology — credits, parsecs, hyperspace, blasters, lightsabers, the Force.'},
+  {id:'grimm',icon:'🍎',name:'The Grimm Realms — Dark Fairy Tales',tag:'DARK FANTASY · FAIRY TALE HORROR · TWISTED MAGIC',
+   desc:'Behind every fairy tale is a truth that was buried. The smiling kingdom is a lie. The Mermaid died and dissolved into sea foam. The stepsisters\' eyes were pecked out at the wedding. The Evil Queen danced in iron shoes until she fell. You have seen behind the Glamour.',
    accent:'#7c3aed',
-   brief:'SETTING: Ravenloft, Demiplane of Dread. The Mists separate domains. Dark Powers observe all. Key domain: Barovia — Strahd von Zarovich (first vampire, obsessed with Tatyana reincarnated endlessly), Castle Ravenloft, fog-shrouded villages, Vistani wanderers. Tone: gothic horror, dread over gore, atmosphere is everything, hope is fragile. Strahd is ancient and tragic, not simply evil.'},
+   brief:'SETTING: A twisted fairy-tale realm called the Grimm Realms, where the sanitised Disney versions of stories are a magical Glamour — a beautiful illusion maintained by an ancient, sinister power called the Story. The Story demands happy endings and punishes those who see the truth. Behind the Glamour: The Little Mermaid died, dissolved into sea foam after refusing to stab the Prince — her ghost haunts the shoreline. Snow White\'s Evil Queen was forced to dance in red-hot iron shoes at the wedding until she collapsed dead. Cinderella\'s stepsisters cut off toes and heels to fit the slipper; birds pecked their eyes out. Sleeping Beauty did not wake from true love\'s kiss — she was already pregnant with twins by a passing king. The Beast was cursed for genuine cruelty he never acknowledged. Peter Pan steals the life-force of the Lost Boys to stay young — they are his prisoners. The witch in the gingerbread house was herself once a child who got lost. The world looks like illustrated storybook — enchanted forests, gleaming castles, talking animals — but wrong. Animals speak in riddles. Royalty has hollow eyes. Magic always costs something gruesome. Factions: the Story Keepers (who maintain the Glamour and silence those who see through it), the Unglamoured (creatures and people who see the world as it truly is), the Wicked (those the Story has labelled villains — they know the truth, which is why they must be silenced), the Wanderers (travellers between tales). The System here tracks Glamour (your belief in the happy ending — lose it all and you see everything). Tone: dark fairy tale horror, sinister whimsy, beautiful and wrong. Every kindness may be a trap. Every villain has a point. Use fairy tale language and imagery but twist it toward dread.'},
+  {id:'faerun',icon:'🏰',name:'Forgotten Realms — Faerûn',tag:'HIGH FANTASY · SWORD COAST · D&D',
+   desc:'The most storied world in D&D. Waterdeep, Baldur\'s Gate, the Underdark. Ancient magic, scheming factions, gods who walk the land. Your legend begins on the Sword Coast.',
+   accent:'#6366f1',
+   brief:'SETTING: Forgotten Realms, Faerûn. Sword Coast locations: Waterdeep (City of Splendors — largest city on the Sword Coast, ruled by the Lords of Waterdeep), Baldur\'s Gate (gritty port city, corrupt patricians, Flaming Fist mercenaries), Neverwinter (City of Skilled Hands, recovering from catastrophe), Candlekeep (fortress library, greatest repository of knowledge), the Underdark (vast underground realm of drow, mind flayers, beholders). Factions: Harpers (secret network fighting tyranny and preserving knowledge), Zhentarim (ruthless mercantile criminal network, offer security at a price), Lords\' Alliance (coalition of political leaders protecting mutual interests), Red Wizards of Thay (tattooed mage supremacists seeking domination), Emerald Enclave (druids maintaining balance of nature), Order of the Gauntlet (holy warriors against evil). Magic flows through the Weave maintained by Mystra. Gods manifest through their Chosen. Tone: epic high fantasy, heroism is possible, ancient history and forgotten empires everywhere, moral complexity exists. Use authentic Faerûn location and NPC names.'},
+  {id:'ravenloft',icon:'🧛',name:'Ravenloft — Domains of Dread',tag:'GOTHIC HORROR · DARKLORDS · MISTS',
+   desc:'You have been drawn into the Mists. The Demiplane of Dread: isolated gothic horror domains each ruled by a tortured Darklord. The Dark Powers watch and reward evil — then curse those who commit it.',
+   accent:'#7c3aed',
+   brief:'SETTING: Ravenloft, Demiplane of Dread. The Dark Powers — ancient, unknowable entities — created this prison realm of gothic horror domains separated by the Mists. Each domain is ruled by a Darklord, a villain so terrible they were dragged here as punishment, given power over their domain but eternally denied what they desire most. Primary domain: Barovia — ruled by Strahd von Zarovich, the first vampire, ancient military genius who fell to darkness when he murdered his brother for love of Tatyana, a woman whose soul reincarnates endlessly but can never truly love him. Castle Ravenloft broods over fog-shrouded mountains. The village of Barovia is broken with despair. The Vistani are wandering seer-folk who alone can navigate the Mists. Death in Ravenloft risks the soul — the Dark Powers may offer dark bargains to prevent it. Other domains include Darkon (Azalin Rex the lich-king), Lamordia (Dr. Mordenheim and his creation), Kartakass (Harkon Lukas the werewolf bard). Tone: gothic horror, atmosphere and dread over gore, hope is fragile but precious, every respite may be temporary. The Mists are alive and purposeful. Strahd is brilliant, ancient, and genuinely tragic — not simply a monster. Use Ravenloft names and gothic horror atmosphere throughout.'},
   {id:'custom',icon:'✦',name:'Custom World',tag:'YOUR VISION · DEFINE EVERYTHING',
    desc:'Describe your own world. The DM anchors every scene, NPC, and lore entry to whatever premise you create.',
    accent:'#d4a853',brief:null}
@@ -1346,14 +1338,12 @@ function drawMap(){
 
 // ── SCENE IMAGERY (Pollinations.ai) ─────────────────────────
 const SCENE_STYLES={
-  'The Sunken Kingdoms':'flooded ruins, shallow inland sea, salvagepunk coastal, salt-weathered stone, grey skies, dark watercolour',
-  'The Iron Ascendancy':'grimdark empire architecture, oppressive stone, iron and blood, torchlit, desaturated palette',
-  'The Fractured System':'glitching digital reality, LitRPG aesthetic, corrupted environment, neon cracks in reality',
-  'The Last Frontier':'post-apocalyptic wasteland, dusty ruins, harsh light, frontier desolation',
-  'The Eternal Tournament':'extradimensional arena, era-clashing architecture, dramatic colosseum lighting',
-  'The Verdant Corruption':'nature horror, bioluminescent overgrowth, twisted organic forms, dark forest',
-  'Forgotten Realms — Faerûn':'high fantasy D&D environment, painterly, Sword Coast architecture, medieval splendour',
-  'Ravenloft — Domains of Dread':'gothic horror, dark mists, candlelight, expressionist shadows, Transylvanian dread'
+  'Dragonlance — Krynn':'epic high fantasy, Ansalon continent, dragonarmies banners, vallenwood trees, dramatic war-torn landscape, oil painting style',
+  'World of Greyhawk — Oerth':'classic D&D dungeon environment, medieval fantasy, gritty stonework, torchlit corridors, Flanaess wilderness',
+  'Star Wars — A Galaxy Far Far Away':'Star Wars environment, sci-fi, alien world, Imperial architecture, Outer Rim landscape, cinematic lighting',
+  'The Grimm Realms — Dark Fairy Tales':'dark fairy tale illustration, twisted storybook art, enchanted forest gone wrong, gothic whimsy, sinister beauty, Brothers Grimm aesthetic',
+  'Forgotten Realms — Faerûn':'high fantasy D&D environment, painterly, Sword Coast architecture, medieval splendour, Forgotten Realms style',
+  'Ravenloft — Domains of Dread':'gothic horror, dark mists, candlelight, expressionist shadows, Transylvanian dread, Ravenloft atmosphere'
 };
 const MOOD_STYLES={CALM:'soft light, peaceful atmosphere',TENSE:'dramatic shadows, uneasy',DANGEROUS:'dark, threatening, danger imminent',MYSTERIOUS:'ethereal mist, hidden secrets',EERIE:'unsettling, otherworldly silence',COMBAT:'battle chaos, smoke, violence'};
 let lastSceneLoc='',lastSceneMood='';
@@ -1401,14 +1391,12 @@ async function generateSceneImage(location,mood){
 // ── PORTRAIT ─────────────────────────────────────────────────
 function hashS(s){let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;}return Math.abs(h);}
 const W_IMG={
-  'The Sunken Kingdoms':'salvagepunk coastal ruins, salt-weathered, dark watercolour',
-  'The Iron Ascendancy':'grimdark empire, oppressive stone architecture, desaturated',
-  'The Fractured System':'glitch aesthetic, LitRPG digital, corrupted reality',
-  'The Last Frontier':'post-apocalyptic wasteland, harsh frontier, dusty ruins',
-  'The Eternal Tournament':'dramatic arena, cross-era warrior, colosseum lighting',
-  'The Verdant Corruption':'nature horror, bioluminescent corruption, twisted organic',
-  'Forgotten Realms — Faerûn':'high fantasy D&D art, painterly, Sword Coast architecture',
-  'Ravenloft — Domains of Dread':'gothic dark fantasy, candlelight, expressionist fog shadows'
+  'Dragonlance — Krynn':'Dragonlance D&D art style, epic high fantasy, Ansalon, dramatic war lighting, painterly fantasy portrait',
+  'World of Greyhawk — Oerth':'classic D&D art style, Greyhawk, gritty medieval fantasy portrait, dungeon aesthetic',
+  'Star Wars — A Galaxy Far Far Away':'Star Wars character portrait, cinematic sci-fi lighting, galactic empire era, concept art',
+  'The Grimm Realms — Dark Fairy Tales':'dark fairy tale character portrait, Brothers Grimm illustration style, twisted storybook gothic',
+  'Forgotten Realms — Faerûn':'Forgotten Realms D&D character portrait, high fantasy, Sword Coast, painterly illustration',
+  'Ravenloft — Domains of Dread':'gothic horror character portrait, Ravenloft, candlelight, dark expressionist atmosphere'
 };
 async function genPortrait(attempt){
   attempt=attempt||0;
