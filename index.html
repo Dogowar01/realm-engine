@@ -473,7 +473,7 @@ input:focus,textarea:focus{border-color:var(--gdim)}
     <label class="f-lbl" for="api-in">ANTHROPIC API KEY</label>
     <input type="password" id="api-in" placeholder="sk-ant-...">
     <div style="margin-top:.5rem">
-      <label class="f-lbl" for="proxy-in" style="color:var(--amber)">PROXY URL <span style="color:var(--text2);font-size:.55rem">(required for iOS Safari — needed on iOS/Safari)</span></label>
+      <label class="f-lbl" for="proxy-in" style="opacity:.7">PROXY URL <span style="color:var(--text2);font-size:.52rem">(optional — leave empty if direct connection works — needed on iOS/Safari)</span></label>
       <input type="text" id="proxy-in" placeholder="https://your-worker.workers.dev" style="font-size:.75rem">
       <div style="font-family:var(--fm);font-size:.56rem;color:var(--text2);margin-top:.3rem;line-height:1.6">
         Getting "Invalid response format"? Deploy the free Cloudflare Worker proxy (see instructions file).
@@ -927,7 +927,7 @@ async function ai(msgs,sys,json,maxTok){
   if(!G.proxyUrl){G.proxyUrl=loadProxy();}
   const body={model:'claude-sonnet-4-6',max_tokens:maxTok,messages:msgs};
   if(sys)body.system=sys;
-  const proxy=G.proxyUrl?G.proxyUrl.replace(/\/+$/,''):'';
+  const proxy=(G.proxyUrl||'').replace(/\/+$/,'');
   const endpoint=proxy||'https://api.anthropic.com/v1/messages';
   const headers={'Content-Type':'application/json','x-api-key':G.apiKey,'anthropic-version':'2023-06-01'};
   if(!proxy)headers['anthropic-dangerous-direct-browser-access']='true';
@@ -1933,17 +1933,32 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   // Test API
   const bt=id('btn-test');if(bt)bt.addEventListener('click',async()=>{
-    const k=(id('api-in')?.value||'').trim();const res=id('test-res');
+    const k=(id('api-in')?.value||'').trim();
+    const pv=(id('proxy-in')?.value||'').trim();
+    const res=id('test-res');
     if(!k){if(res){res.style.color='var(--red)';res.textContent='Enter your API key first.';}return;}
     if(!k.startsWith('sk-ant-')){if(res){res.style.color='var(--red)';res.textContent='Key should start with sk-ant-';}return;}
-    G.apiKey=k;
-    const pv=(id('proxy-in')?.value||'').trim();G.proxyUrl=pv;
-    patchFetch();if(res){res.style.color='var(--text2)';res.textContent='Testing'+(pv?' via proxy':'')+'...';}
+    if(!pv){if(res){res.style.color='var(--red)';res.textContent='Enter proxy URL first.';}return;}
+    // Save both
+    G.apiKey=k;G.proxyUrl=pv;saveKey(k);saveProxy(pv);
+    if(res){res.style.color='var(--text2)';res.textContent='Testing via '+pv+'...';}
+    // Raw fetch — identical to the working diagnostic
     try{
-      const pu3=(id('proxy-in')?.value||'').trim();G.proxyUrl=pu3;
-      const resp=await ai([{role:'user',content:'Reply with only the word OK'}],'Reply with only OK.',false,50);
-      if(res){res.style.color='var(--green)';res.textContent='✓ Connected! Model responded: '+resp.slice(0,30);}
-    }catch(e){if(res){res.style.color='var(--red)';res.textContent='✗ '+e.message;}}
+      const r=await fetch(pv,{
+        method:'POST',
+        headers:{'Content-Type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01'},
+        body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:20,messages:[{role:'user',content:'Say: WORKING'}]})
+      });
+      const txt=await r.text();
+      if(r.ok){
+        const d=JSON.parse(txt);
+        if(res){res.style.color='var(--green)';res.textContent='✓ Connected! '+( d.content?.[0]?.text||'OK');}
+      } else {
+        if(res){res.style.color='var(--red)';res.textContent='HTTP '+r.status+': '+txt.slice(0,100);}
+      }
+    }catch(e){
+      if(res){res.style.color='var(--red)';res.textContent='✗ '+e.name+': '+e.message;}
+    }
   });
 
   // New game
@@ -1981,11 +1996,8 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(world.id==='custom'){const ct=(id('custom-ta')?.value||'').trim();if(!ct){const we=id('world-err');if(we)we.textContent='Please describe your custom world.';return;}G.premiseCustom=ct;}
     G.premise=world;
     bwo.disabled=true;bwo.textContent='SUMMONING HEROES...';const we=id('world-err');if(we)we.textContent='';
-    // Re-check proxy — must be set for iOS to work
-    if(!G.proxyUrl){const sp=loadProxy();if(sp){G.proxyUrl=sp;}else{
-      if(we)we.textContent='Proxy URL required. Go back and enter your Worker URL below the API key.';
-      bwo.disabled=false;bwo.textContent='ENTER THIS WORLD';return;
-    }}
+    // Re-check proxy from storage if set
+    if(!G.proxyUrl){G.proxyUrl=loadProxy();}
     try{
       const opts=await genChars();G.charOpts=opts;
       const sw=id('s-world');if(sw)sw.classList.add('gone');const sc=id('s-create');if(sc)sc.classList.remove('gone');
