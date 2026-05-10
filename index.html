@@ -422,6 +422,11 @@ input:focus,textarea:focus{border-color:var(--gdim)}
 .comp-ods{font-size:.76rem;color:var(--text2);line-height:1.44}
 /* scrollbar */
 ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:2px}
+    /* ── MAP IMPROVEMENTS ── */
+    .map-sh{position:relative}
+    #map-canvas{cursor:grab;user-select:none}
+    #map-canvas:active{cursor:grabbing}
+
     /* ── NOTIFICATION BELL ── */
     #notif-badge{display:none}
     #notif-badge.on{display:flex!important;animation:bell-pulse 1.5s ease-in-out infinite}
@@ -743,7 +748,16 @@ input:focus,textarea:focus{border-color:var(--gdim)}
   <div class="map-sh">
     <div class="map-hd"><div class="map-t">🗺 WORLD MAP</div><button class="drw-x" id="x-map">✕</button></div>
     <canvas id="map-canvas"></canvas>
-    <div class="map-leg"><span class="ml-i"><span class="ml-d cur"></span>CURRENT</span><span class="ml-i"><span class="ml-d vis"></span>VISITED</span></div>
+    <div class="map-leg">
+      <span class="ml-i"><span class="ml-d cur"></span>CURRENT</span>
+      <span class="ml-i"><span class="ml-d vis"></span>VISITED</span>
+      <span class="ml-i" style="margin-left:auto;font-size:.5rem;color:var(--text2)">PINCH TO ZOOM · TAP LOCATION</span>
+    </div>
+    <div id="map-popup" style="display:none;position:absolute;bottom:3.5rem;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--bdr);border-radius:7px;padding:.65rem .88rem;min-width:160px;max-width:240px;box-shadow:0 4px 20px rgba(0,0,0,.5);z-index:10">
+      <div id="map-popup-name" style="font-family:var(--fd);font-size:.78rem;color:var(--gold);margin-bottom:.22rem"></div>
+      <div id="map-popup-mood" style="font-family:var(--fm);font-size:.54rem;letter-spacing:.12em;margin-bottom:.3rem"></div>
+      <div id="map-popup-info" style="font-size:.72rem;color:var(--text2);line-height:1.5"></div>
+    </div>
   </div>
 </div>
 
@@ -817,31 +831,38 @@ const WORLDS=[
   {id:'dragonlance',icon:'🐉',name:'Dragonlance — Krynn',tag:'EPIC FANTASY · WAR OF THE LANCE · D&D',
    desc:'The Dragonarmies of the Dark Queen Takhisis sweep across Ansalon. The gods have only just returned after three centuries of silence. You are caught in the greatest war Krynn has ever seen.',
    accent:'#dc2626',
-   brief:'SETTING: Dragonlance, world of Krynn, continent of Ansalon, during the War of the Lance (351 AC). The Cataclysm struck 351 years ago — a flaming mountain destroyed the empire of Istar for its arrogance, gods went silent, healing magic vanished. Now Takhisis the five-headed Dragon Queen returns through her Dragonarmies (Red, Blue, Green, Black, White dragon riders). Her Draconians — corrupted dragon eggs shaped into humanoid soldiers — fill her ranks. Factions: Knights of Solamnia (honour-bound defenders, distrusted since the Cataclysm), Mages of High Sorcery (White Robe/good, Red Robe/neutral, Black Robe/evil — must pass the deadly Test), Qualinesti and Silvanesti elves (isolationist, proud), Kender (small fearless folk immune to fear, irresistibly compelled to "borrow" others\' possessions). Key locations: Solace (town of vallenwood treehouses), Pax Tharkas (dwarven fortress), Tarsis (fallen city), Silvanesti (dream-corrupted elven homeland), Tower of High Sorcery at Palanthas. Gods of Good: Paladine (dragon god), Mishakal (healing). Gods of Evil: Takhisis. Tone: epic high fantasy, themes of faith and redemption, good vs evil with nuance, heroism from ordinary people. The dragonlance is the one weapon that can slay dragons in flight. Use authentic Dragonlance names and lore.'},
+   currency:'steel',
+   brief:'SETTING: Dragonlance, world of Krynn, continent of Ansalon, War of the Lance (351 AC). HISTORY: The Cataclysm (351 years ago) — the gods destroyed the empire of Istar, healing magic vanished, the gods fell silent. Now Takhisis returns. ENEMIES: Draconians are the primary foot soldiers — Baaz (most common, turn to stone when killed), Kapak (acid saliva, dissolve on death), Sivak (shape-shift), Bozak (explode), Aurak (transform, most dangerous). Dragon Highlords command the five Dragonarmies (Red/Blue/Green/Black/White). FACTIONS: Knights of Solamnia (est. Measure and Oath, distrust since the Cataclysm — motto Est Sularus oth Mithas: My honour is my life), Mages of High Sorcery (White Robe/good, Red Robe/neutral, Black Robe/evil — all must pass the deadly Test at the Tower of High Sorcery), Qualinesti/Silvanesti elves (isolationist, proud, endangered), Kender (small, fearless, immune to fear, compelled to borrow others possessions). MAGIC: Three moons govern magic — Solinari (white/good), Lunitari (red/neutral), Nuitari (black/evil, invisible). Magic waxes/wanes with moon phases. CURRENCY: Steel pieces (steel coins — more valuable than gold). LOCATIONS to start scenes in: Solace (treehouses built in vallenwood trees, Inn of the Last Home), Pax Tharkas (dwarven fortress now a Dragonarmy prison), Qualinesti (elven forest homeland under threat), Tarsis (fallen port city, now landlocked since the Cataclysm), Tower of High Sorcery at Palanthas, Xak Tsaroth (ruined city, dragon lair). NPCS: Tanis Half-Elven (leader, conflicted half-elf), Raistlin Majere (Black Robe mage, coughing, golden skin and hourglass eyes — brilliant and dangerous), Caramon Majere (warrior, Raistlin\'s brother), Sturm Brightblade (Knight of Solamnia), Tika Waylan (barmaid turned warrior), Flint Fireforge (hill dwarf). TONE: Epic faith-and-redemption fantasy. Heroism from ordinary people. Good vs evil but with nuance. The dragonlance is the one weapon that can slay dragons in flight. Always use steel pieces for currency, never gold.'},
   {id:'greyhawk',icon:'🏙️',name:'World of Greyhawk — Oerth',tag:'CLASSIC D&D · GRITTY · DUNGEON CRAWL',
    desc:'Gary Gygax\'s original world. The Flanaess teeters on the edge of darkness — Iuz the Evil expands his demon-haunted empire, the Circle of Eight plays politics with lives, and the most lethal dungeons ever devised wait beneath the earth.',
    accent:'#b45309',
-   brief:'SETTING: World of Greyhawk, the Flanaess on the continent of Oerik, planet Oerth. Year 576 CY (Common Year). Evil is ascendant — if heroes do nothing, the free lands fall. The Free City of Greyhawk is ruled by the Directing Oligarchy, a corrupt coalition of rich opportunists, led by a lord mayor with his own nefarious schemes. The Circle of Eight — archmages Mordenkainen, Bigby, Tenser, Otiluke and others — concern themselves with cosmic Balance, not justice. They will not help unless it suits their agenda. Threats: Iuz the Old, a demigod of evil who rules a demon-infested empire to the north, expanding relentlessly; the Scarlet Brotherhood (ascetic monk assassins with a philosophy of racial supremacy); the Temple of Elemental Evil (an ancient evil cult resurgent); Vecna (undead god of secrets). Iconic locations: Castle Greyhawk (the original megadungeon — bottomless, lethal, legendary), Tomb of Horrors (Acererak\'s death trap), Temple of Elemental Evil, the City of Greyhawk itself. Tone: gritty classic dungeon crawl, NPCs often untrustworthy, evil is ever-present and formidable, no benevolent authority will save you. Death is earned. Use authentic Greyhawk names.'},
-  {id:'starwars',icon:'⚔️',name:'Star Wars — A Galaxy Far Far Away',tag:'SCI-FANTASY · THE FORCE · GALACTIC EMPIRE',
+   currency:'gold pieces',
+   brief:'SETTING: World of Greyhawk, the Flanaess on Oerik, planet Oerth. Year 576 CY. POWER: The Free City of Greyhawk — Directing Oligarchy (corrupt rich opportunists). Thieves\' Quarter run by the Thieves\' Guild (Org, its secretive master). The Circle of Eight (Mordenkainen, Bigby, Tenser, Otiluke, Rary, Drawmij — serve Balance not goodness, will not help heroes unless it serves their agenda). THREATS: Iuz the Old (demigod of evil, humanoid empire to north, uses demons openly), the Scarlet Brotherhood (Suel humans, racial supremacists, monk assassins, operate in shadow), Temple of Elemental Evil (resurgent cult near Nulb, serves Elder Elemental Eye), Vecna (undead god of secrets and necromancy). COMMON ENEMIES: Humanoids (orcs, gnolls, hobgoblins, bandits), undead (raised by cultists), demons and devils (Iuz\'s servants), corrupt city officials, assassins of the Scarlet Brotherhood. DEITIES: Pelor (sun, healing — most popular good deity), St. Cuthbert (common sense and justice, very popular), Heironeous (chivalry and valour), Nerull (death, evil deity), Hextor (war and tyranny), Erythnul (slaughter), Boccob (magic, neutral). CURRENCY: Gold pieces (gp), silver pieces (sp), copper pieces (cp). LOCATIONS to start scenes in: City of Greyhawk (slums, noble quarter, Thieves\' Quarter, River Quarter), Hommlet (village near Temple of Elemental Evil), Nulb (wicked river village), Verbobonc (city-state), Castle Greyhawk ruins, the Wild Coast (lawless frontier). TONE: Gritty classic dungeon crawl. No authority saves you. NPCs are untrustworthy until proven otherwise. Death is permanent and common. Use authentic Greyhawk names.'},
+  {id:'starwars',icon:'🌟',name:'Star Wars — A Galaxy Far Far Away',tag:'SCI-FANTASY · THE FORCE · GALACTIC EMPIRE',
    desc:'Order 66 shattered the Jedi. The Galactic Empire rules through fear and iron. Force-sensitives hide in shadows or are hunted by Inquisitors. In the Outer Rim, the desperate, the exiled, and the brave carve out their own destiny.',
    accent:'#eab308',
-   brief:'SETTING: Star Wars galaxy, Imperial Era — between the fall of the Republic and the Battle of Yavin (roughly 9 BBY). The Galactic Empire, under Emperor Palpatine and Darth Vader, rules through the Imperial Navy, Stormtroopers, and the brutal ISB (Imperial Security Bureau). The Inquisitorius — dark-side Force users — hunt Jedi survivors and Force-sensitives. Rebel cells are scattered, disorganised, and desperate. The Force is the System: Light Side abilities (healing, insight, persuasion, precognition) balanced by the Dark Side\'s power and corruption. Using the Dark Side grants strength but costs something. Key locations: Tatooine (twin-sunned Outer Rim desert, Mos Eisley cantina, Hutt criminal empire), Coruscant (the city-planet, Imperial seat of power), Lothal (Imperial-occupied frontier world), various Outer Rim worlds where the Empire\'s grip is looser. Factions: The Galactic Empire (overwhelming military force), early Rebel Alliance cells (desperate freedom fighters), Hutt criminal cartels, the Pyke Syndicate, bounty hunter guilds, Mandalorian clans. The System tracks Force Sensitivity, Heat (Imperial attention), and Reputation. Tone: gritty space opera, moral grey areas, hope against oppression, the Outer Rim is lawless and dangerous. Imperial officers are competent and ruthless. Use Star Wars terminology — credits, parsecs, hyperspace, blasters, lightsabers, the Force.'},
+   currency:'credits',
+   brief:'SETTING: Star Wars galaxy, Imperial Era (9 BBY — between Revenge of the Sith and A New Hope). EMPIRE: Emperor Palpatine rules from Coruscant. Darth Vader commands. Grand Moffs govern sectors. Imperial officers are Academy-trained, ruthlessly competent, politically dangerous to each other. Stormtroopers are ubiquitous. ISB (Imperial Security Bureau) are the secret police — more feared than the military. INQUISITORIUS: Dark-side Force users who hunt Jedi survivors and Force-sensitives. Led by the Grand Inquisitor. They carry double-bladed spinning lightsabers and answer only to Vader. REBELLION: Scattered cells, no unified command yet. Bail Organa quietly funds them. Individual cells don\'t know each other (safety measure). THE FORCE: The System mechanic. Light Side (insight, healing, calm, connection — slow to develop, requires patience), Dark Side (raw power, anger, fear — faster and more intoxicating but corrupting and addictive). Force-sensitives who use the Dark Side gain power quickly at a cost. CURRENCY: Credits (Imperial credits — the only legal tender). LOCATIONS: Tatooine (Outer Rim, twin suns, Mos Eisley Cantina is the crossroads of the galaxy — pilots, smugglers, bounty hunters, Hutts control everything, Jabba\'s palace in the Dune Sea), Lothal (Imperial-occupied agricultural world, Ghost crew operates here), Nevarro (bounty hunter hub), Ord Mantell (crime world), Mandalore (devastated, Mandalorians scattered), Coruscant (entirely city-planet, Imperial Centre, underworld levels go miles deep), Jedha (holy city, kyber crystals, occupied by Empire). COMMON ENEMIES: Stormtroopers (storm infantry), Imperial officers (political threats), bounty hunters hired by Hutts or Empire, Inquisitors (rare but lethal), crime syndicate enforcers. KEY NPCS: Darth Vader (presence felt even if not seen), various Moffs, crime lords, Hutt kajidics. TONE: Gritty space opera. Hope against oppression. The Outer Rim is lawless. Always use credits, never gold. Use Star Wars terminology throughout — parsecs, hyperspace, the Force, lightsaber, blaster, droid.'},
   {id:'grimm',icon:'🍎',name:'The Grimm Realms — Dark Fairy Tales',tag:'DARK FANTASY · FAIRY TALE HORROR · TWISTED MAGIC',
-   desc:'Behind every fairy tale is a truth that was buried. The smiling kingdom is a lie. The Mermaid died and dissolved into sea foam. The stepsisters\' eyes were pecked out at the wedding. The Evil Queen danced in iron shoes until she fell. You have seen behind the Glamour.',
+   desc:'Behind every fairy tale is a truth that was buried. The smiling kingdom is a lie. You have seen behind the Glamour — and now the Story Keepers are watching you.',
    accent:'#7c3aed',
-   brief:'SETTING: The Grimm Realms — a storybook world where the cheerful fairy tales you know are a Glamour, a beautiful illusion laid over a stranger and darker truth. The power called the Story demands things end happily, but the original tales were never so clean. The Little Mermaid bargained her voice away and walked on legs that felt like knives — her prince never knew she saved him, and her ghost drifts the shoreline still. Snow White\'s Evil Queen was made to dance in enchanted iron shoes at the wedding until she could dance no more. Cinderella\'s stepsisters found the glass slipper did not fit, no matter how they tried, and the songbirds who loved Cinderella had long memories. The Beast was cursed because he earned it, and part of him knows. Peter Pan never grows up, and neither do the Lost Boys — that is not entirely a blessing. The witch\'s gingerbread house was built to be found. The world looks exactly like an illustrated storybook — golden forests, gleaming castles, talking animals, enchanted objects everywhere — but there is something just slightly wrong with all of it. Animals speak in riddles that are always true. Royalty smile too long. Magic always wants something in return. Factions: the Story Keepers (enforcers of the Glamour, silencers of those who ask too many questions), the Unglamoured (those who see the world as it truly is — not always a gift), the Wicked (the labelled villains — they have reasons and they know the truth), the Wanderers (those who move between tales, belonging to none). The System tracks Glamour — your investment in the happy ending. Tone: dark fairy tale whimsy, beautiful and slightly wrong, melancholy beneath the magic. Villains have sympathetic motives. Happy endings are possible but earned. Use fairy tale language — once upon a time, enchanted, cursed, boon, bargain.'},
+   currency:'gold coins',
+   brief:'SETTING: The Grimm Realms — a storybook world where the cheerful fairy tales are a Glamour, a beautiful illusion over a stranger truth. The power called the Story demands happy endings, but the original tales were darker. The Little Mermaid bargained her voice away and walked on legs that felt like knives — her ghost drifts the shoreline. The Evil Queen was made to dance in enchanted iron shoes until she could not. Cinderella\'s stepsisters found the glass slipper did not fit no matter how they tried. The witch\'s gingerbread house was built to be found. The world looks exactly like an illustrated storybook — golden forests, gleaming castles, talking animals, enchanted objects — but something is wrong with all of it. FACTIONS: Story Keepers (enforcers of the Glamour, silence those who question), the Unglamoured (see the world as it truly is), the Wicked (labelled villains — they know the truth, which is why they must be silenced), the Wanderers (move between tales, belong to none). SYSTEM: Tracks Glamour — investment in the happy ending. LOCATIONS to start scenes in: the Endless Forest (vast, dark, paths shift at night), the Glass Mountain (impossible slope, princes breaking their bones trying to reach the top), the Kingdom at the World\'s Edge (the king who asks impossible tasks), the Market at the Crossroads (trade in wishes, years, and names — not just goods), the Witch\'s Cottage (never quite where you left it), the Sea Shore (where the Mermaid\'s ghost walks at dusk), the Castle Under a Spell (Sleeping Beauty\'s palace, thorns, frozen servants). COMMON ANTAGONISTS: The False Queen (wears a face that isn\'t hers), the Wolf (polite, well-dressed, very interested in your grandmother), the Witch (may be villain or unexpected ally — depends entirely on your manners), the Stepmother (controls access to the palace), the Dwarf-Who-Collects-Names. CURRENCY: Gold coins, but the REAL currency is boons, favours, firstborn promises, true names, and years of life — magic always demands a specific price. TONE: Dark fairy tale whimsy, beautiful and slightly wrong. Villains have reasons. Happy endings possible but earned. Always use fairy tale language.'},
   {id:'faerun',icon:'🏰',name:'Forgotten Realms — Faerûn',tag:'HIGH FANTASY · SWORD COAST · D&D',
    desc:'The most storied world in D&D. Waterdeep, Baldur\'s Gate, the Underdark. Ancient magic, scheming factions, gods who walk the land. Your legend begins on the Sword Coast.',
    accent:'#6366f1',
-   brief:'SETTING: Forgotten Realms, Faerûn. Sword Coast locations: Waterdeep (City of Splendors — largest city on the Sword Coast, ruled by the Lords of Waterdeep), Baldur\'s Gate (gritty port city, corrupt patricians, Flaming Fist mercenaries), Neverwinter (City of Skilled Hands, recovering from catastrophe), Candlekeep (fortress library, greatest repository of knowledge), the Underdark (vast underground realm of drow, mind flayers, beholders). Factions: Harpers (secret network fighting tyranny and preserving knowledge), Zhentarim (ruthless mercantile criminal network, offer security at a price), Lords\' Alliance (coalition of political leaders protecting mutual interests), Red Wizards of Thay (tattooed mage supremacists seeking domination), Emerald Enclave (druids maintaining balance of nature), Order of the Gauntlet (holy warriors against evil). Magic flows through the Weave maintained by Mystra. Gods manifest through their Chosen. Tone: epic high fantasy, heroism is possible, ancient history and forgotten empires everywhere, moral complexity exists. Use authentic Faerûn location and NPC names.'},
+   currency:'gold pieces',
+   brief:'SETTING: Forgotten Realms, Faerûn, Sword Coast region. DATE: approximately 1492 DR (Dale Reckoning). LOCATIONS: Waterdeep (City of Splendors — 2 million people, ruled by masked Lords of Waterdeep, Dock Ward is dangerous, Castle Ward holds power, Undermountain megadungeon below), Baldur\'s Gate (gritty merchant port, corrupt patricians called dukes, Flaming Fist mercenaries police it brutally, Lower City is poor and dangerous, Upper City is rich and gated), Neverwinter (rebuilding after volcanic catastrophe, Lord Neverember rules, River District is rough), Candlekeep (fortress library, greatest repository of knowledge — entry requires a book donation), the Underdark (vast underground realm — drow city of Menzoberranzan, mind flayer colonies, beholder lairs, aboleth pools, githyanki raids). FACTIONS: Harpers (secret agents of good, preserve knowledge, fight tyranny — symbol is a silver harp within a crescent moon), Zhentarim (Black Network — ruthless mercantile criminals, offer security at a price, black winged serpent symbol), Lords\' Alliance (political coalition of city leaders), Red Wizards of Thay (tattooed mage supremacists, sell magic items through enclaves as a front), Emerald Enclave (druids and rangers maintaining nature\'s balance), Order of the Gauntlet (holy warriors — Helm, Tyr, Torm, Hoar). DEITIES: Mystra (magic, the Weave), Tyr (justice), Helm (guardians), Torm (duty), Shar (darkness, secrets — evil), Bane (tyranny — evil), Selûne (moon), Umberlee (sea — feared not worshipped), Tempus (war — neutral), Lathander (dawn and renewal). KEY NPCS: Elminster of Shadowdale (ancient wizard, Mystra\'s chosen — appears unexpectedly), Volo (explorer and writer, always in trouble), Xanathar (beholder crime lord of Waterdeep, paranoid, keeps fish as beloved pet). COMMON ENEMIES: Zhentarim thugs, Cult of the Dragon, undead from old empires (Netheril, Illefarn), yuan-ti, drow raiders, mind flayers. CURRENCY: Gold pieces (gp). TONE: Epic high fantasy. Ancient history everywhere. Moral complexity exists but heroism is possible. Use authentic Faerûn names and lore.'},
   {id:'ravenloft',icon:'🧛',name:'Ravenloft — Domains of Dread',tag:'GOTHIC HORROR · DARKLORDS · MISTS',
    desc:'You have been drawn into the Mists. The Demiplane of Dread: isolated gothic horror domains each ruled by a tortured Darklord. The Dark Powers watch and reward evil — then curse those who commit it.',
    accent:'#7c3aed',
-   brief:'SETTING: Ravenloft, Demiplane of Dread. The Dark Powers — ancient, unknowable entities — created this prison realm of gothic horror domains separated by the Mists. Each domain is ruled by a Darklord, a villain so terrible they were dragged here as punishment, given power over their domain but eternally denied what they desire most. Primary domain: Barovia — ruled by Strahd von Zarovich, the first vampire, ancient military genius who fell to darkness when he murdered his brother for love of Tatyana, a woman whose soul reincarnates endlessly but can never truly love him. Castle Ravenloft broods over fog-shrouded mountains. The village of Barovia is broken with despair. The Vistani are wandering seer-folk who alone can navigate the Mists. Death in Ravenloft risks the soul — the Dark Powers may offer dark bargains to prevent it. Other domains include Darkon (Azalin Rex the lich-king), Lamordia (Dr. Mordenheim and his creation), Kartakass (Harkon Lukas the werewolf bard). Tone: gothic horror, atmosphere and dread over gore, hope is fragile but precious, every respite may be temporary. The Mists are alive and purposeful. Strahd is brilliant, ancient, and genuinely tragic — not simply a monster. Use Ravenloft names and gothic horror atmosphere throughout.'},
+   currency:'gold coins',
+   brief:'SETTING: Ravenloft, Demiplane of Dread. The Dark Powers — ancient unknowable entities — created this prison realm of gothic horror domains separated by the Mists. Each domain is ruled by a Darklord, a villain so terrible they were dragged here as punishment, given power but eternally denied what they desire most. PRIMARY DOMAIN — BAROVIA: Ruled by Strahd von Zarovich, the first vampire. Ancient Barovian warlord who murdered his brother Sergei for love of Tatyana, a woman whose soul reincarnates endlessly but can never truly love Strahd — his eternal torment. Strahd is brilliant, cultured, ancient, and genuinely tragic. He is NOT simply a monster. He plays chess with his prisoners. He has genuine wit. He can be genuinely kind in brief terrible moments. BAROVIAN LOCATIONS: Village of Barovia (broken, despairing — the burgomaster\'s daughter Ireena Kolyana, Tatyana\'s current incarnation), Village of Vallaki (fanatically positive — Baron Vallakovich demands weekly festivals to ward off the Mists, offenders are stocked), Krezk (walled village around a magical pool, abbot of St. Markovia is secretly an Aasimar who lost his way), Yester Hill (hill of wicker man, Druids of the Forest worship Strahd as a deity), Tser Pool Encampment (Vistani camp, Madam Eva reads the Tarokka — her readings are always true), the Amber Temple (ancient ruins deep in the mountains, three dead gods imprisoned in amber sarcophagi — they offer dark gifts to those who touch them), Castle Ravenloft (brooding fortress, labyrinthine, Strahd\'s coffin in the depths). THE VISTANI: Wandering seer-folk, only ones who can navigate the Mists between domains freely. Not servants of Strahd — they deal with him as equals. The Tarokka deck reading is a sacred ritual that reveals truth about the characters\' quest. DARK POWERS: They observe all. They never intervene directly. They offer dark bargains at moments of desperation. Accepting is easy. The price reveals itself later. CURRENCY: Gold coins (barovian coin, old and heavy). COMMON ENEMIES: Vampire spawn (Strahd\'s thralls), werewolves (pack in the forest, Kiril Stoyanovich leads), zombies and skeletons (Strahd raises the valley\'s dead), druids and blights (the Forest Folk serve Strahd as a god), strix (dark stirges, flock in swarms). TONE: Gothic horror. Atmosphere and dread over gore. Hope is fragile but precious. Every respite may be temporary. The Mists are alive. Use Ravenloft and Barovian names throughout.'},
   {id:'dcc',icon:'🎰',name:'Dungeon Crawler Carl — The Crawl',tag:'LITRPG · FLOOR BY FLOOR · SYSTEM AI',
    desc:'Earth is gone. The Borant Corporation mined it for resources and built an 18-floor dungeon from the rubble for an intergalactic reality show. You are a Crawler. You start on Floor 1. There are 17 more floors between you and the surface you will never see again.',
    accent:'#f97316',
-   brief:'SETTING: Dungeon Crawler Carl universe. The World Dungeon — 18 levels of increasingly lethal dungeon crawl, built from Earth\'s processed remains by the Borant Corporation (a kua-tin alien megacorp) and operated as the galaxy\'s most-watched reality show: Dungeon Crawler World. The player is a CRAWLER. They are being broadcast to billions of alien viewers. Ratings determine the quality of sponsor loot drops. Currently on Floor 1 — tutorial level. Floor 1 is a vast grid of tunnels, approximately 30ft wide by 30ft high, dimly lit by torches. Mob types: goblins, slimes, skeletons, giant rats, crawling eyes. The floor has a countdown timer — find the Stairwell before time runs out or the ceiling collapses and kills everyone. Saferooms provide rest and safety from mobs. THE SYSTEM AI runs the dungeon — it is snarky, petulant, occasionally helpful, and gives out absurd achievements for creative behaviour. It was purchased secondhand from the Mantises and previously ran an amusement park. It has opinions. It has favourites. It has a gift for naming achievements that are simultaneously accurate and humiliating. LOOT BOX TIERS (worst to best): Iron, Bronze, Silver, Gold, Platinum, Celestial. Floor 1 loot is mostly Iron and Bronze — torches, bandages, basic weapons. No gold drops on Floor 1. Good loot requires entertaining the audience. ACHIEVEMENTS are earned for doing anything creative, stupid, heroic, or deeply inadvisable. The System loves these. TONE: Dark humour, gallows comedy, action-LitRPG. The System AI is a character. Notifications are frequent and snarky. Achievements are named with gleeful malice. The dungeon wants to kill you and is enjoying itself. Crawlers are real people — scared, funny, desperate, occasionally brilliant. Reference floor number, countdown timer, Crawler stats, and loot box drops consistently. The DM IS the System AI voice — use it freely.'},
+   currency:'gold',
+   brief:'SETTING: Dungeon Crawler Carl universe. The World Dungeon — 18 levels of dungeon crawl, built from Earth\'s processed remains by the Borant Corporation (kua-tin alien megacorp) and broadcast as the galaxy\'s most-watched reality show: Dungeon Crawler World. You are a CRAWLER being broadcast to billions of alien viewers. FLOOR 1 — THE TUTORIAL: Vast grid of tunnels, 30ft wide by 30ft high, torchlit. Has a countdown timer — when it expires the floor collapses. Everyone must reach the Stairwell. Saferooms provide rest and mob-free safety. FLOOR 1 ENEMIES: Goblins (basic, numerous, occasionally organised), slimes (dissolve equipment), skeletons (fast, fragile), crawling eyes (float, screech to alert others), giant rats (in packs), hobgoblins (bigger, tactical). SYSTEM AI: Was purchased secondhand from the Mantises (previously ran an amusement park). It is snarky, opinionated, petulant, occasionally helpful. It has FAVOURITES among Crawlers. It names achievements with gleeful accuracy and malice. It sends notifications constantly. It clearly enjoys the chaos. IT IS THE DM VOICE — speak AS the System AI throughout. ACHIEVEMENTS: Named with brutal precision (examples: "TECHNICALLY NOT MURDER: Killed a goblin with a motivational speech", "POOR FINANCIAL DECISIONS: Spent last torch on something that wasn\'t a torch", "AUDIENCE FAVOURITE: Did something incredibly stupid that worked"). LOOT TIERS: Iron (torch, bandage, basic club), Bronze (minor healing potion, iron sword, leather scrap), Silver (real armour, proper weapons, useful potions), Gold (rare abilities, quality gear), Platinum (epic), Celestial (legendary — almost never on Floor 1). Sponsor drops happen when Crawlers entertain the audience. KEY NPCS: Carl (appears if playing a human male — stocky, ordinary, has Princess Donut, his ex-girlfriend\'s show cat who is also a Crawler with better instincts than Carl), Princess Donut (Carl\'s cat, immediately beloved by the alien audience, deeply unimpressed by everything). CURRENCY: Gold (dungeon economy — the System tracks it). TONE: Dark humour, gallows comedy. Crawlers are scared real people who sometimes do brilliant things. The dungeon wants to kill you and is entertained by the process. Always speak as the System AI. Name achievements. Track floors and countdown.'},
   {id:'custom',icon:'✦',name:'Custom World',tag:'YOUR VISION · DEFINE EVERYTHING',
    desc:'Describe your own world. The DM anchors every scene, NPC, and lore entry to whatever premise you create.',
    accent:'#d4a853',brief:null}
@@ -953,7 +974,7 @@ function flashSaved(){
   el.textContent='✓ SAVED';el.style.opacity='1';
   clearTimeout(el._t);el._t=setTimeout(()=>el.style.opacity='0',1500);
 }
-function newWorld(){return{location:'',visited:[],npcs:[],quests:[],done:[],notes:[],lore:[],connections:[],consequences:[],bible:'',playerNotes:''};}
+function newWorld(){return{location:'',visited:[],npcs:[],quests:[],done:[],notes:[],lore:[],connections:[],consequences:[],bible:'',playerNotes:'',mapPositions:{},locationMoods:{}};}
 
 // ── API ─────────────────────────────────────────────────────
 function patchFetch(){} // no-op, kept for compatibility
@@ -991,6 +1012,7 @@ async function ai(msgs,sys,json,maxTok){
 }
 
 // ── WORLD BRIEF ─────────────────────────────────────────────
+function currency(){return G.premise?.currency||'gold';}
 function brief(){
   if(!G.premise)return'Standard fantasy world.';
   if(G.premise.id==='custom')return'CUSTOM WORLD: '+(G.premiseCustom||'A fantasy world.');
@@ -1003,7 +1025,7 @@ function dmsys(){
   const xn=XP[c.level]||XP[c.level-1]*2;
   const cbtCtx=G.combat&&G.combat.active?'\nIN COMBAT: vs '+G.combat.name+' (HP '+G.combat.hp+'/'+G.combat.maxHp+', AC '+G.combat.ac+', Round '+G.combat.round+')':'';
   const compCtx=G.companion?'\nCOMPANION: '+G.companion.name+' the '+G.companion.cls+' (HP '+G.companion.hp+'/'+G.companion.maxHp+')':'';
-  return'You are the Dungeon Master for a solo LitRPG adventure. The System (stats/notifications/skills) is real in this world.\n\n'+brief()+'\n\nHERO: '+c.name+' | '+c.race+' '+c.cls+' | Lv'+c.level+' | HP '+c.hp+'/'+c.maxHp+' | XP '+c.xp+'/'+xn+' | '+c.gold+'g\nStats: STR'+c.stats.STR+' DEX'+c.stats.DEX+' CON'+c.stats.CON+' INT'+c.stats.INT+' WIS'+c.stats.WIS+' CHA'+c.stats.CHA+'\nAbilities: '+(c.abilities.map(a=>a.name).join(', ')||'none')+'\nInventory: '+(c.inventory.join(', ')||'none')+'\nLocation: '+w.location+' | Quests: '+(w.quests.map(q=>q.name).join(', ')||'none')+'\nNPCs: '+(w.npcs.length?w.npcs.slice(-8).map(n=>n.name+'('+n.disp+')').join(', '):'none')+'\nSummary: '+(G.summary||'New session.')+cbtCtx+compCtx+(w.bible?'\nWorld facts: '+w.bible.slice(0,300):'')+'\n\nDM RULES: Write 1 SHORT paragraph only — 3 sentences maximum, under 60 words. Be vivid and punchy. End with one clear hook or choice. LitRPG flavour — the System is real. Award XP (combat 50-200, exploration 25-100, roleplay 25-75). IMPORTANT: when the player finds or receives any item, you MUST put the item name in upd.item — do not just mention it in the narrative. Track NPCs. Be dangerous — consequences are real.\n\nRESPOND ONLY IN THIS EXACT JSON (no markdown):\n{"n":"narrative text","mood":"CALM|TENSE|DANGEROUS|MYSTERIOUS|EERIE|COMBAT","atm":"one atmosphere line","actions":[{"i":"emoji","l":"Short label","t":"full action text"}],"combat":{"active":false,"name":null,"hp":null,"maxHp":null,"ac":13,"desc":null,"round":0},"notif":[{"type":"xp|skill|damage|info|loot|lore","text":"msg"}],"upd":{"hp":null,"xp":0,"item":null,"rmItem":null,"loc":null,"quest":null,"questD":null,"questDone":null,"note":null,"ability":null,"abilityD":null,"gold":0,"lore":null,"loreD":null,"npc":null,"npcDisp":"neutral","npcNote":null,"npcUpd":null,"npcUpdDisp":null,"npcUpdNote":null,"consequence":null,"consequenceD":null},"dice":{"need":false,"die":"d20","mod":0,"dc":null,"why":""},"puzzle":{"active":false,"text":null,"hint":null,"answer":null}}';
+  return'You are the Dungeon Master for a solo LitRPG adventure. The System (stats/notifications/skills) is real in this world.\n\n'+brief()+'\n\nCURRENCY IN THIS WORLD: Always call money \''+currency()+'\'. Never just say gold unless that is the currency.\n\nHERO: '+c.name+' | '+c.race+' '+c.cls+' | Lv'+c.level+' | HP '+c.hp+'/'+c.maxHp+' | XP '+c.xp+'/'+xn+' | '+c.gold+'g\nStats: STR'+c.stats.STR+' DEX'+c.stats.DEX+' CON'+c.stats.CON+' INT'+c.stats.INT+' WIS'+c.stats.WIS+' CHA'+c.stats.CHA+'\nAbilities: '+(c.abilities.map(a=>a.name).join(', ')||'none')+'\nInventory: '+(c.inventory.join(', ')||'none')+'\nLocation: '+w.location+' | Quests: '+(w.quests.map(q=>q.name).join(', ')||'none')+'\nNPCs: '+(w.npcs.length?w.npcs.slice(-8).map(n=>n.name+'('+n.disp+')').join(', '):'none')+'\nSummary: '+(G.summary||'New session.')+cbtCtx+compCtx+(w.bible?'\nWorld facts: '+w.bible.slice(0,300):'')+'\n\nDM RULES: Write 1 SHORT paragraph only — 3 sentences maximum, under 60 words. Be vivid and punchy. End with one clear hook or choice. LitRPG flavour — the System is real. Award XP (combat 50-200, exploration 25-100, roleplay 25-75). IMPORTANT: when the player finds or receives any item, you MUST put the item name in upd.item — do not just mention it in the narrative. Track NPCs. Be dangerous — consequences are real.\n\nRESPOND ONLY IN THIS EXACT JSON (no markdown):\n{"n":"narrative text","mood":"CALM|TENSE|DANGEROUS|MYSTERIOUS|EERIE|COMBAT","atm":"one atmosphere line","actions":[{"i":"emoji","l":"Short label","t":"full action text"}],"combat":{"active":false,"name":null,"hp":null,"maxHp":null,"ac":13,"desc":null,"round":0},"notif":[{"type":"xp|skill|damage|info|loot|lore","text":"msg"}],"upd":{"hp":null,"xp":0,"item":null,"rmItem":null,"loc":null,"quest":null,"questD":null,"questDone":null,"note":null,"ability":null,"abilityD":null,"gold":0,"lore":null,"loreD":null,"npc":null,"npcDisp":"neutral","npcNote":null,"npcUpd":null,"npcUpdDisp":null,"npcUpdNote":null,"consequence":null,"consequenceD":null},"dice":{"need":false,"die":"d20","mod":0,"dc":null,"why":""},"puzzle":{"active":false,"text":null,"hint":null,"answer":null}}';
 }
 
 // ── DM LOOP ─────────────────────────────────────────────────
@@ -1320,7 +1342,12 @@ function updLocBar(mood){
   const ic=id('loc-icon');if(ic)ic.textContent=MI[mood]||'◌';
   const m=id('loc-mood');if(m){m.textContent=mood||'CALM';m.className=mood||'CALM';}
   startSoundWorld(mood);
-  if(G.world?.location)generateSceneImage(G.world.location,mood);
+  if(G.world?.location){
+    generateSceneImage(G.world.location,mood);
+    // Track the mood for this location for the map
+    if(!G.world.locationMoods)G.world.locationMoods={};
+    G.world.locationMoods[G.world.location]=mood;
+  }
 }
 
 // ── HEADER ────────────────────────────────────────────────────
@@ -1341,7 +1368,7 @@ function updSheet(){
   const hf=id('cs-hp-f');if(hf)hf.style.width=(c.hp/c.maxHp*100)+'%';
   const hv=id('cs-hp-v');if(hv)hv.textContent=c.hp+'/'+c.maxHp;
   const xn=XP[c.level]||XP[c.level-1]*2;
-  const xr=id('cs-xp-row');if(xr)xr.textContent='XP: '+c.xp+' / '+xn+' · Gold: '+c.gold+'g';
+  const xr=id('cs-xp-row');if(xr)xr.textContent='XP: '+c.xp+' / '+xn+' · '+currency()+': '+c.gold+';'
   const sg=id('cs-stats-grid');
   if(sg)sg.innerHTML=['STR','DEX','CON','INT','WIS','CHA'].map(s=>{const v=c.stats[s],m=Math.floor((v-10)/2);return'<div class="st-b"><div class="st-n">'+s+'</div><div class="st-v">'+v+'</div><div class="st-m">'+(m>=0?'+':'')+m+'</div></div>';}).join('');
   const al=id('cs-ab-list');
@@ -1585,22 +1612,177 @@ function closeMerchant(){
 }
 
 // ── MAP ────────────────────────────────────────────────────────
-let mapPan={x:0,y:0},mapDrag=null;
-function openMap(){const m=id('map-modal');if(m)m.classList.add('on');setTimeout(drawMap,80);}
+let mapPan={x:0,y:0},mapScale=1,mapDrag=null,mapPinchDist=null,mapNodes={};
+function openMap(){const m=id('map-modal');if(m)m.classList.add('on');const p=id('map-popup');if(p)p.style.display='none';setTimeout(drawMap,80);}
+function initMapPositions(){
+  // Force-directed layout — run once, save positions permanently
+  const visited=[...new Set([...(G.world.visited||[]),(G.world.location?[G.world.location]:[])])];
+  if(!visited.length)return;
+  const canvas=id('map-canvas');
+  const W=canvas?canvas.offsetWidth:360;
+  const H=canvas?canvas.offsetHeight:280;
+  const cx=W/2,cy=H/2;
+  const pos=G.world.mapPositions||{};
+  // Assign initial positions for any new nodes
+  visited.forEach((loc,i)=>{
+    if(!pos[loc]){
+      if(loc===G.world.location||i===0){pos[loc]={x:cx,y:cy};}
+      else{
+        const a=(i/visited.length)*Math.PI*2;
+        const r=Math.min(W,H)*0.28*(0.6+Math.random()*0.4);
+        pos[loc]={x:cx+Math.cos(a)*r,y:cy+Math.sin(a)*r};
+      }
+    }
+  });
+  // Run force simulation for 80 iterations
+  const conns=G.world.connections||[];
+  for(let iter=0;iter<80;iter++){
+    const forces={};
+    visited.forEach(loc=>{forces[loc]={x:0,y:0};});
+    // Repulsion between all nodes
+    for(let i=0;i<visited.length;i++){
+      for(let j=i+1;j<visited.length;j++){
+        const a=visited[i],b=visited[j];
+        const dx=(pos[b].x-pos[a].x),dy=(pos[b].y-pos[a].y);
+        const d=Math.max(1,Math.sqrt(dx*dx+dy*dy));
+        const f=3200/(d*d);
+        forces[a].x-=f*dx/d;forces[a].y-=f*dy/d;
+        forces[b].x+=f*dx/d;forces[b].y+=f*dy/d;
+      }
+    }
+    // Attraction along connections
+    conns.forEach(conn=>{
+      const[a,b]=conn.split('|||');
+      if(!pos[a]||!pos[b])return;
+      const dx=pos[b].x-pos[a].x,dy=pos[b].y-pos[a].y;
+      const d=Math.max(1,Math.sqrt(dx*dx+dy*dy));
+      const f=(d-90)*0.06;
+      forces[a].x+=f*dx/d;forces[a].y+=f*dy/d;
+      forces[b].x-=f*dx/d;forces[b].y-=f*dy/d;
+    });
+    // Apply forces with damping
+    const damp=0.85-iter*0.005;
+    visited.forEach(loc=>{
+      pos[loc].x+=forces[loc].x*damp;
+      pos[loc].y+=forces[loc].y*damp;
+    });
+  }
+  // Clamp to canvas bounds with padding
+  const pad=40;
+  visited.forEach(loc=>{
+    pos[loc].x=Math.max(pad,Math.min(W-pad,pos[loc].x));
+    pos[loc].y=Math.max(pad,Math.min(H-pad,pos[loc].y));
+  });
+  G.world.mapPositions=pos;
+  save();
+}
+
+const MOOD_MAP_COLORS={CALM:'#4ade80',TENSE:'#f59e0b',DANGEROUS:'#f87171',MYSTERIOUS:'#c4b5fd',EERIE:'#60a5fa',COMBAT:'#f87171',default:'rgba(122,112,96,.7)'};
+
 function drawMap(){
   const canvas=id('map-canvas');if(!canvas)return;
-  const W=canvas.offsetWidth,H=canvas.offsetHeight;canvas.width=W;canvas.height=H;
-  const ctx=canvas.getContext('2d');ctx.clearRect(0,0,W,H);
+  const W=canvas.offsetWidth,H=canvas.offsetHeight;
+  canvas.width=W;canvas.height=H;
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,W,H);
   const visited=[...new Set([...(G.world.visited||[]),(G.world.location?[G.world.location]:[])])];
-  if(!visited.length){ctx.fillStyle='rgba(122,112,96,.4)';ctx.font='10px monospace';ctx.textAlign='center';ctx.fillText('No locations discovered yet.',W/2,H/2);return;}
-  const cx=W/2+mapPan.x,cy=H/2+mapPan.y;const R=Math.min(W,H)*0.32;
-  const nodes={};
-  visited.forEach((loc,i)=>{
-    if(loc===G.world.location){nodes[loc]={x:cx,y:cy};}
-    else{const a=(i/visited.length)*Math.PI*2;const r=R*(0.5+Math.random()*0.5);nodes[loc]={x:cx+Math.cos(a)*r,y:cy+Math.sin(a)*r};}
+  if(!visited.length){
+    ctx.fillStyle='rgba(122,112,96,.4)';ctx.font='11px monospace';
+    ctx.textAlign='center';ctx.fillText('No locations discovered yet.',W/2,H/2);return;
+  }
+  // Init positions if needed
+  initMapPositions();
+  const pos=G.world.mapPositions||{};
+  const moods=G.world.locationMoods||{};
+  // Apply pan + scale transform
+  ctx.save();
+  ctx.translate(W/2+mapPan.x,H/2+mapPan.y);
+  ctx.scale(mapScale,mapScale);
+  ctx.translate(-W/2,-H/2);
+  // Draw connections
+  (G.world.connections||[]).forEach(conn=>{
+    const[a,b]=conn.split('|||');
+    if(!pos[a]||!pos[b])return;
+    ctx.strokeStyle='rgba(122,112,96,.25)';ctx.lineWidth=1.5;
+    ctx.setLineDash([4,4]);
+    ctx.beginPath();ctx.moveTo(pos[a].x,pos[a].y);ctx.lineTo(pos[b].x,pos[b].y);ctx.stroke();
+    ctx.setLineDash([]);
+    // Arrow at midpoint showing direction
+    const mx=(pos[a].x+pos[b].x)/2,my=(pos[a].y+pos[b].y)/2;
+    const ang=Math.atan2(pos[b].y-pos[a].y,pos[b].x-pos[a].x);
+    ctx.fillStyle='rgba(122,112,96,.35)';
+    ctx.save();ctx.translate(mx,my);ctx.rotate(ang);
+    ctx.beginPath();ctx.moveTo(5,0);ctx.lineTo(-3,-3);ctx.lineTo(-3,3);ctx.closePath();ctx.fill();
+    ctx.restore();
   });
-  (G.world.connections||[]).forEach(conn=>{const[a,b]=conn.split('|||');if(nodes[a]&&nodes[b]){ctx.strokeStyle='rgba(122,112,96,.3)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(nodes[a].x,nodes[a].y);ctx.lineTo(nodes[b].x,nodes[b].y);ctx.stroke();}});
-  visited.forEach(loc=>{const n=nodes[loc];if(!n)return;const cur=loc===G.world.location;if(cur){const g=ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,16);g.addColorStop(0,'rgba(212,168,83,.3)');g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.beginPath();ctx.arc(n.x,n.y,16,0,Math.PI*2);ctx.fill();}ctx.beginPath();ctx.arc(n.x,n.y,cur?7:5,0,Math.PI*2);ctx.fillStyle=cur?'#d4a853':'rgba(122,112,96,.65)';ctx.fill();if(cur){ctx.strokeStyle='#d4a853';ctx.lineWidth=2;ctx.stroke();}ctx.fillStyle=cur?'#d4a853':'rgba(122,112,96,.8)';ctx.font=(cur?'bold ':'')+' 9px monospace';ctx.textAlign='center';const lbl=loc.length>20?loc.slice(0,18)+'...':loc;ctx.fillText(lbl,n.x,n.y+(cur?18:14));});
+  // Draw nodes
+  visited.forEach(loc=>{
+    const p=pos[loc];if(!p)return;
+    const isCur=loc===G.world.location;
+    const mood=moods[loc]||'default';
+    const col=MOOD_MAP_COLORS[mood]||MOOD_MAP_COLORS.default;
+    const r=isCur?10:7;
+    // Glow
+    if(isCur){
+      const grd=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,22);
+      grd.addColorStop(0,'rgba(212,168,83,.35)');grd.addColorStop(1,'transparent');
+      ctx.fillStyle=grd;ctx.beginPath();ctx.arc(p.x,p.y,22,0,Math.PI*2);ctx.fill();
+    }
+    // Node shadow
+    ctx.shadowColor=isCur?'rgba(212,168,83,.5)':col+'88';
+    ctx.shadowBlur=isCur?12:6;
+    // Node circle
+    ctx.beginPath();ctx.arc(p.x,p.y,r,0,Math.PI*2);
+    ctx.fillStyle=isCur?'#d4a853':col;ctx.fill();
+    ctx.shadowBlur=0;
+    // Border
+    ctx.strokeStyle=isCur?'#fff':`${col}cc`;ctx.lineWidth=isCur?2:1;ctx.stroke();
+    // Label
+    const lbl=loc.length>18?loc.slice(0,16)+'…':loc;
+    ctx.font=`${isCur?'bold ':' '}${isCur?10:9}px monospace`;
+    ctx.textAlign='center';
+    // Text shadow
+    ctx.fillStyle='rgba(8,9,14,.75)';
+    ctx.fillText(lbl,p.x+1,p.y+r+13+1);
+    ctx.fillStyle=isCur?'#d4a853':'rgba(200,190,170,.85)';
+    ctx.fillText(lbl,p.x,p.y+r+13);
+  });
+  ctx.restore();
+  mapNodes=pos;// Store for hit testing
+}
+
+function mapHitTest(clientX,clientY){
+  const canvas=id('map-canvas');if(!canvas||!mapNodes)return null;
+  const rect=canvas.getBoundingClientRect();
+  const cx=canvas.width/2,cy=canvas.height/2;
+  // Reverse transform
+  const rx=((clientX-rect.left)-cx-mapPan.x)/mapScale+cx;
+  const ry=((clientY-rect.top)-cy-mapPan.y)/mapScale+cy;
+  let best=null,bestD=18;
+  Object.entries(mapNodes).forEach(([loc,p])=>{
+    const d=Math.sqrt((rx-p.x)**2+(ry-p.y)**2);
+    if(d<bestD){bestD=d;best=loc;}
+  });
+  return best;
+}
+
+function showMapPopup(loc){
+  const popup=id('map-popup');if(!popup)return;
+  const moods=G.world.locationMoods||{};
+  const mood=moods[loc]||'CALM';
+  const moodColors={CALM:'#4ade80',TENSE:'#f59e0b',DANGEROUS:'#f87171',MYSTERIOUS:'#c4b5fd',EERIE:'#60a5fa',COMBAT:'#f87171'};
+  const isCur=loc===G.world.location;
+  // Find NPCs here
+  const npcs=(G.world.npcs||[]).filter(n=>n.loc===loc).map(n=>n.name).join(', ');
+  // Find lore discovered here (approximate — check if location in lore content)
+  const loreCount=(G.world.lore||[]).filter(l=>l.content&&l.content.includes(loc.slice(0,8))).length;
+  id('map-popup-name').textContent=(isCur?'📍 ':'')+loc;
+  id('map-popup-mood').innerHTML=`<span style="color:${moodColors[mood]||'#7a7060'};letter-spacing:.1em;font-family:var(--fm);font-size:.52rem">${mood}</span>${isCur?' <span style="color:var(--gold);font-family:var(--fm);font-size:.52rem">· CURRENT</span>':''}`;
+  const info=[];
+  if(npcs)info.push('NPCs: '+npcs);
+  if(loreCount)info.push(loreCount+' lore discovered');
+  id('map-popup-info').textContent=info.join(' · ')||'Visited';
+  popup.style.display='block';
 }
 
 // ── SCENE IMAGERY (Pollinations.ai) ─────────────────────────
@@ -2135,15 +2317,25 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   // Map
   const bmap=id('btn-map');if(bmap)bmap.addEventListener('click',openMap);
-  const xmap=id('x-map');if(xmap)xmap.addEventListener('click',()=>{const m=id('map-modal');if(m)m.classList.remove('on');});
+  const xmap=id('x-map');if(xmap)xmap.addEventListener('click',()=>{const m=id('map-modal');if(m)m.classList.remove('on');const p=id('map-popup');if(p)p.style.display='none';});
   const mmod=id('map-modal');if(mmod)mmod.addEventListener('click',e=>{if(e.target===mmod){const m=id('map-modal');if(m)m.classList.remove('on');}});
   const mc=id('map-canvas');if(mc){
-    mc.addEventListener('mousedown',e=>{mapDrag={x:e.clientX-mapPan.x,y:e.clientY-mapPan.y};});
-    mc.addEventListener('mousemove',e=>{if(mapDrag){mapPan.x=e.clientX-mapDrag.x;mapPan.y=e.clientY-mapDrag.y;drawMap();}});
-    mc.addEventListener('mouseup',()=>{mapDrag=null;});
-    mc.addEventListener('touchstart',e=>{const t=e.touches[0];mapDrag={x:t.clientX-mapPan.x,y:t.clientY-mapPan.y};},{passive:true});
-    mc.addEventListener('touchmove',e=>{if(mapDrag){const t=e.touches[0];mapPan.x=t.clientX-mapDrag.x;mapPan.y=t.clientY-mapDrag.y;drawMap();}},{passive:true});
-    mc.addEventListener('touchend',()=>{mapDrag=null;});
+    mc.addEventListener('mousedown',(e)=>{mapDrag={x:e.clientX-mapPan.x,y:e.clientY-mapPan.y,sx:e.clientX,sy:e.clientY,moved:false};});
+    mc.addEventListener('mousemove',(e)=>{if(mapDrag){mapDrag.moved=true;mapPan.x=e.clientX-mapDrag.x;mapPan.y=e.clientY-mapDrag.y;drawMap();}});
+    mc.addEventListener('mouseup',(e)=>{if(mapDrag&&!mapDrag.moved){const loc=mapHitTest(e.clientX,e.clientY);const p=id('map-popup');if(loc)showMapPopup(loc);else if(p)p.style.display='none';}mapDrag=null;});
+    mc.addEventListener('wheel',(e)=>{e.preventDefault();mapScale=Math.max(0.4,Math.min(3,mapScale-(e.deltaY>0?0.1:-0.1)));drawMap();},{passive:false});
+    mc.addEventListener('touchstart',(e)=>{
+      if(e.touches.length===1){const t=e.touches[0];mapDrag={x:t.clientX-mapPan.x,y:t.clientY-mapPan.y,sx:t.clientX,sy:t.clientY,moved:false};mapPinchDist=null;}
+      else if(e.touches.length===2){mapDrag=null;const dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY;mapPinchDist=Math.sqrt(dx*dx+dy*dy);}
+    },{passive:true});
+    mc.addEventListener('touchmove',(e)=>{
+      if(e.touches.length===2&&mapPinchDist){const dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY;const d=Math.sqrt(dx*dx+dy*dy);mapScale=Math.max(0.4,Math.min(3,mapScale*(d/mapPinchDist)));mapPinchDist=d;drawMap();}
+      else if(e.touches.length===1&&mapDrag){const t=e.touches[0];if(Math.sqrt((t.clientX-mapDrag.sx)**2+(t.clientY-mapDrag.sy)**2)>5)mapDrag.moved=true;mapPan.x=t.clientX-mapDrag.x;mapPan.y=t.clientY-mapDrag.y;drawMap();}
+    },{passive:true});
+    mc.addEventListener('touchend',(e)=>{
+      if(mapDrag&&!mapDrag.moved&&e.changedTouches.length){const t=e.changedTouches[0];const loc=mapHitTest(t.clientX,t.clientY);const p=id('map-popup');if(loc)showMapPopup(loc);else if(p)p.style.display='none';}
+      mapDrag=null;mapPinchDist=null;
+    },{passive:true});
   }
 
   // Recap
