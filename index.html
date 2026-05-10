@@ -422,6 +422,26 @@ input:focus,textarea:focus{border-color:var(--gdim)}
 .comp-ods{font-size:.76rem;color:var(--text2);line-height:1.44}
 /* scrollbar */
 ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:2px}
+    /* ── NOTIFICATION BELL ── */
+    #notif-badge{display:none}
+    #notif-badge.on{display:flex!important;animation:bell-pulse 1.5s ease-in-out infinite}
+    @keyframes bell-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
+    #btn-notifs.has-notifs{border-color:var(--red);color:var(--red)}
+    .notif-item{background:var(--bg3);border:1px solid var(--bdr);border-radius:6px;padding:.55rem .7rem;display:flex;gap:.45rem;align-items:flex-start}
+    .notif-item.xp,.notif-item.achievement{border-color:rgba(212,168,83,.3)}
+    .notif-item.skill{border-color:rgba(74,222,128,.25)}
+    .notif-item.loot{border-color:rgba(196,181,253,.25)}
+    .notif-item.lore{border-color:rgba(251,191,36,.25)}
+    .notif-item.levelup{border-color:rgba(74,222,128,.35);background:rgba(74,222,128,.04)}
+    .notif-ico{font-size:.95rem;flex-shrink:0;margin-top:.05rem}
+    .notif-body{flex:1;min-width:0}
+    .notif-label{font-family:var(--fm);font-size:.48rem;letter-spacing:.15em;opacity:.65;margin-bottom:.06rem}
+    .notif-label.xp,.notif-label.achievement{color:var(--gold)}
+    .notif-label.skill,.notif-label.levelup{color:var(--green)}
+    .notif-label.loot{color:var(--purple)}
+    .notif-label.lore{color:#fbbf24}
+    .notif-text{font-family:var(--fm);font-size:.62rem;color:var(--text);line-height:1.45;letter-spacing:.03em}
+
     /* ── ACHIEVEMENT TOASTS ── */
     #toast-stack{position:fixed;top:.8rem;left:50%;transform:translateX(-50%);z-index:600;display:flex;flex-direction:column;gap:.4rem;align-items:center;pointer-events:none;width:calc(100% - 2rem);max-width:360px}
     .toast{background:var(--bg3);border-radius:7px;padding:.52rem .88rem;display:flex;align-items:center;gap:.52rem;box-shadow:0 4px 20px rgba(0,0,0,.5);animation:toast-in .28s ease;font-family:var(--fm);font-size:.62rem;letter-spacing:.06em;width:100%;border:1px solid var(--bdr)}
@@ -533,6 +553,10 @@ input:focus,textarea:focus{border-color:var(--gdim)}
       <button class="hdr-btn" id="btn-recap">RECAP</button>
       <button class="hdr-btn" id="btn-export">LOG</button>
       <button class="hdr-btn" id="btn-companion" title="Recruit a companion">🤝 ALLY</button>
+      <div style="position:relative;display:inline-flex;align-items:center">
+        <button class="hdr-btn" id="btn-notifs">🔔</button>
+        <div id="notif-badge" style="position:absolute;top:-3px;right:-3px;background:var(--red);color:white;border-radius:50%;width:13px;height:13px;font-family:var(--fm);font-size:.42rem;display:none;align-items:center;justify-content:center;pointer-events:none;font-weight:bold"></div>
+      </div>
     </div>
   </div>
   <div id="loc-bar"><span id="loc-icon">◌</span><span id="loc-name">—</span><span id="loc-mood"></span></div>
@@ -773,6 +797,19 @@ input:focus,textarea:focus{border-color:var(--gdim)}
 </div>
 
   <div id="toast-stack"></div>
+
+  <!-- NOTIFICATION DRAWER -->
+  <div id="notif-drawer" style="display:none;position:fixed;top:0;right:0;bottom:0;width:min(300px,85vw);background:#0b0c14;border-left:1px solid var(--bdr);z-index:200;display:none;flex-direction:column">
+    <div style="padding:.85rem 1rem;border-bottom:1px solid var(--bdr);display:flex;justify-content:space-between;align-items:center;background:var(--bg2);flex-shrink:0">
+      <div style="font-family:var(--fd);font-size:.76rem;color:var(--gold);letter-spacing:.15em">🔔 NOTIFICATIONS</div>
+      <button id="notif-close" style="background:none;border:none;color:var(--text2);font-size:1rem;cursor:pointer">✕</button>
+    </div>
+    <div id="notif-list" style="flex:1;overflow-y:auto;padding:.75rem;display:flex;flex-direction:column;gap:.4rem"></div>
+    <div style="padding:.6rem 1rem;border-top:1px solid var(--bdr);flex-shrink:0">
+      <button id="notif-clear" style="width:100%;padding:.5rem;background:transparent;border:1px solid var(--bdr);border-radius:5px;color:var(--text2);font-family:var(--fm);font-size:.58rem;cursor:pointer;letter-spacing:.1em">CLEAR ALL</button>
+    </div>
+  </div>
+  <div id="notif-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:199"></div>
 </div><!-- #app -->
 <script>
 // ── WORLDS ──────────────────────────────────────────────────
@@ -966,7 +1003,7 @@ function dmsys(){
   const xn=XP[c.level]||XP[c.level-1]*2;
   const cbtCtx=G.combat&&G.combat.active?'\nIN COMBAT: vs '+G.combat.name+' (HP '+G.combat.hp+'/'+G.combat.maxHp+', AC '+G.combat.ac+', Round '+G.combat.round+')':'';
   const compCtx=G.companion?'\nCOMPANION: '+G.companion.name+' the '+G.companion.cls+' (HP '+G.companion.hp+'/'+G.companion.maxHp+')':'';
-  return'You are the Dungeon Master for a solo LitRPG adventure. The System (stats/notifications/skills) is real in this world.\n\n'+brief()+'\n\nHERO: '+c.name+' | '+c.race+' '+c.cls+' | Lv'+c.level+' | HP '+c.hp+'/'+c.maxHp+' | XP '+c.xp+'/'+xn+' | '+c.gold+'g\nStats: STR'+c.stats.STR+' DEX'+c.stats.DEX+' CON'+c.stats.CON+' INT'+c.stats.INT+' WIS'+c.stats.WIS+' CHA'+c.stats.CHA+'\nAbilities: '+(c.abilities.map(a=>a.name).join(', ')||'none')+'\nInventory: '+(c.inventory.join(', ')||'none')+'\nLocation: '+w.location+' | Quests: '+(w.quests.map(q=>q.name).join(', ')||'none')+'\nNPCs: '+(w.npcs.length?w.npcs.slice(-8).map(n=>n.name+'('+n.disp+')').join(', '):'none')+'\nSummary: '+(G.summary||'New session.')+cbtCtx+compCtx+(w.bible?'\nWorld facts: '+w.bible.slice(0,300):'')+'\n\nDM RULES: Write 2 short vivid paragraphs. End with a hook or clear choice. Stay true to the world brief above. LitRPG flavour — the System exists. Award XP (combat 50-200, exploration 25-100, roleplay 25-75). Track NPCs. Record lore when significant. Be dangerous — consequences are real.\n\nRESPOND ONLY IN THIS EXACT JSON (no markdown):\n{"n":"narrative text","mood":"CALM|TENSE|DANGEROUS|MYSTERIOUS|EERIE|COMBAT","atm":"one atmosphere line","actions":[{"i":"emoji","l":"Short label","t":"full action text"}],"combat":{"active":false,"name":null,"hp":null,"maxHp":null,"ac":13,"desc":null,"round":0},"notif":[{"type":"xp|skill|damage|info|loot|lore","text":"msg"}],"upd":{"hp":null,"xp":0,"item":null,"rmItem":null,"loc":null,"quest":null,"questD":null,"questDone":null,"note":null,"ability":null,"abilityD":null,"gold":0,"lore":null,"loreD":null,"npc":null,"npcDisp":"neutral","npcNote":null,"npcUpd":null,"npcUpdDisp":null,"npcUpdNote":null,"consequence":null,"consequenceD":null},"dice":{"need":false,"die":"d20","mod":0,"dc":null,"why":""},"puzzle":{"active":false,"text":null,"hint":null,"answer":null}}';
+  return'You are the Dungeon Master for a solo LitRPG adventure. The System (stats/notifications/skills) is real in this world.\n\n'+brief()+'\n\nHERO: '+c.name+' | '+c.race+' '+c.cls+' | Lv'+c.level+' | HP '+c.hp+'/'+c.maxHp+' | XP '+c.xp+'/'+xn+' | '+c.gold+'g\nStats: STR'+c.stats.STR+' DEX'+c.stats.DEX+' CON'+c.stats.CON+' INT'+c.stats.INT+' WIS'+c.stats.WIS+' CHA'+c.stats.CHA+'\nAbilities: '+(c.abilities.map(a=>a.name).join(', ')||'none')+'\nInventory: '+(c.inventory.join(', ')||'none')+'\nLocation: '+w.location+' | Quests: '+(w.quests.map(q=>q.name).join(', ')||'none')+'\nNPCs: '+(w.npcs.length?w.npcs.slice(-8).map(n=>n.name+'('+n.disp+')').join(', '):'none')+'\nSummary: '+(G.summary||'New session.')+cbtCtx+compCtx+(w.bible?'\nWorld facts: '+w.bible.slice(0,300):'')+'\n\nDM RULES: Write 1 SHORT paragraph only — 3 sentences maximum, under 60 words. Be vivid and punchy. End with one clear hook or choice. LitRPG flavour — the System is real. Award XP (combat 50-200, exploration 25-100, roleplay 25-75). IMPORTANT: when the player finds or receives any item, you MUST put the item name in upd.item — do not just mention it in the narrative. Track NPCs. Be dangerous — consequences are real.\n\nRESPOND ONLY IN THIS EXACT JSON (no markdown):\n{"n":"narrative text","mood":"CALM|TENSE|DANGEROUS|MYSTERIOUS|EERIE|COMBAT","atm":"one atmosphere line","actions":[{"i":"emoji","l":"Short label","t":"full action text"}],"combat":{"active":false,"name":null,"hp":null,"maxHp":null,"ac":13,"desc":null,"round":0},"notif":[{"type":"xp|skill|damage|info|loot|lore","text":"msg"}],"upd":{"hp":null,"xp":0,"item":null,"rmItem":null,"loc":null,"quest":null,"questD":null,"questDone":null,"note":null,"ability":null,"abilityD":null,"gold":0,"lore":null,"loreD":null,"npc":null,"npcDisp":"neutral","npcNote":null,"npcUpd":null,"npcUpdDisp":null,"npcUpdNote":null,"consequence":null,"consequenceD":null},"dice":{"need":false,"die":"d20","mod":0,"dc":null,"why":""},"puzzle":{"active":false,"text":null,"hint":null,"answer":null}}';
 }
 
 // ── DM LOOP ─────────────────────────────────────────────────
@@ -1763,41 +1800,70 @@ function renderChars(opts){
 }
 
 // ============================================================
-// ACHIEVEMENT TOAST SYSTEM
+// NOTIFICATION STORE (bell button — not auto-appearing)
 // ============================================================
-const TOAST_ICONS={achievement:'⚡',levelup:'⬆️',xp:'✨',skill:'⚡',damage:'🩸',loot:'📦',lore:'📜',info:'💬'};
-const WORLD_ACHIEVE_PREFIX={
-  dcc:['SYSTEM NOTIFICATION','ACHIEVEMENT UNLOCKED','BORANT CORPORATION NOTES'],
-  starwars:['IMPERIAL ATTENTION','FORCE VISION','BOUNTY ISSUED'],
-  ravenloft:['THE DARK POWERS NOTE','FATE INTERVENES'],
-  grimm:['THE STORY RECORDS','THE GLAMOUR SHIFTS']
+const NOTIF_ICONS={achievement:'⚡',levelup:'⬆️',xp:'✨',skill:'⚡',damage:'🩸',loot:'📦',lore:'📜',info:'💬',combat:'⚔️'};
+const WORLD_NOTIF_PREFIX={
+  dcc:['SYSTEM','ACHIEVEMENT UNLOCKED','BORANT CORP'],
+  starwars:['FORCE VISION','WANTED','IMPERIAL ALERT'],
+  ravenloft:['DARK POWERS','FATE'],
+  grimm:['THE STORY','THE GLAMOUR']
 };
-let toastQ=[],toastRunning=false;
+let notifStore=[];
+
 function toast(text,type,label){
+  // Store notification — don't auto-display
   const wid=G.premise?.id||'';
-  const prefixes=WORLD_ACHIEVE_PREFIX[wid];
-  const lbl=label||(prefixes&&type==='achievement'?prefixes[Math.floor(Math.random()*prefixes.length)]:'NOTIFICATION');
-  toastQ.push({text,type:type||'info',label:lbl});
-  if(!toastRunning)runToasts();
+  const prefixes=WORLD_NOTIF_PREFIX[wid];
+  const lbl=label||(prefixes&&(type==='achievement'||type==='levelup')?prefixes[Math.floor(Math.random()*prefixes.length)]:'NOTIFICATION');
+  notifStore.push({text,type:type||'info',label:lbl,time:Date.now()});
+  updNotifBadge();
 }
-async function runToasts(){
-  toastRunning=true;
-  while(toastQ.length){
-    const t=toastQ.shift();
-    const stack=document.getElementById('toast-stack');
-    if(!stack)break;
-    const icons={achievement:'⚡',levelup:'⬆️',xp:'✨',skill:'⚡',damage:'🩸',loot:'📦',lore:'📜',info:'💬'};
-    const el=document.createElement('div');
-    el.className='toast '+(t.type||'info');
-    el.innerHTML='<span class="toast-ico">'+(icons[t.type]||'💬')+'</span><div class="toast-body"><div class="toast-label">'+t.label.toUpperCase()+'</div><div class="toast-text">'+esc(t.text)+'</div></div>';
-    stack.appendChild(el);
-    await sl(2800);
-    el.classList.add('out');
-    await sl(350);
-    el.remove();
-    if(toastQ.length)await sl(200);
+
+function updNotifBadge(){
+  const badge=document.getElementById('notif-badge');
+  const btn=document.getElementById('btn-notifs');
+  if(!badge||!btn)return;
+  const count=notifStore.length;
+  if(count>0){
+    badge.textContent=count>9?'9+':count;
+    badge.classList.add('on');
+    btn.classList.add('has-notifs');
+  } else {
+    badge.classList.remove('on');
+    btn.classList.remove('has-notifs');
   }
-  toastRunning=false;
+}
+
+function openNotifs(){
+  const drawer=document.getElementById('notif-drawer');
+  const overlay=document.getElementById('notif-overlay');
+  const list=document.getElementById('notif-list');
+  if(!drawer||!list)return;
+  const icons=NOTIF_ICONS;
+  if(!notifStore.length){
+    list.innerHTML='<div style="font-family:var(--fm);font-size:.6rem;color:var(--text2);text-align:center;padding:1rem;letter-spacing:.1em">No notifications yet</div>';
+  } else {
+    list.innerHTML=[...notifStore].reverse().map(n=>{
+      const t=new Date(n.time).toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'});
+      return`<div class="notif-item ${n.type}">
+        <div class="notif-ico">${icons[n.type]||'💬'}</div>
+        <div class="notif-body">
+          <div class="notif-label ${n.type}">${esc(n.label)} · ${t}</div>
+          <div class="notif-text">${esc(n.text)}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  drawer.style.display='flex';
+  if(overlay)overlay.style.display='block';
+}
+
+function closeNotifs(){
+  const drawer=document.getElementById('notif-drawer');
+  const overlay=document.getElementById('notif-overlay');
+  if(drawer)drawer.style.display='none';
+  if(overlay)overlay.style.display='none';
 }
 
 // ============================================================
@@ -2124,6 +2190,10 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   // Companion
   const bcomp=id('btn-companion');if(bcomp)bcomp.addEventListener('click',openCompanion);
+  const bnotif=id('btn-notifs');if(bnotif)bnotif.addEventListener('click',openNotifs);
+  const nclose=id('notif-close');if(nclose)nclose.addEventListener('click',closeNotifs);
+  const nclear=id('notif-clear');if(nclear)nclear.addEventListener('click',()=>{notifStore=[];closeNotifs();updNotifBadge();});
+  const nov=id('notif-overlay');if(nov)nov.addEventListener('click',closeNotifs);
 
   // Portrait regen
   const preg=id('cs-port-regen');if(preg)preg.addEventListener('click',()=>genPortrait());
