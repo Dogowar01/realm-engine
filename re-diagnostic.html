@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Realm Engine Diagnostic</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:monospace;background:#08090e;color:#e8dfc8;padding:16px;font-size:13px}
+h2{color:#d4a853;margin-bottom:4px;font-size:16px}
+.sub{color:#7a7060;margin-bottom:16px;font-size:12px;line-height:1.5}
+input{width:100%;background:#13141f;border:1px solid #1e2035;border-radius:5px;padding:9px;color:#e8dfc8;font-family:monospace;font-size:13px;margin-bottom:8px}
+button{width:100%;padding:10px;background:#1e2035;border:1px solid #3a3a5c;border-radius:5px;color:#d4a853;font-family:monospace;font-size:12px;cursor:pointer;margin-bottom:8px;text-align:left;letter-spacing:.05em}
+button:active{background:#2a2a4c}
+.box{background:#13141f;border:1px solid #1e2035;border-radius:5px;padding:10px;margin-bottom:12px;line-height:1.7;white-space:pre-wrap;word-break:break-all;min-height:40px;font-size:12px}
+.ok{border-color:#4ade80;color:#4ade80}
+.err{border-color:#f87171;color:#f87171}
+.warn{border-color:#f59e0b;color:#f59e0b}
+.info{color:#60a5fa}
+h3{color:#60a5fa;font-size:12px;margin:14px 0 5px;letter-spacing:.12em;border-top:1px solid #1e2035;padding-top:10px}
+.badge{display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;margin-right:4px}
+.b-ok{background:rgba(74,222,128,.15);color:#4ade80}
+.b-fail{background:rgba(248,113,113,.15);color:#f87171}
+.b-skip{background:rgba(122,112,96,.2);color:#7a7060}
+</style>
+</head>
+<body>
+<h2>⚔️ Realm Engine — Network Diagnostic</h2>
+<div class="sub">Runs tests in order. Each one narrows down exactly where the problem is.</div>
+
+<input type="password" id="key" placeholder="sk-ant-... (Anthropic API key)">
+<input type="text" id="proxy" placeholder="https://your-proxy.workers.dev or .deno.dev">
+
+<h3>TEST 1 — CAN THIS PAGE MAKE ANY FETCH AT ALL?</h3>
+<button onclick="t1()">▶ Run Test 1 — Basic fetch to httpbin.org</button>
+<div class="box info" id="r1">Not run</div>
+
+<h3>TEST 2 — IS YOUR PROXY REACHABLE?</h3>
+<button onclick="t2()">▶ Run Test 2 — GET request to your proxy URL</button>
+<div class="box info" id="r2">Not run</div>
+
+<h3>TEST 3 — DOES YOUR PROXY ACCEPT POST?</h3>
+<button onclick="t3()">▶ Run Test 3 — POST to proxy (no API key)</button>
+<div class="box info" id="r3">Not run</div>
+
+<h3>TEST 4 — FULL API CALL THROUGH PROXY</h3>
+<button onclick="t4()">▶ Run Test 4 — Full API call with your key</button>
+<div class="box info" id="r4">Not run</div>
+
+<h3>TEST 5 — DIRECT TO ANTHROPIC (no proxy)</h3>
+<button onclick="t5()">▶ Run Test 5 — Direct call to api.anthropic.com</button>
+<div class="box info" id="r5">Not run</div>
+
+<h3>ENVIRONMENT INFO</h3>
+<button onclick="showEnv()">▶ Show device / browser info</button>
+<div class="box info" id="renv">Not run</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const key = () => $('key').value.trim();
+const proxy = () => $('proxy').value.trim().replace(/\/+$/, '');
+const set = (id, text, cls) => { $(id).textContent = text; $(id).className = 'box ' + (cls||'info'); };
+
+async function t1() {
+  set('r1', 'Testing...', 'info');
+  try {
+    const r = await fetch('https://httpbin.org/get');
+    if (r.ok) {
+      const d = await r.json();
+      set('r1', '✓ PASS — Internet fetch works\nStatus: ' + r.status + '\nYour IP: ' + (d.origin||'unknown'), 'ok');
+    } else {
+      set('r1', '✗ Got HTTP ' + r.status + ' from httpbin.org\nFetch works but server returned error', 'warn');
+    }
+  } catch(e) {
+    set('r1', '✗ FAIL — fetch() itself threw an error\n\nError: ' + e.name + ': ' + e.message + '\n\nThis means: your device or browser is blocking ALL outbound fetch() calls.\n\nPossible causes:\n• iOS Screen Time content restrictions\n• DNS filtering on your router (NextDNS, Pi-hole, etc.)\n• VPN or proxy intercepting traffic\n• Try: Settings > Screen Time > Content & Privacy Restrictions', 'err');
+  }
+}
+
+async function t2() {
+  const p = proxy();
+  if (!p) { set('r2', '✗ Enter your proxy URL above first', 'err'); return; }
+  set('r2', 'Testing GET to ' + p + ' ...', 'info');
+  try {
+    const r = await fetch(p, { method: 'GET' });
+    set('r2', '✓ PASS — Proxy is reachable\nStatus: ' + r.status + '\nBody: ' + (await r.text()).slice(0,200), 'ok');
+  } catch(e) {
+    set('r2', '✗ FAIL — Cannot reach proxy\n\nError: ' + e.name + ': ' + e.message + '\n\nPossible causes:\n• Wrong proxy URL — check it carefully\n• Proxy not deployed (check Cloudflare/Deno dashboard)\n• Network blocking *.workers.dev or *.deno.dev domains\n• Try a different network (switch to mobile data)', 'err');
+  }
+}
+
+async function t3() {
+  const p = proxy();
+  if (!p) { set('r3', '✗ Enter your proxy URL above first', 'err'); return; }
+  set('r3', 'Testing POST to ' + p + ' ...', 'info');
+  try {
+    const r = await fetch(p, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({ test: true })
+    });
+    const txt = await r.text();
+    set('r3', '✓ POST reached proxy\nHTTP status: ' + r.status + '\nResponse: ' + txt.slice(0,300) + '\n\nNote: if status is 401 that is GOOD — it means Anthropic received it and rejected the missing key', r.ok || r.status===401 ? 'ok' : 'warn');
+  } catch(e) {
+    set('r3', '✗ POST to proxy failed\n\nError: ' + e.name + ': ' + e.message + '\n\nProxy does not accept POST requests, or CORS is blocking it\n• Check your proxy code — it must handle POST and return Access-Control-Allow-Origin: *', 'err');
+  }
+}
+
+async function t4() {
+  const p = proxy(); const k = key();
+  if (!p) { set('r4', '✗ Enter proxy URL first', 'err'); return; }
+  if (!k) { set('r4', '✗ Enter API key first', 'err'); return; }
+  if (!k.startsWith('sk-ant-')) { set('r4', '✗ API key should start with sk-ant-', 'err'); return; }
+  set('r4', 'Testing full API call through proxy...', 'info');
+  try {
+    const r = await fetch(p, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': k,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 20,
+        messages: [{ role: 'user', content: 'Say: WORKING' }]
+      })
+    });
+    const txt = await r.text();
+    if (r.ok) {
+      const d = JSON.parse(txt);
+      set('r4', '✓ FULL SUCCESS!\n\nModel said: ' + (d.content?.[0]?.text||'?') + '\n\n✓ Proxy works\n✓ API key valid\n✓ Ready to play Realm Engine', 'ok');
+    } else {
+      set('r4', 'HTTP ' + r.status + ' from Anthropic via proxy\n\n' + txt.slice(0,400) + '\n\nIf 401: wrong API key\nIf 403: key lacks permission\nIf 429: rate limited — wait a moment', 'warn');
+    }
+  } catch(e) {
+    set('r4', '✗ Full call failed\n\nError: ' + e.name + ': ' + e.message, 'err');
+  }
+}
+
+async function t5() {
+  const k = key();
+  if (!k) { set('r5', '✗ Enter API key first', 'err'); return; }
+  set('r5', 'Testing DIRECT call to api.anthropic.com (bypassing proxy)...', 'info');
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': k,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 20,
+        messages: [{ role: 'user', content: 'Say: WORKING' }]
+      })
+    });
+    const txt = await r.text();
+    if (r.ok) {
+      set('r5', '✓ DIRECT call works!\n\nYou don\'t need a proxy at all in this browser context.\nOpen Realm Engine, leave the Proxy URL field EMPTY, and it should work directly.', 'ok');
+    } else {
+      set('r5', 'HTTP ' + r.status + ' (reached Anthropic directly)\n' + txt.slice(0,200), 'warn');
+    }
+  } catch(e) {
+    set('r5', '✗ Direct call blocked\n\nError: ' + e.name + ': ' + e.message + '\n\nExpected on iOS home screen apps — use proxy instead', 'err');
+  }
+}
+
+function showEnv() {
+  const ua = navigator.userAgent;
+  const standalone = window.navigator.standalone;
+  const isIOS = /iPhone|iPad|iPod/.test(ua);
+  const isSafari = /Safari/.test(ua) && !/Chrome/.test(ua);
+  set('renv',
+    'Browser: ' + (isSafari ? 'Safari' : 'Other') + '\n' +
+    'iOS: ' + (isIOS ? 'YES' : 'No') + '\n' +
+    'Home screen PWA mode: ' + (standalone ? 'YES ← proxy needed' : 'No (regular browser tab)') + '\n' +
+    'Online: ' + (navigator.onLine ? 'Yes' : 'NO — device reports offline!') + '\n' +
+    'Connection: ' + (navigator.connection?.effectiveType || 'unknown') + '\n' +
+    'User Agent: ' + ua,
+    standalone ? 'warn' : 'ok'
+  );
+}
+</script>
+</body>
+</html>
